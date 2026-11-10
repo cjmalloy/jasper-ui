@@ -751,17 +751,25 @@ describe('aiQueryPlugin', () => {
     }));
   });
 
-  it('does not send images or generate them when overridden off', async () => {
+  it('skips images for models without vision', async () => {
     const create = vi.fn().mockResolvedValueOnce(openAiAnswer);
 
-    const { axios, bundle } = await runMedia({ provider: 'openai', model: 'gpt-5.6-sol', imageInput: false, imageOutput: false }, create);
+    const { axios, bundle } = await runMedia({ provider: 'x', model: 'grok-2' }, create);
 
     expect(axios.get).not.toHaveBeenCalledWith('http://jasper.test/pub/api/v1/repl/cache', expect.anything());
     expect(imageParts(create.mock.calls[0])).toHaveLength(0);
-    expect(create.mock.calls[0][0].tools).toBeUndefined();
     expect(bundle.ref).toContainEqual(expect.objectContaining({
-      comment: 'openai (gpt-5.6-sol) does not support plugin/image input.',
+      comment: 'x (grok-2) does not support plugin/image input.',
     }));
+  });
+
+  it('sends images when vision is on', async () => {
+    const create = vi.fn().mockResolvedValueOnce(openAiAnswer);
+
+    const { bundle } = await runMedia({ provider: 'x', model: 'grok-2', vision: true }, create);
+
+    expect(imageParts(create.mock.calls[0])).toHaveLength(1);
+    expect(bundle.ref).not.toContainEqual(expect.objectContaining({ title: 'AI media ingestion' }));
   });
 
   it('does not offer image generation to OpenAI audio models', async () => {

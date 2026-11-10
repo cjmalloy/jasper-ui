@@ -229,7 +229,7 @@ const providers = {
       config.maxTokens ||= 64_000;
       config.thinking = true;
       config.pdf = true;
-      config.image = !/^grok-[1-3]([.-]|$)/.test(config.model) || /vision/.test(config.model);
+      config.image = config.vision || !/^grok-[1-3]([.-]|$)/.test(config.model) || /vision/.test(config.model);
       config.audio = false;
       config.video = false;
     },
@@ -291,7 +291,7 @@ const providers = {
       config.maxTokens ||= 64_000;
       config.thinking = false;
       config.pdf = false;
-      config.image = ['muse-wonder-1.0', 'muse-spark-1.3'].includes(config.model);
+      config.image = config.vision || ['muse-wonder-1.0', 'muse-spark-1.3'].includes(config.model);
       config.audio = false;
       config.video = false;
     },
@@ -504,7 +504,7 @@ const providers = {
   },
   gemini: {
     init(config) {
-      config.model ||= 'gemini-4-argon';
+      config.model ||= 'gemini-4-carbon';
       config.imageGeneration = /-image(-|$)|nano-banana/.test(config.model);
       // Unsupported media input is retried without media
       config.pdf = !/tts|embedding/.test(config.model);
@@ -619,10 +619,6 @@ const providers = {
 };
 const provider = providers[config.provider ||= DEFAULT_PROVIDER];
 provider.init(config);
-const overrides = { imageInput: 'image', pdfInput: 'pdf', imageOutput: 'imageGeneration', urlContext: 'embed' };
-for (const [key, flag] of Object.entries(overrides)) {
-  if (typeof config[key] === 'boolean') config[flag] = config[key];
-}
 const apiKeyTag = config.apiKeyTag ||= ('+plugin/secret/' + config.provider);
 if (!/^[_+][a-z0-9]+([./][a-z0-9]+)*$/.test(apiKeyTag)) throw new Error('API key tag must be protected or private: ' + apiKeyTag);
 if (apiKeyTag.startsWith('_')) {
@@ -1174,54 +1170,6 @@ export const llmPlugin: Plugin = {
         label: $localize`Model:`,
       },
     }, {
-      key: 'imageInput',
-      type: 'select',
-      props: {
-        label: $localize`Image Input:`,
-        title: $localize`Send images to the model. Auto sends them and retries without them if the model rejects them.`,
-        placeholder: $localize`Auto`,
-        options: [
-          { value: true, label: $localize`On` },
-          { value: false, label: $localize`Off` },
-        ],
-      },
-    }, {
-      key: 'pdfInput',
-      type: 'select',
-      props: {
-        label: $localize`PDF Input:`,
-        title: $localize`Send PDFs to the model. Auto sends them when the provider supports PDFs.`,
-        placeholder: $localize`Auto`,
-        options: [
-          { value: true, label: $localize`On` },
-          { value: false, label: $localize`Off` },
-        ],
-      },
-    }, {
-      key: 'imageOutput',
-      type: 'select',
-      props: {
-        label: $localize`Image Output:`,
-        title: $localize`Allow the model to generate images. Auto enables it for models known to support it.`,
-        placeholder: $localize`Auto`,
-        options: [
-          { value: true, label: $localize`On` },
-          { value: false, label: $localize`Off` },
-        ],
-      },
-    }, {
-      key: 'urlContext',
-      type: 'select',
-      props: {
-        label: $localize`URL Context:`,
-        title: $localize`Allow the model to read linked URLs. Auto enables it for models known to support it.`,
-        placeholder: $localize`Auto`,
-        options: [
-          { value: true, label: $localize`On` },
-          { value: false, label: $localize`Off` },
-        ],
-      },
-    }, {
       key: 'systemPrompt',
       type: 'textarea',
       props: {
@@ -1285,10 +1233,6 @@ export const llmPlugin: Plugin = {
       bundle: { type: 'boolean' },
       audio: { type: 'boolean' },
       vision: { type: 'boolean' },
-      imageInput: { type: 'boolean' },
-      pdfInput: { type: 'boolean' },
-      imageOutput: { type: 'boolean' },
-      urlContext: { type: 'boolean' },
       maxTokens: { type: 'uint32' },
       thinking: { type: 'boolean' },
       thinkingTokens: { type: 'uint32' },

@@ -7,7 +7,7 @@
 //   npm i --prefix /tmp/ai-eval openai @anthropic-ai/sdk @google/genai
 // Then run from the repo root:
 //   OPENAI_API_KEY=... GEMINI_API_KEY=... node scripts/ai-eval.mjs --modules /tmp/ai-eval \
-//     openai:gpt-5.6-sol openai:gpt-6.1-sol anthropic:claude-opus-5-5 gemini:gemini-4-argon
+//     openai:gpt-5.6-sol openai:gpt-6.1-sol anthropic:claude-opus-5-5 gemini:gemini-4-carbon gemini:gemini-4-argon
 //
 // API keys are read from <PROVIDER>_API_KEY (OPENAI, ANTHROPIC, X, GEMINI, META, DS, NOUS).
 // Pick cases with --cases text,image,json,generate (default: all).
