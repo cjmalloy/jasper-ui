@@ -120,12 +120,12 @@ export class FormlyFieldLocation extends FieldType<FieldTypeConfig> {
   private readonly coords = controlValue<number[]>(() => this.formControl);
   private readonly cleanup = inject(DestroyRef).onDestroy(() => this.picker.removed(this.formControl));
 
-  readonly lng = computed<number>(() => {
-    return this.coords()?.[0] ?? 0;
+  readonly lng = computed<number | null>(() => {
+    return this.coords()?.[0] ?? null;
   });
 
-  readonly lat = computed<number>(() => {
-    return this.coords()?.[1] ?? 0;
+  readonly lat = computed<number | null>(() => {
+    return this.coords()?.[1] ?? null;
   });
 
   private readonly init = afterNextRender(() => {
@@ -151,14 +151,14 @@ export class FormlyFieldLocation extends FieldType<FieldTypeConfig> {
   setLng(value: string) {
     const lng = parseFloat(value);
     if (!isNaN(lng)) {
-      this.setLocation([lng, this.lat()]);
+      this.setLocation([lng, this.lat() ?? 0]);
     }
   }
 
   setLat(value: string) {
     const lat = parseFloat(value);
     if (!isNaN(lat)) {
-      this.setLocation([this.lng(), lat]);
+      this.setLocation([this.lng() ?? 0, lat]);
     }
   }
 

@@ -1,9 +1,11 @@
 /// <reference types="vitest/globals" />
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
+import { FormlyFieldConfig, FormlyForm } from '@ngx-formly/core';
 import { DurationInputAccessor, durationIndex, DurationOption, durationSeconds, FormlyFieldDuration, toDuration } from './duration.type';
+import { provideJasperFormly } from './formly.config';
 
 const datalist: DurationOption[] = [
   { value: 'PT0.0000005S', label: 'Unlimited' },
@@ -67,5 +69,55 @@ describe('FormlyFieldDuration', () => {
     input.value = '1';
     input.dispatchEvent(new Event('input'));
     expect(fixture.componentInstance.control.value).toBe('PT0.1S');
+  });
+
+  it('picks the first stop when clicked without a value', () => {
+    const fixture = TestBed.createComponent(HostComponent);
+    fixture.componentInstance.control.setValue(undefined as any);
+    fixture.detectChanges();
+    const input: HTMLInputElement = fixture.debugElement.query(By.css('input')).nativeElement;
+    expect(input.value).toBe('0');
+    expect(fixture.componentInstance.control.value).toBeUndefined();
+
+    input.dispatchEvent(new Event('click'));
+    expect(fixture.componentInstance.control.value).toBe('PT0.0000005S');
+
+    fixture.componentInstance.control.setValue('PT1M');
+    input.value = '0';
+    input.dispatchEvent(new Event('click'));
+    expect(fixture.componentInstance.control.value).toBe('PT1M');
+  });
+});
+
+@Component({
+  template: `<formly-form [form]="form" [model]="model" [fields]="fields" />`,
+  imports: [FormlyForm],
+})
+class FormlyHost {
+  form = new FormGroup({});
+  model: any = {};
+  fields: FormlyFieldConfig[] = [];
+}
+
+describe('FormlyFieldDuration label', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({ providers: [provideJasperFormly()] });
+  });
+
+  async function label(field: FormlyFieldConfig, model: any = {}) {
+    const fixture = TestBed.createComponent(FormlyHost);
+    fixture.componentInstance.fields = [field];
+    fixture.componentInstance.model = model;
+    await fixture.whenStable();
+    return (fixture.nativeElement as HTMLElement).querySelector('.duration-label')!.textContent!.trim();
+  }
+
+  it('shows the value', async () => {
+    expect(await label({ key: 'd', type: 'duration' }, { d: 'PT1M' })).toBe('1 min');
+  });
+
+  it('shows a placeholder without a value', async () => {
+    expect(await label({ key: 'd', type: 'duration' })).toBe('Not set');
+    expect(await label({ key: 'd', type: 'duration', props: { placeholder: 'Default' } })).toBe('Default');
   });
 });

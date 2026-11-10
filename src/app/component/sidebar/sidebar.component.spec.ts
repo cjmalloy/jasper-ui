@@ -41,6 +41,8 @@ describe('SidebarComponent', () => {
       { tag: '_plugin/secret', name: 'Private Secret', config: { submit: 'private secret', genId: true, internal: true, inputTags: ['_plugin,+plugin/secret/<Name>'] } },
     ]);
 
+    // The settings tab Ext is the +plugin/secret Plugin
+    vi.spyOn(component, 'rootConfig').mockReturnValue({ inputTags: ['+plugin,_plugin/secret/<Name>'] });
     const submits = component.pluginSubmits();
     expect(submits.map(s => s.label)).toEqual(['secret', 'private secret']);
     expect(submits.map(s => s.link)).toEqual(['/submit/text', '/submit/text']);
@@ -55,6 +57,31 @@ describe('SidebarComponent', () => {
       expect((s.params as any).url).toMatch(/^internal:/);
     }
     expect((submits[0].params as any).url).not.toBe((submits[1].params as any).url);
+  });
+
+  it('should submit with the Ext stencils', () => {
+    vi.spyOn(TestBed.inject(AuthzService), 'canAddTag').mockReturnValue(true);
+    vi.spyOn(component, 'rootConfig').mockReturnValue({ addTags: ['public', 'car'], inputTags: ['car/<Make>/<Model>'] });
+    fixture.componentRef.setInput('tag', 'car');
+
+    expect(component.submitInputTags()).toEqual(['car/<Make>/<Model>']);
+    const params = component.submitTextParams() as any;
+    expect(params.inputTag).toEqual(['car/<Make>/<Model>']);
+    expect(params.tag).toContain('public');
+    expect(params.tag).not.toContain('car');
+  });
+
+  it('should submit with the Ext hierarchical stencils', () => {
+    vi.spyOn(TestBed.inject(AuthzService), 'canAddTag').mockReturnValue(true);
+    vi.spyOn(component, 'rootConfig').mockReturnValue({ addTags: ['public', 'car'], hierarchicalTags: ['car/<Make>/<Model>'] });
+    fixture.componentRef.setInput('tag', 'car');
+
+    expect(component.submitInputTags()).toEqual(['car/<Make>/<Model>']);
+    const params = component.submitTextParams() as any;
+    expect(params.hierarchicalTag).toEqual(['car/<Make>/<Model>']);
+    expect(params.inputTag).toBeUndefined();
+    expect(params.tag).toContain('public');
+    expect(params.tag).not.toContain('car');
   });
 
   it('should not split the submit button for a single plugin', () => {

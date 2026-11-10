@@ -3966,6 +3966,30 @@ Refのみが削除されたファイルはまだ回復できますが、この�
         <source>Add Tags:</source>
         <target>タグを追加:</target>
       </trans-unit>
+      <trans-unit id="4453545636748616964" datatype="html">
+        <source>Stencils:</source>
+        <target>ステンシル:</target>
+      </trans-unit>
+      <trans-unit id="5938337829008576191" datatype="html">
+        <source>+ Add another stencil</source>
+        <target>+ ステンシルを追加</target>
+      </trans-unit>
+      <trans-unit id="5786238445551029096" datatype="html">
+        <source>Hierarchical Stencils:</source>
+        <target>階層ステンシル:</target>
+      </trans-unit>
+      <trans-unit id="5910815838179386491" datatype="html">
+        <source>+ Add another hierarchical stencil</source>
+        <target>+ 階層ステンシルを追加</target>
+      </trans-unit>
+      <trans-unit id="3752688656697761926" datatype="html">
+        <source>Submit with one line per &lt;Placeholder&gt;, filled out top down, adding the tag up to each line</source>
+        <target>&lt;Placeholder&gt; ごとに1行を表示し、上から順に入力して、各行までのタグを追加して投稿します</target>
+      </trans-unit>
+      <trans-unit id="6025818215204822960" datatype="html">
+        <source>Submit with an input for each &lt;Placeholder&gt;</source>
+        <target>&lt;Placeholder&gt; ごとに入力欄を表示して投稿します</target>
+      </trans-unit>
       <trans-unit id="9011317583858638540" datatype="html">
         <source>Stream Updates:</source>
         <target>ストリームアップデート:</target>
@@ -8587,8 +8611,13 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Must be lower case letters, numbers and periods.</source>
         <target>小文字、数字、ピリオドのみ使用できます。</target>
       </trans-unit>
-      <trans-unit id="1832879454397489615" datatype="html">
-        <source>car/&lt;Make&gt;/&lt;Model&gt;</source>
+      <trans-unit id="3274325599959476872" datatype="html">
+        <source>prefix/&lt;Label&gt;</source>
+        <target>prefix/&lt;ラベル&gt;</target>
+      </trans-unit>
+      <trans-unit id="1582708538936083791" datatype="html">
+        <source>prefix/&lt;Category&gt;/&lt;Value&gt;</source>
+        <target>prefix/&lt;カテゴリ&gt;/&lt;値&gt;</target>
       </trans-unit>
       <trans-unit id="6528912154811772415" datatype="html">
         <source>A tag with an input for each &lt;Placeholder&gt;. Commas in the first part make a dropdown, such as +plugin,_plugin/secret/&lt;Name&gt;.</source>
@@ -8601,6 +8630,269 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="8840003756252838733" datatype="html">
         <source>One labelled line per placeholder, filled out top down. The value is the tag up to each line.</source>
         <target>プレースホルダーごとにラベル付きの行があり、上から順に入力します。値は各行までのタグです。</target>
+      </trans-unit>
+      <trans-unit id="1394257098790257991" datatype="html">
+        <source>Min:</source>
+        <target>最小:</target>
+      </trans-unit>
+      <trans-unit id="2085611136494552870" datatype="html">
+        <source>Not set</source>
+        <target>未設定</target>
+      </trans-unit>
+      <trans-unit id="2605427640546168280" datatype="html">
+        <source>Prefix:</source>
+        <target>プレフィックス:</target>
+      </trans-unit>
+      <trans-unit id="2813559912361958916" datatype="html">
+        <source>Step:</source>
+        <target>ステップ:</target>
+      </trans-unit>
+      <trans-unit id="2962299084472175819" datatype="html">
+        <source>Values:</source>
+        <target>値:</target>
+      </trans-unit>
+      <trans-unit id="3381412717703555378" datatype="html">
+        <source>Object</source>
+        <target>オブジェクト</target>
+      </trans-unit>
+      <trans-unit id="3579205080796663296" datatype="html">
+        <source>Language:</source>
+        <target>言語:</target>
+      </trans-unit>
+      <trans-unit id="427843987492660980" datatype="html">
+        <source>Array</source>
+        <target>配列</target>
+      </trans-unit>
+      <trans-unit id="4340849878884838783" datatype="html">
+        <source>Multiple:</source>
+        <target>複数選択:</target>
+      </trans-unit>
+      <trans-unit id="4573042700701896541" datatype="html">
+        <source>Query used to filter suggestions.</source>
+        <target>候補を絞り込むためのクエリ。</target>
+      </trans-unit>
+      <trans-unit id="4591401429496945875" datatype="html">
+        <source>Rows:</source>
+        <target>行数:</target>
+      </trans-unit>
+      <trans-unit id="4642771299783711633" datatype="html">
+        <source>Max:</source>
+        <target>最大:</target>
+      </trans-unit>
+      <trans-unit id="8514241760432498694" datatype="html">
+        <source>Pick a location.</source>
+        <target>場所を選択してください。</target>
+      </trans-unit>
+      <trans-unit id="1379983646843653338" datatype="html">
+        <source>Qualified Users</source>
+        <target>修飾ユーザー</target>
+      </trans-unit>
+      <trans-unit id="1386306711019304612" datatype="html">
+        <source>Input</source>
+        <target>入力</target>
+      </trans-unit>
+      <trans-unit id="1781961743200557008" datatype="html">
+        <source>Origin Selector</source>
+        <target>オリジンセレクター</target>
+      </trans-unit>
+      <trans-unit id="1792806198663410166" datatype="html">
+        <source>Bookmarks</source>
+        <target>ブックマーク</target>
+      </trans-unit>
+      <trans-unit id="2441730191018504834" datatype="html">
+        <source>Numbers</source>
+        <target>数値</target>
+      </trans-unit>
+      <trans-unit id="2719461671770994860" datatype="html">
+        <source>Tag or Origin Selector</source>
+        <target>タグまたはオリジンセレクター</target>
+      </trans-unit>
+      <trans-unit id="2756082335905089615" datatype="html">
+        <source>Qualified User</source>
+        <target>修飾ユーザー</target>
+      </trans-unit>
+      <trans-unit id="2883859734114302285" datatype="html">
+        <source>URLs</source>
+        <target>URL一覧</target>
+      </trans-unit>
+      <trans-unit id="289341251890660084" datatype="html">
+        <source>Checkbox</source>
+        <target>チェックボックス</target>
+      </trans-unit>
+      <trans-unit id="3396362043892408769" datatype="html">
+        <source>Bounding Box</source>
+        <target>境界ボックス</target>
+      </trans-unit>
+      <trans-unit id="3408398906341147914" datatype="html">
+        <source>Text Area</source>
+        <target>テキストエリア</target>
+      </trans-unit>
+      <trans-unit id="362956598863566327" datatype="html">
+        <source>Integer</source>
+        <target>整数</target>
+      </trans-unit>
+      <trans-unit id="4262366266532478600" datatype="html">
+        <source>Map Style</source>
+        <target>地図スタイル</target>
+      </trans-unit>
+      <trans-unit id="4521182438080189531" datatype="html">
+        <source>Tag or Origin Selectors</source>
+        <target>タグまたはオリジンセレクター一覧</target>
+      </trans-unit>
+      <trans-unit id="4562362040556606648" datatype="html">
+        <source>Plugin</source>
+        <target>プラグイン</target>
+      </trans-unit>
+      <trans-unit id="4689708065733294413" datatype="html">
+        <source>Features (Points, Lines, Polygons)</source>
+        <target>フィーチャー（点・線・ポリゴン）</target>
+      </trans-unit>
+      <trans-unit id="471816275243265264" datatype="html">
+        <source>Location</source>
+        <target>位置</target>
+      </trans-unit>
+      <trans-unit id="4768749765465246664" datatype="html">
+        <source>Email</source>
+        <target>メール</target>
+      </trans-unit>
+      <trans-unit id="4896597844967485970" datatype="html">
+        <source>Stencil</source>
+        <target>ステンシル</target>
+      </trans-unit>
+      <trans-unit id="5019641724318375980" datatype="html">
+        <source>Origin Selectors</source>
+        <target>オリジンセレクター一覧</target>
+      </trans-unit>
+      <trans-unit id="5141352019990967744" datatype="html">
+        <source>Week</source>
+        <target>週</target>
+      </trans-unit>
+      <trans-unit id="5403684285319082289" datatype="html">
+        <source>Month</source>
+        <target>月</target>
+      </trans-unit>
+      <trans-unit id="5610425955750546094" datatype="html">
+        <source>Template</source>
+        <target>テンプレート</target>
+      </trans-unit>
+      <trans-unit id="5813867925497374051" datatype="html">
+        <source>Map</source>
+        <target>地図</target>
+      </trans-unit>
+      <trans-unit id="5997535699192100715" datatype="html">
+        <source>Qualified Tags</source>
+        <target>修飾タグ一覧</target>
+      </trans-unit>
+      <trans-unit id="6049604587028338998" datatype="html">
+        <source>Tag Selector</source>
+        <target>タグセレクター</target>
+      </trans-unit>
+      <trans-unit id="6361539922452205636" datatype="html">
+        <source>Enum</source>
+        <target>列挙</target>
+      </trans-unit>
+      <trans-unit id="6437441283465569103" datatype="html">
+        <source>PDF</source>
+      </trans-unit>
+      <trans-unit id="6549265851868599441" datatype="html">
+        <source>Video</source>
+        <target>動画</target>
+      </trans-unit>
+      <trans-unit id="6575185929467550326" datatype="html">
+        <source>Dropdown</source>
+        <target>ドロップダウン</target>
+      </trans-unit>
+      <trans-unit id="6613897755697953443" datatype="html">
+        <source>Slider</source>
+        <target>スライダー</target>
+      </trans-unit>
+      <trans-unit id="66785722678644243" datatype="html">
+        <source>Origin</source>
+        <target>オリジン</target>
+      </trans-unit>
+      <trans-unit id="6901383677236314798" datatype="html">
+        <source>Users and Origins</source>
+        <target>ユーザーとオリジン</target>
+      </trans-unit>
+      <trans-unit id="6907807228975360219" datatype="html">
+        <source>Form</source>
+        <target>フォーム</target>
+      </trans-unit>
+      <trans-unit id="6910078656226990536" datatype="html">
+        <source>Choices</source>
+        <target>選択肢</target>
+      </trans-unit>
+      <trans-unit id="6922994998696471598" datatype="html">
+        <source>Queries</source>
+        <target>クエリ一覧</target>
+      </trans-unit>
+      <trans-unit id="6940867002608066317" datatype="html">
+        <source>Markdown Editor</source>
+        <target>Markdownエディター</target>
+      </trans-unit>
+      <trans-unit id="7135485107663576737" datatype="html">
+        <source>Checkboxes</source>
+        <target>チェックボックス一覧</target>
+      </trans-unit>
+      <trans-unit id="727489975724840781" datatype="html">
+        <source>Tag Selectors</source>
+        <target>タグセレクター一覧</target>
+      </trans-unit>
+      <trans-unit id="7410432243549869948" datatype="html">
+        <source>Duration</source>
+        <target>期間</target>
+      </trans-unit>
+      <trans-unit id="7565716024468232322" datatype="html">
+        <source>Links</source>
+        <target>リンク</target>
+      </trans-unit>
+      <trans-unit id="8143711346390452610" datatype="html">
+        <source>Date and Time</source>
+        <target>日時</target>
+      </trans-unit>
+      <trans-unit id="8194554728555410336" datatype="html">
+        <source>Phone Number</source>
+        <target>電話番号</target>
+      </trans-unit>
+      <trans-unit id="8497528947328199741" datatype="html">
+        <source>Time</source>
+        <target>時刻</target>
+      </trans-unit>
+      <trans-unit id="8586310578890129763" datatype="html">
+        <source>QR Code</source>
+        <target>QRコード</target>
+      </trans-unit>
+      <trans-unit id="8587987021620498968" datatype="html">
+        <source>Ref</source>
+        <target>Ref</target>
+      </trans-unit>
+      <trans-unit id="8631502410510107835" datatype="html">
+        <source>Bookmark</source>
+        <target>ブックマーク</target>
+      </trans-unit>
+      <trans-unit id="8693603235657020323" datatype="html">
+        <source>Other</source>
+        <target>その他</target>
+      </trans-unit>
+      <trans-unit id="8797845567973460559" datatype="html">
+        <source>Radio Buttons</source>
+        <target>ラジオボタン</target>
+      </trans-unit>
+      <trans-unit id="8928603298214039519" datatype="html">
+        <source>Qualified Tag</source>
+        <target>修飾タグ</target>
+      </trans-unit>
+      <trans-unit id="9011959596901584887" datatype="html">
+        <source>Color</source>
+        <target>色</target>
+      </trans-unit>
+      <trans-unit id="3568790342632384571" datatype="html">
+        <source>Installing default mods...</source>
+        <target>デフォルトのModをインストールしています...</target>
+      </trans-unit>
+      <trans-unit id="6971496217366946567" datatype="html">
+        <source>📦️ Install Defaults</source>
+        <target>📦️ デフォルトをインストール</target>
       </trans-unit>
     </body>
   </file>
