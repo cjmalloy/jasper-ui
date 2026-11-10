@@ -8613,11 +8613,11 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="3274325599959476872" datatype="html">
         <source>prefix/&lt;Label&gt;</source>
-        <target>settouji/&lt;ラベル&gt;</target>
+        <target>prefix/&lt;ラベル&gt;</target>
       </trans-unit>
       <trans-unit id="1582708538936083791" datatype="html">
         <source>prefix/&lt;Category&gt;/&lt;Value&gt;</source>
-        <target>settouji/&lt;カテゴリ&gt;/&lt;値&gt;</target>
+        <target>prefix/&lt;カテゴリ&gt;/&lt;値&gt;</target>
       </trans-unit>
       <trans-unit id="6528912154811772415" datatype="html">
         <source>A tag with an input for each &lt;Placeholder&gt;. Commas in the first part make a dropdown, such as +plugin,_plugin/secret/&lt;Name&gt;.</source>
