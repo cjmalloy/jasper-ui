@@ -315,12 +315,18 @@ export class AdminService {
 
   /**
    * Install the default mods in the background and publish the operation as {@link ready$}.
-   * Unsubscribing does not cancel the install. The returned observable errors if the install fails,
-   * while {@link ready$} always completes once the install and reload have finished.
+   * Unsubscribing does not cancel the install. If the install fails, the persisted mods are reloaded
+   * before the returned observable rethrows the original error. {@link ready$} always completes once
+   * the install and reload have finished.
    */
   installDefaultsAndReload$(): Observable<any> {
     this.installingDefaults.set(true);
     const install$ = this.installDefaults$().pipe(
+      catchError(err => this.init$.pipe(
+        catchError(() => of(null)),
+        last(null, null),
+        switchMap(() => throwError(() => err)),
+      )),
       finalize(() => this.installingDefaults.set(false)),
       shareReplay(1),
     );

@@ -113,6 +113,8 @@ describe('AdminService', () => {
   it('should publish the default install as ready$ so reopened pages wait for it', () => {
     const done = new Subject<any>();
     vi.spyOn(service, 'installDefaults$').mockReturnValue(done);
+    const reloaded = new Subject<any>();
+    const init = vi.spyOn(service, 'init$', 'get').mockReturnValue(reloaded);
     const failed = vi.fn();
     service.installDefaultsAndReload$().pipe(catchError(err => { failed(err); return of(null); })).subscribe();
     expect(service.installingDefaults()).toBe(true);
@@ -120,6 +122,12 @@ describe('AdminService', () => {
     service.ready$.subscribe(ready);
     expect(ready).not.toHaveBeenCalled();
     done.error('offline');
+    expect(init).toHaveBeenCalledTimes(1);
+    expect(failed).not.toHaveBeenCalled();
+    expect(ready).not.toHaveBeenCalled();
+    expect(service.installingDefaults()).toBe(true);
+    reloaded.next(null);
+    reloaded.complete();
     expect(failed).toHaveBeenCalledWith('offline');
     expect(ready).toHaveBeenCalledTimes(1);
     expect(service.installingDefaults()).toBe(false);
