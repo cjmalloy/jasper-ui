@@ -1,8 +1,8 @@
 <form class="form" [formGroup]="originForm">
   <span></span>
-  <h2>Backup & Restore</h2>
+  <h2 i18n>Backup &amp; Restore</h2>
 
-  <label>Origin:</label>
+  <label i18n>Origin:</label>
   <select #originSelect
           formControlName="origin"
           [value]="origin()"
@@ -15,7 +15,7 @@
     }
   </select>
 
-  <label>Older than:</label>
+  <label i18n>Older than:</label>
   <input type="datetime-local" step="1" formControlName="olderThan">
 
   <span><!-- Buttons --></span>

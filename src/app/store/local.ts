@@ -170,7 +170,7 @@ export class LocalStore {
         results.push({
           key: tag,
           tag: cacheKeyToTag(tag),
-          value: 'cached'
+          value: $localize`cached`
         });
       }
     }

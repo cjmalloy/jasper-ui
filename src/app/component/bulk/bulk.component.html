@@ -35,7 +35,7 @@
         <app-inline-plugin [action]="plugin$"
                            [plugin]="f"
                            [value]="defaults()"
-                           [appTitle]="f">{{ f.tag.substring('plugin/'.length) }}</app-inline-plugin>
+                           [appTitle]="f">{{ f.name || f.tag.substring('plugin/'.length) }}</app-inline-plugin>
       }
       @for (a of groupedActions() | keyvalue; track a.key) {
         @if (a.value[0].confirm; as message) {

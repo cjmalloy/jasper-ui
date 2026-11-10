@@ -270,7 +270,7 @@ export class ExtComponent implements HasChanges {
         if (err.status === 409) {
           return this.exts.get(this.qualifiedTag()).pipe(
             switchMap(ext => {
-              if (equalsExt(ext, copied) || confirm('An old version already exists. Overwrite it?')) {
+              if (equalsExt(ext, copied) || confirm($localize`An old version already exists. Overwrite it?`)) {
                 // TODO: Show diff and merge or split
                 return this.exts.update(copied);
               } else {

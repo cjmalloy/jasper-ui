@@ -4,7 +4,7 @@
      (dragover)="dragOver($event)"
      (drop)="upload($event, $event.dataTransfer?.items)">
   @if (store.offline()) {
-    <div class="offline-banner">📴️ Offline</div>
+    <div class="offline-banner" i18n>📴️ Offline</div>
   } @else {
     <app-login-popup />
   }
@@ -14,7 +14,7 @@
   }
   <router-outlet />
   @if (store.account.banned) {
-    <div class="ban-message">
+    <div class="ban-message" i18n>
       You have been banned.
     </div>
   }
@@ -33,7 +33,7 @@
           @for (msg of store.eventBus.progressMessages(); track msg) {
             <div>{{ msg }}</div>
           }
-          <button type="button" (click)="store.eventBus.clearProgress()">clear</button>
+          <button type="button" (click)="store.eventBus.clearProgress()" i18n>clear</button>
         </div>
       }
     </div>

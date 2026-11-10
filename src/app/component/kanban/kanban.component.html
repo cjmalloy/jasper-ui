@@ -42,7 +42,7 @@
       @if (showColumnBacklog()) {
         <a class="column-title tag"
            (click)="bookmarks.toggleQuery(store.hotkey() ? '!(' + colBacklog() + ')' : colBacklog())"
-           title="No matching column tag"><span class="filter-toggle">{{ kanbanConfig().columnBacklogTitle || 'Backlog' }}</span></a>
+           title="No matching column tag" i18n-title><span class="filter-toggle">{{ kanbanConfig().columnBacklogTitle || 'Backlog' }}</span></a>
       }
       @for (col of columns(); track col) {
         <a class="column-title tag"
@@ -88,7 +88,7 @@
         @if (showSwimLaneBacklog()) {
           <a class="swim-lane-title tag"
              (click)="bookmarks.toggleQuery(store.hotkey() ? '!(' + slBacklog() + ')' : slBacklog())"
-             title="No matching swim lane"><span class="filter-toggle">{{ kanbanConfig().swimLaneBacklogTitle || 'Backlog' }}</span></a>
+             title="No matching swim lane" i18n-title><span class="filter-toggle">{{ kanbanConfig().swimLaneBacklogTitle || 'Backlog' }}</span></a>
           @if (showColumnBacklog()) {
             <app-kanban-column cdkDropList
                                cdkScrollable

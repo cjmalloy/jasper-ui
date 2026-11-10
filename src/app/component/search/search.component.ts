@@ -63,6 +63,7 @@ export class SearchComponent {
       case 'query': return $localize`query results`;
       case 'home': return this.store.account.signedIn() ? $localize`subscriptions` : $localize`home page`;
       case 'all': return $localize`all`;
+      case 'tags': return $localize`tags`;
       case 'local': return $localize`local`;
       case 'inbox/all': return $localize`my inbox`;
       case 'inbox/sent': return $localize`sent by me`;

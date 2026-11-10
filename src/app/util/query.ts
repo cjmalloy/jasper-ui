@@ -211,6 +211,23 @@ export function filterTags(filter: string): string[] {
   return v ? columnTags(v.column) : [];
 }
 
+function baseColumnLabel(column: string): string | undefined {
+  switch (column) {
+    case 'created': return $localize`created`;
+    case 'modified': return $localize`modified`;
+    case 'published': return $localize`published`;
+    case 'url': return $localize`url`;
+    case 'origin': return $localize`origin`;
+    case 'title': return $localize`title`;
+    case 'comment': return $localize`comment`;
+    case 'scheme': return $localize`scheme`;
+    case 'tag': return $localize`tag`;
+    case 'name': return $localize`name`;
+    case 'tags:len': return $localize`tag count`;
+  }
+  return undefined;
+}
+
 /**
  * Readable label for a sort or filter column that may not be in any mod.
  * Uses the label of a known sort for the same column, or names the tag the column reads.
@@ -220,7 +237,7 @@ export function columnLabel(column: string, name: TagName = () => undefined, kno
   if (label) return label;
   const tagLabel = (tag: string) => name(tag) || '#' + tag;
   const tag = columnTags(column)[0];
-  if (!tag) return column;
+  if (!tag) return baseColumnLabel(column) || column;
   if (column.startsWith('tags->')) return tagLabel(tag);
   if (column.startsWith('metadata->plugins->')) return $localize`${tagLabel(tag)} responses`;
   if (column.startsWith('metadata->remotePlugins->')) return $localize`${tagLabel(tag)} remote responses`;

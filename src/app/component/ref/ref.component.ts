@@ -1343,7 +1343,7 @@ export class RefComponent implements HasChanges {
         if (err.status === 409) {
           return this.refs.get(this.ref().url, this.store.account.origin()).pipe(
             switchMap(existing => {
-              if (equalsRef(existing, copied) || confirm('An old version already exists. Overwrite it?')) {
+              if (equalsRef(existing, copied) || confirm($localize`An old version already exists. Overwrite it?`)) {
                 return this.refs.update({ ...copied, modifiedString: existing.modifiedString });
               } else {
                 return throwError(() => 'Cancelled');
@@ -1447,7 +1447,7 @@ export class RefComponent implements HasChanges {
                 if (err.status === 409) {
                   return this.refs.get(ref.url, this.store.account.origin()).pipe(
                     switchMap(existing => {
-                      if (+existing.modified! === +ref.modified! || equalsRef(existing, ref) || confirm('An old version already exists. Overwrite it?')) {
+                      if (+existing.modified! === +ref.modified! || equalsRef(existing, ref) || confirm($localize`An old version already exists. Overwrite it?`)) {
                         // TODO: Show diff and merge or split
                         return this.refs.update({ ...ref, modifiedString: existing.modifiedString });
                       } else {
