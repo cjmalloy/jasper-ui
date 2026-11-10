@@ -177,6 +177,11 @@ describe('EmbedService', () => {
         expect(parse('![](comment:x)').querySelector<HTMLElement>('.inline-embed')!.title).toBe('');
       });
 
+      it('uses plain text from custom syntax in image alt text', () => {
+        expect(parse('![#science +user/alice [[Page]] ^up][i]\n\n[i]: https://example.com/a.png').querySelector('img')!.alt).toBe('#science +user/alice Page up');
+        expect(parse('![#science ^up][i]\n\n[i]: /ref/x').querySelector<HTMLElement>('.inline-embed')!.title).toBe('#science up');
+      });
+
       it('keeps hard breaks and drops formatting in image alt text', () => {
         expect(parse('![foo\\\nbar][i]\n\n[i]: https://example.com/a.png').querySelector('img')!.alt).toBe('foo\nbar');
         expect(parse('![**bold** `<code>`][i]\n\n[i]: https://example.com/a.png').querySelector('img')!.alt).toBe('bold <code>');

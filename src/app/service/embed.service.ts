@@ -27,6 +27,7 @@ import {
   markLinkToggles,
   mediaToPlaceholders,
   mermaidHydrator,
+  plainText,
   prismHydrator,
   removeToggleLabels,
   sanitizeMarkdown,
@@ -136,7 +137,7 @@ export class EmbedService {
         table     : sourceMap('table'),
         tablerow  : sourceMap('tablerow'),
         image({href, title, text, tokens}: Tokens.Image): string {
-          if (tokens) text = this.parser.parseInline(tokens, this.parser.textRenderer);
+          if (tokens) text = plainText(tokens);
           text = escapeHtml(text);
           const cleanHref = cleanUrl(href);
           if (cleanHref === null) {

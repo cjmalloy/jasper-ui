@@ -27,6 +27,14 @@ export function escapeHtml(text: string) {
   return text.replace(/[<>"']|&(?!(#\d{1,7}|#[Xx][a-fA-F0-9]{1,6}|\w+);)/g, c => HTML_ESCAPES[c]);
 }
 
+/**
+ * Plain text of inline tokens, like marked's TextRenderer, but without calling
+ * extension renderers, which marked runs even when given a TextRenderer.
+ */
+export function plainText(tokens: any[]): string {
+  return tokens.map(t => t.type === 'br' ? '\n' : t.tokens?.length ? plainText(t.tokens) : t.text ?? t.raw ?? '').join('');
+}
+
 export interface SrcsetCandidate {
   url: string;
   descriptor: string;

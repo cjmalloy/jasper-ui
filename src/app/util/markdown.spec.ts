@@ -11,11 +11,23 @@ import {
   mdBlocks,
   mediaToPlaceholders,
   parseSrcset,
+  plainText,
   sanitizeMarkdown,
   wrapTables
 } from './markdown';
 
 describe('markdown util', () => {
+  describe('plainText', () => {
+    it('joins nested token text without rendering', () => {
+      expect(plainText([
+        { type: 'strong', raw: '**a**', text: 'a', tokens: [{ type: 'text', raw: 'a', text: 'a' }] },
+        { type: 'br', raw: '\\\n' },
+        { type: 'hashTag', raw: '#b', text: '#b', tokens: [] },
+        { type: 'preserveMath', raw: '$c$', tokens: [] },
+      ])).toBe('a\n#b$c$');
+    });
+  });
+
   describe('escapeHtml', () => {
     it('escapes markup and quotes', () => {
       expect(escapeHtml(`<a href="x" title='y'>&`)).toBe('&lt;a href=&quot;x&quot; title=&#39;y&#39;&gt;&amp;');
