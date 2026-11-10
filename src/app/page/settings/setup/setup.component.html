@@ -38,7 +38,7 @@
     }
 
     @for (group of modGroups | keyvalue; track group.key) {
-      <label [style.text-transform]="'capitalize'" i18n>{{ group.key }}</label>
+      <label>{{ modTypeLabel(group.key) }}</label>
       <div formGroupName="mods" class="bubble">
         @for (e of group.value; track e[0]) {
           @let key = e[0];

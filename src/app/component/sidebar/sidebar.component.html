@@ -285,7 +285,7 @@
   }
   @if (!home() && expanded()) {
     @for (res of queryExts(); track res.x.tag) {
-      <h5>{{ res.x.name || res.x.tag}} Tags:</h5>
+      <h5 i18n>{{ res.x.name || res.x.tag }} Tags:</h5>
       @for (x of res.children; track x.tag + x.origin) {
         <app-ext [ext]="x" [useEditPage]="true" />
       }

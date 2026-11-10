@@ -7,7 +7,7 @@
   }
 </div>
 <div class="info">
-  <span>{{ role().toLowerCase().replace('role_', '') }}</span>
+  <span>{{ roleLabel() }}</span>
 </div>
 <div class="actions">
   @if (!created() && store.account.admin) {

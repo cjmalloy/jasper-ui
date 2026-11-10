@@ -80,10 +80,10 @@ export function provideJasperFormly() {
       { name: 'range-default', extension: new RangeDefaultExtension() },
     ],
     validationMessages: [
-      { name: 'required', message: 'This field is required' },
+      { name: 'required', message: $localize`This field is required` },
       { name: 'step', message: (error: { step: number, base: number }) => error.base
-          ? `Must be ${error.base} plus a multiple of ${error.step}`
-          : `Must be a multiple of ${error.step}` },
+          ? $localize`Must be ${error.base} plus a multiple of ${error.step}`
+          : $localize`Must be a multiple of ${error.step}` },
     ],
     wrappers: [{
       name: 'form-field',

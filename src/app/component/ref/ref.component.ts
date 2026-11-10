@@ -1346,7 +1346,7 @@ export class RefComponent implements HasChanges {
               if (equalsRef(existing, copied) || confirm($localize`An old version already exists. Overwrite it?`)) {
                 return this.refs.update({ ...copied, modifiedString: existing.modifiedString });
               } else {
-                return throwError(() => 'Cancelled');
+                return throwError(() => $localize`Cancelled`);
               }
             })
           );
@@ -1388,7 +1388,7 @@ export class RefComponent implements HasChanges {
       ),
       catchError(err => {
         console.error('Error fetching versions for diff:', err);
-        alert('Could not load versions for comparison');
+        alert($localize`Could not load versions for comparison`);
         return throwError(() => err);
       })
     ).subscribe(({ local, remote }) => {
@@ -1451,7 +1451,7 @@ export class RefComponent implements HasChanges {
                         // TODO: Show diff and merge or split
                         return this.refs.update({ ...ref, modifiedString: existing.modifiedString });
                       } else {
-                        return throwError(() => 'Cancelled');
+                        return throwError(() => $localize`Cancelled`);
                       }
                     })
                   );
