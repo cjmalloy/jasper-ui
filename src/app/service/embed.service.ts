@@ -136,8 +136,6 @@ export class EmbedService {
         table     : sourceMap('table'),
         tablerow  : sourceMap('tablerow'),
         image({href, title, text, tokens}: Tokens.Image): string {
-          // Same as marked's default image renderer: plain alt text from the tokens,
-          // escaped once here, so it is safe in both the attributes and the fallback below
           if (tokens) text = this.parser.parseInline(tokens, this.parser.textRenderer);
           text = escapeHtml(text);
           const cleanHref = cleanUrl(href);
