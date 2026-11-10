@@ -6377,8 +6377,8 @@ Private tags start with an underscore.
           <context context-type="linenumber">127</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="773824359635774821" datatype="html">
-        <source>prefix/&lt;Cutout&gt;</source>
+      <trans-unit id="3274325599959476872" datatype="html">
+        <source>prefix/&lt;Label&gt;</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
           <context context-type="linenumber">147</context>
@@ -13827,8 +13827,8 @@ F: Fullscreen toggle
           <context context-type="linenumber">187</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="7408131022237062842" datatype="html">
-        <source>prefix/&lt;Layer 1&gt;/&lt;Layer 2&gt;</source>
+      <trans-unit id="1582708538936083791" datatype="html">
+        <source>prefix/&lt;Category&gt;/&lt;Value&gt;</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
           <context context-type="linenumber">192</context>

@@ -8611,13 +8611,13 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Must be lower case letters, numbers and periods.</source>
         <target>小文字、数字、ピリオドのみ使用できます。</target>
       </trans-unit>
-      <trans-unit id="773824359635774821" datatype="html">
-        <source>prefix/&lt;Cutout&gt;</source>
-        <target>settouji/&lt;切り抜き&gt;</target>
+      <trans-unit id="3274325599959476872" datatype="html">
+        <source>prefix/&lt;Label&gt;</source>
+        <target>settouji/&lt;ラベル&gt;</target>
       </trans-unit>
-      <trans-unit id="7408131022237062842" datatype="html">
-        <source>prefix/&lt;Layer 1&gt;/&lt;Layer 2&gt;</source>
-        <target>settouji/&lt;第1層&gt;/&lt;第2層&gt;</target>
+      <trans-unit id="1582708538936083791" datatype="html">
+        <source>prefix/&lt;Category&gt;/&lt;Value&gt;</source>
+        <target>settouji/&lt;カテゴリ&gt;/&lt;値&gt;</target>
       </trans-unit>
       <trans-unit id="6528912154811772415" datatype="html">
         <source>A tag with an input for each &lt;Placeholder&gt;. Commas in the first part make a dropdown, such as +plugin,_plugin/secret/&lt;Name&gt;.</source>

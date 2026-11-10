@@ -175,7 +175,7 @@ export interface RootConfig {
       fieldArray: {
         type: 'string',
         props: {
-          placeholder: $localize`prefix/<Cutout>`,
+          placeholder: $localize`prefix/<Label>`,
         },
       },
     }, {
@@ -189,7 +189,7 @@ export interface RootConfig {
       fieldArray: {
         type: 'string',
         props: {
-          placeholder: $localize`prefix/<Layer 1>/<Layer 2>`,
+          placeholder: $localize`prefix/<Category>/<Value>`,
         },
       },
     }, {
@@ -353,12 +353,12 @@ export interface RootConfig {
   addTags?: string[];
   /**
    * Submit with the text page, showing inputs for these tag templates,
-   * such as `prefix/<Cutout>`. See the inputTag query param.
+   * such as `prefix/<Label>`. See the inputTag query param.
    */
   inputTags?: string[];
   /**
    * Submit with the text page, showing a line for each placeholder of these
-   * tag templates, such as `prefix/<Layer 1>/<Layer 2>`. See the hierarchicalTag query param.
+   * tag templates, such as `prefix/<Category>/<Value>`. See the hierarchicalTag query param.
    */
   hierarchicalTags?: string[];
   defaultExpanded?: boolean;
