@@ -3966,6 +3966,30 @@ Refのみが削除されたファイルはまだ回復できますが、この�
         <source>Add Tags:</source>
         <target>タグを追加:</target>
       </trans-unit>
+      <trans-unit id="4453545636748616964" datatype="html">
+        <source>Stencils:</source>
+        <target>ステンシル:</target>
+      </trans-unit>
+      <trans-unit id="5938337829008576191" datatype="html">
+        <source>+ Add another stencil</source>
+        <target>+ ステンシルを追加</target>
+      </trans-unit>
+      <trans-unit id="5786238445551029096" datatype="html">
+        <source>Hierarchical Stencils:</source>
+        <target>階層ステンシル:</target>
+      </trans-unit>
+      <trans-unit id="5910815838179386491" datatype="html">
+        <source>+ Add another hierarchical stencil</source>
+        <target>+ 階層ステンシルを追加</target>
+      </trans-unit>
+      <trans-unit id="3752688656697761926" datatype="html">
+        <source>Submit with one line per &lt;Placeholder&gt;, filled out top down, adding the tag up to each line</source>
+        <target>&lt;Placeholder&gt; ごとに1行を表示し、上から順に入力して、各行までのタグを追加して投稿します</target>
+      </trans-unit>
+      <trans-unit id="6025818215204822960" datatype="html">
+        <source>Submit with an input for each &lt;Placeholder&gt;</source>
+        <target>&lt;Placeholder&gt; ごとに入力欄を表示して投稿します</target>
+      </trans-unit>
       <trans-unit id="9011317583858638540" datatype="html">
         <source>Stream Updates:</source>
         <target>ストリームアップデート:</target>
@@ -8587,8 +8611,13 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Must be lower case letters, numbers and periods.</source>
         <target>小文字、数字、ピリオドのみ使用できます。</target>
       </trans-unit>
-      <trans-unit id="1832879454397489615" datatype="html">
-        <source>car/&lt;Make&gt;/&lt;Model&gt;</source>
+      <trans-unit id="3274325599959476872" datatype="html">
+        <source>prefix/&lt;Label&gt;</source>
+        <target>prefix/&lt;ラベル&gt;</target>
+      </trans-unit>
+      <trans-unit id="1582708538936083791" datatype="html">
+        <source>prefix/&lt;Category&gt;/&lt;Value&gt;</source>
+        <target>prefix/&lt;カテゴリ&gt;/&lt;値&gt;</target>
       </trans-unit>
       <trans-unit id="6528912154811772415" datatype="html">
         <source>A tag with an input for each &lt;Placeholder&gt;. Commas in the first part make a dropdown, such as +plugin,_plugin/secret/&lt;Name&gt;.</source>

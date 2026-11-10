@@ -7,6 +7,7 @@ import { provideRouter } from '@angular/router';
 import { of, Subject } from 'rxjs';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
 import { AdminService } from '../../../service/admin.service';
+import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { provideJasperFormly } from '../../../formly/formly.config';
 import { Store } from '../../../store/store';
@@ -101,6 +102,14 @@ describe('SubmitTextPage', () => {
     expect(component.tags.value).toContain('car/toyota/prius');
     expect(component.tags.value).not.toContain('car/toyota');
     expect(component.writeRef().tags).not.toContain('car/toyota');
+  });
+
+  it('loads the defaults for the known prefix of a hierarchicalTag', () => {
+    const getCachedExts = vi.spyOn(TestBed.inject(ExtService), 'getCachedExts').mockReturnValue(of([]));
+    TestBed.inject(Store).submit.route.routeSnapshot.set({ queryParams: { tag: 'public', hierarchicalTag: 'car/<Make>/<Model>' } } as any);
+    const page = TestBed.createComponent(SubmitTextPage).componentInstance;
+    expect(getCachedExts).toHaveBeenLastCalledWith(expect.arrayContaining(['public', 'car']));
+    expect(page.tags.value).not.toContain('car');
   });
 
   it('only adds valid inputTag tags', () => {

@@ -285,7 +285,8 @@ export class SubmitTextPage implements HasChanges {
     ];
     // The editor may start editing before the defaults load, and needs the tags to pick its initial toggles
     this.addTag(...allTags);
-    this.exts.getCachedExts(allTags).pipe(
+    // Hierarchical lines that are not added, such as the known prefix, still pick the defaults
+    this.exts.getCachedExts(uniq([...allTags, ...this.inputTags().filter(t => t)])).pipe(
       map(xs => xs.filter(x => x.config?.defaults) as Ext[]),
       switchMap(xs => {
         this.loadingDefaults.set(xs);
