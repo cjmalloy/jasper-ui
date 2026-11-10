@@ -28,4 +28,13 @@ describe('FormlyFieldTextArea', () => {
     expect(textarea.rows).toBe(1);
     expect(textarea.cols).toBe(1);
   });
+
+  it('shows at least one row for fractions below one', async () => {
+    const fixture = TestBed.createComponent(FormlyHost);
+    fixture.componentInstance.fields = [{ key: 't', type: 'textarea', props: { rows: 0.5, cols: 0.5 } }];
+    await fixture.whenStable();
+    const textarea: HTMLTextAreaElement = fixture.nativeElement.querySelector('textarea');
+    expect(textarea.rows).toBe(1);
+    expect(textarea.cols).toBe(1);
+  });
 });

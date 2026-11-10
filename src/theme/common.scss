@@ -1355,7 +1355,7 @@ details.mini:not([open]) {
   flex-basis: 100% !important;
   display: flex;
   flex-direction: column;
-  input {
+  input:not([type=checkbox], [type=radio]) {
     flex: 1;
     flex-basis: 100% !important;
   }

@@ -283,15 +283,22 @@ test.describe('Plugin Form Builder', () => {
 
   test('checkboxes in list items stay left aligned', async ({ page, request, origin }) => {
     const tag = await createPlugin(request, origin, 'checkbox', {
-      config: { form: [{ key: 'title', type: 'string' }] },
+      config: { form: [
+        { key: 'title', type: 'string' },
+        { key: 'flags', type: 'list', fieldArray: { type: 'boolean' } },
+      ] },
+      defaults: { flags: [true] },
     });
     const { builder } = await openBuilder(page, tag);
-    const required = builder.locator('.builder-form .formly-field-config .formly-required').first();
-    const input = required.locator('input[type=checkbox]');
-    const cell = await input.locator('xpath=..').boundingBox();
-    const box = await input.boundingBox();
-    expect(box!.width).toBeLessThan(30);
-    expect(box!.x - cell!.x).toBeLessThan(10);
+    const required = builder.locator('.builder-form .formly-field-config .formly-required input[type=checkbox]').first();
+    const flag = builder.locator('.defaults-form .list-drag input[type=checkbox]').first();
+    for (const input of [required, flag]) {
+      await expect(input).toBeVisible();
+      const cell = await input.locator('xpath=..').boundingBox();
+      const box = await input.boundingBox();
+      expect(box!.width).toBeLessThan(30);
+      expect(box!.x - cell!.x).toBeLessThan(10);
+    }
   });
 
   test('builds a hierarchical stencil', async ({ page, request, origin }) => {

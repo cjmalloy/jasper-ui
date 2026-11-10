@@ -14,8 +14,8 @@ interface TextAreaProps extends FormlyFieldProps {
   template: `
     <textarea (blur)="validate($any($event.target))"
               [formControl]="formControl"
-              [cols]="props.cols! > 0 ? props.cols! : 1"
-              [rows]="props.rows! > 0 ? props.rows! : 1"
+              [cols]="props.cols! >= 1 ? props.cols! : 1"
+              [rows]="props.rows! >= 1 ? props.rows! : 1"
               [class.is-invalid]="showError"
               [formlyAttributes]="field"></textarea>
   `,
