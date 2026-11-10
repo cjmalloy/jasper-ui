@@ -2,6 +2,7 @@
 import {
   bestSrcset,
   copyText,
+  escapeHtml,
   markIslands,
   matchBlocks,
   MdIsland,
@@ -15,6 +16,20 @@ import {
 } from './markdown';
 
 describe('markdown util', () => {
+  describe('escapeHtml', () => {
+    it('escapes markup and quotes', () => {
+      expect(escapeHtml(`<a href="x" title='y'>&`)).toBe('&lt;a href=&quot;x&quot; title=&#39;y&#39;&gt;&amp;');
+    });
+
+    it('keeps existing character references', () => {
+      expect(escapeHtml('A &amp; B &#38; C &#x26; D &copy;')).toBe('A &amp; B &#38; C &#x26; D &copy;');
+    });
+
+    it('escapes ampersands that are not character references', () => {
+      expect(escapeHtml('a&b &; &#; &#x; &amp')).toBe('a&amp;b &amp;; &amp;#; &amp;#x; &amp;amp');
+    });
+  });
+
   describe('parseSrcset', () => {
     it('parses candidates with descriptors', () => {
       expect(parseSrcset('a.png 1x, b.png 2x')).toEqual([
