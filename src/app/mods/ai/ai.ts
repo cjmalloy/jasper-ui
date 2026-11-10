@@ -713,6 +713,13 @@ if (config.systemPrompt) {
     ...provider.loadMessage({ url: 'system:app-prompt-override', origin, title: 'App Prompt Override', comment: config.systemPrompt }),
   });
 }
+if (config.json) {
+  // JSON mode requires the word JSON in the context, even when no system prompts are installed
+  messages.push({
+    role: 'system',
+    ...provider.loadMessage({ url: 'system:json-prompt', origin, title: 'JSON', comment: 'Reply with valid JSON in bundle format: {"ref":[{...}]}' }),
+  });
+}
 const folderTags = (ref.tags || []).filter(t => t === 'folder' || t.startsWith('folder/'))
 if (folderTags.length) {
   const workspace = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {

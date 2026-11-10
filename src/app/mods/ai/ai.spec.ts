@@ -772,6 +772,17 @@ describe('aiQueryPlugin', () => {
     expect(bundle.ref).not.toContainEqual(expect.objectContaining({ title: 'AI media ingestion' }));
   });
 
+  it('asks for JSON in JSON mode without any system prompts', async () => {
+    const create = vi.fn().mockResolvedValueOnce({ ...openAiAnswer, output_text: '{"ref":[{"comment":"Answer"}]}' });
+
+    const { bundle } = await runMedia({ provider: 'openai', json: true }, create);
+
+    const request = create.mock.calls[0][0];
+    expect(request.text.format.type).toBe('json_object');
+    expect(request.input.some((m: any) => m.role === 'system' && m.content.some((c: any) => /json/i.test(c.text)))).toBe(true);
+    expect(bundle.ref[0].comment).toBe('Answer');
+  });
+
   it('does not offer image generation to OpenAI audio models', async () => {
     const create = vi.fn().mockResolvedValueOnce(openAiAnswer);
 
