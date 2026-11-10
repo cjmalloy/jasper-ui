@@ -2730,7 +2730,7 @@ Home / End: 先頭/末尾へ移動
       </trans-unit>
       <trans-unit id="2148883232481903149" datatype="html">
         <source>🚫️ Banlist</source>
-        <target>🚫️ BANリスト</target>
+        <target>🚫️ バンリスト</target>
       </trans-unit>
       <trans-unit id="2645150945585244307" datatype="html">
         <source>📰️ Blog</source>
@@ -3727,7 +3727,7 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       </trans-unit>
       <trans-unit id="4973234471360717290" datatype="html">
         <source>🎁️ Mod Receipt</source>
-        <target>🎁️ MOD受領記録</target>
+        <target>🎁️ MODインストール記録</target>
       </trans-unit>
       <trans-unit id="1390095266748534119" datatype="html">
         <source>Log of installed mod before any customization. Used for 3 way merges.</source>
@@ -5062,7 +5062,7 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       </trans-unit>
       <trans-unit id="853214468188344108" datatype="html">
         <source>Store secrets with opaque protected tags.</source>
-        <target>不透明な保護されたタグでシークレットを保存します。</target>
+        <target>シークレットを不透明な保護タグとして保存します。</target>
       </trans-unit>
       <trans-unit id="5571400295982110168" datatype="html">
         <source>🔒️ Private Secret</source>
@@ -5208,18 +5208,18 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       </trans-unit>
       <trans-unit id="6721961676534022666" datatype="html">
         <source>📑️ To Do List</source>
-        <target>📑️ To Doリスト</target>
+        <target>📑️ ToDoリスト</target>
       </trans-unit>
       <trans-unit id="8794124638217310328" datatype="html">
         <source>Create a To Do list.</source>
-        <target>To Doリストを作成します。</target>
+        <target>ToDoリストを作成します。</target>
       </trans-unit>
       <trans-unit id="1987992254692671656" datatype="html">
         <source>📑️</source>
       </trans-unit>
       <trans-unit id="6046039040141645622" datatype="html">
         <source>📑️ todo</source>
-        <target>📑️ To Doリスト</target>
+        <target>📑️ ToDoリスト</target>
       </trans-unit>
       <trans-unit id="8392499467429347617" datatype="html">
         <source>TODO Lists</source>
@@ -5293,7 +5293,7 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       </trans-unit>
       <trans-unit id="8462250480181255455" datatype="html">
         <source>Kanban Load Size:</source>
-        <target>Kanbanロードサイズ:</target>
+        <target>カンバン読み込み件数:</target>
       </trans-unit>
       <trans-unit id="6711205602606262204" datatype="html">
         <source>🎞️ Video</source>
@@ -5748,11 +5748,11 @@ F: フルスクリーン切替
       </trans-unit>
       <trans-unit id="6847985597186596814" datatype="html">
         <source>Install Mods</source>
-        <target>Modをインストール</target>
+        <target>MODをインストール</target>
       </trans-unit>
       <trans-unit id="2975827717239916348" datatype="html">
         <source> Quickly turn on and off mods bundled with this client. Visit the <x id="START_LINK" ctype="x-a" equiv-text="&lt;a routerLink=&quot;../plugin&quot;&gt;"/>plugins<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/> or <x id="START_LINK_1" equiv-text="&lt;a routerLink=&quot;../template&quot;&gt;"/>templates<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/> settings page to manage all plugins and templates. </source>
-        <target> このクライアントにバンドルされているmodを素早くオン/オフします。<x id="START_LINK" ctype="x-a" equiv-text="&lt;a routerLink=&quot;../plugin&quot;&gt;"/>プラグイン<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>または<x id="START_LINK_1" equiv-text="&lt;a routerLink=&quot;../template&quot;&gt;"/>テンプレート<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>の設定ページで、すべてのプラグインとテンプレートを管理します。</target>
+        <target> このクライアントにバンドルされているMODを素早くオン/オフします。<x id="START_LINK" ctype="x-a" equiv-text="&lt;a routerLink=&quot;../plugin&quot;&gt;"/>プラグイン<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>または<x id="START_LINK_1" equiv-text="&lt;a routerLink=&quot;../template&quot;&gt;"/>テンプレート<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>の設定ページで、すべてのプラグインとテンプレートを管理します。</target>
       </trans-unit>
       <trans-unit id="34028471712026895" datatype="html">
         <source>🌟️ Update All</source>
@@ -6113,7 +6113,7 @@ F: フルスクリーン切替
       </trans-unit>
       <trans-unit id="612983901370848355" datatype="html">
         <source>Logging <x id="PH" equiv-text="mod || ref.url"/> receipt...</source>
-        <target><x id="PH" equiv-text="mod || ref.url"/> の受領記録を保存中...</target>
+        <target><x id="PH" equiv-text="mod || ref.url"/> のインストール記録を保存中...</target>
       </trans-unit>
       <trans-unit id="3630868986759354735" datatype="html">
         <source>Installing <x id="PH" equiv-text="def.name || def.tag"/> ext...</source>
@@ -9003,7 +9003,7 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="3568790342632384571" datatype="html">
         <source>Installing default mods...</source>
-        <target>デフォルトのModをインストールしています...</target>
+        <target>デフォルトのMODをインストールしています...</target>
       </trans-unit>
       <trans-unit id="6971496217366946567" datatype="html">
         <source>📦️ Install Defaults</source>
@@ -9192,6 +9192,18 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="956790577537157392" datatype="html">
         <source>Must be a multiple of <x id="PH" equiv-text="error.step"/></source>
         <target><x id="PH" equiv-text="error.step"/> の倍数である必要があります</target>
+      </trans-unit>
+      <trans-unit id="131761163657552131" datatype="html">
+        <source>Not signed in</source>
+        <target>サインインしていません</target>
+      </trans-unit>
+      <trans-unit id="4043049091728011235" datatype="html">
+        <source>Cancelled</source>
+        <target>キャンセルしました</target>
+      </trans-unit>
+      <trans-unit id="7694755598986576252" datatype="html">
+        <source>anonymous</source>
+        <target>匿名</target>
       </trans-unit>
     </body>
   </file>

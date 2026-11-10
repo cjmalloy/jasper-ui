@@ -1346,7 +1346,7 @@ export class RefComponent implements HasChanges {
               if (equalsRef(existing, copied) || confirm($localize`An old version already exists. Overwrite it?`)) {
                 return this.refs.update({ ...copied, modifiedString: existing.modifiedString });
               } else {
-                return throwError(() => 'Cancelled');
+                return throwError(() => $localize`Cancelled`);
               }
             })
           );
@@ -1451,7 +1451,7 @@ export class RefComponent implements HasChanges {
                         // TODO: Show diff and merge or split
                         return this.refs.update({ ...ref, modifiedString: existing.modifiedString });
                       } else {
-                        return throwError(() => 'Cancelled');
+                        return throwError(() => $localize`Cancelled`);
                       }
                     })
                   );

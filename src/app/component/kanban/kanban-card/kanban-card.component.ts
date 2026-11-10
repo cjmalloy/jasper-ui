@@ -330,7 +330,7 @@ export class KanbanCardComponent {
                 // TODO: Show diff and merge or split
                 return this.refs.update({ ...copied, modifiedString: existing.modifiedString });
               } else {
-                return throwError(() => 'Cancelled')
+                return throwError(() => $localize`Cancelled`)
               }
             })
           );

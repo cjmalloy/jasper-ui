@@ -274,7 +274,7 @@ export class ExtComponent implements HasChanges {
                 // TODO: Show diff and merge or split
                 return this.exts.update(copied);
               } else {
-                return throwError(() => 'Cancelled')
+                return throwError(() => $localize`Cancelled`)
               }
             })
           );

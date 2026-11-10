@@ -162,6 +162,18 @@ export class UserComponent implements HasChanges {
   readonly role = computed(() => {
     return getRole(this.profile()?.role, this.user()?.role);
   });
+  readonly roleLabel = computed(() => {
+    switch (this.role()) {
+      case 'ROLE_ADMIN': return $localize`admin`;
+      case 'ROLE_MOD': return $localize`mod`;
+      case 'ROLE_EDITOR': return $localize`editor`;
+      case 'ROLE_USER': return $localize`user`;
+      case 'ROLE_VIEWER': return $localize`viewer`;
+      case 'ROLE_ANONYMOUS': return $localize`anonymous`;
+      case 'ROLE_BANNED': return $localize`banned`;
+    }
+    return this.role().toLowerCase().replace('role_', '');
+  });
 
   download() {
     if (!this.user()) {
