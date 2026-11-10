@@ -669,4 +669,107 @@ describe('aiQueryPlugin', () => {
     expect(keyRequests()).toHaveLength(0);
     expect(clientOptions).not.toHaveBeenCalled();
   });
+
+  const runMedia = async (llm: Record<string, unknown>, create: ReturnType<typeof vi.fn>) => {
+    const response = {
+      url: 'ai:response',
+      title: 'Response',
+      comment: '',
+      tags: ['+plugin/placeholder'],
+      sources: ['https://example.test/image.png'],
+      plugins: { 'plugin/llm': llm },
+    };
+    const source = {
+      url: 'https://example.test/image.png',
+      title: 'Image',
+      comment: '',
+      tags: ['public', 'plugin/image'],
+    };
+    const axios = {
+      get: vi.fn(async (url: string, options: { params: { query?: string } }) => {
+        const query = options.params.query;
+        if (url.endsWith('/repl/cache')) {
+          return { data: Buffer.from('image'), headers: { 'content-type': 'image/png' } };
+        }
+        if (query?.startsWith('+plugin/placeholder')) return { data: { content: [response] } };
+        if (query?.startsWith('+plugin/secret/')) return { data: { content: [{ comment: 'api-key' }] } };
+        if (query === '!+system/prompt') return { data: { content: [source] } };
+        return { data: { content: [] } };
+      }),
+    };
+    class OpenAi {
+      responses = { create };
+    }
+    const require = (module: string) => ({
+      'buffer': { Buffer },
+      'uuid': { v4: () => 'test-id' },
+      'axios': axios,
+      'fs': { readFileSync: () => JSON.stringify({ url: 'spec:question', tags: ['plugin/delta/ai'] }) },
+      'openai': OpenAi,
+    })[module];
+    const output = vi.fn();
+    const run = new Function(
+      'require',
+      'process',
+      'console',
+      `return (async () => {${aiQueryPlugin.config?.script}})()`,
+    );
+    await run(require, { env: { JASPER_API: 'http://jasper.test' } }, { log: output, error: vi.fn() });
+    return { axios, bundle: JSON.parse(output.mock.calls[0][0]) };
+  };
+  const openAiAnswer = { output_text: 'Answer', output: [], usage: { input_tokens: 2, output_tokens: 3, total_tokens: 5 } };
+  const imageParts = (call: any[]) => call[0].input.flatMap((m: any) => m.content).filter((c: any) => c.type === 'input_image');
+
+  it('sends images to OpenAI models it does not know about', async () => {
+    const create = vi.fn().mockResolvedValueOnce(openAiAnswer);
+
+    const { bundle } = await runMedia({ provider: 'openai', model: 'gpt-9-nova' }, create);
+
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(imageParts(create.mock.calls[0])).toEqual([
+      { type: 'input_image', image_url: 'data:image/png;base64,' + Buffer.from('image').toString('base64') },
+    ]);
+    expect(create.mock.calls[0][0].tools).toEqual([{ type: 'image_generation' }]);
+    expect(bundle.ref).not.toContainEqual(expect.objectContaining({ title: 'AI media ingestion' }));
+  });
+
+  it('retries OpenAI without images when the model rejects them and logs it', async () => {
+    const create = vi.fn()
+      .mockRejectedValueOnce(Object.assign(new Error('image input not supported'), { status: 400 }))
+      .mockResolvedValueOnce(openAiAnswer);
+
+    const { bundle } = await runMedia({ provider: 'openai', model: 'gpt-9-nova-mini' }, create);
+
+    expect(create).toHaveBeenCalledTimes(2);
+    expect(imageParts(create.mock.calls[0])).toHaveLength(1);
+    expect(imageParts(create.mock.calls[1])).toHaveLength(0);
+    expect(create.mock.calls[0][0].tools).toBeUndefined();
+    expect(bundle.ref[0].comment).toBe('Answer');
+    expect(bundle.ref).toContainEqual(expect.objectContaining({
+      comment: 'openai (gpt-9-nova-mini) rejected the media input.',
+      tags: expect.arrayContaining(['internal', '+plugin/log']),
+    }));
+  });
+
+  it('does not send images or generate them when overridden off', async () => {
+    const create = vi.fn().mockResolvedValueOnce(openAiAnswer);
+
+    const { axios, bundle } = await runMedia({ provider: 'openai', model: 'gpt-5.6-sol', imageInput: false, imageOutput: false }, create);
+
+    expect(axios.get).not.toHaveBeenCalledWith('http://jasper.test/pub/api/v1/repl/cache', expect.anything());
+    expect(imageParts(create.mock.calls[0])).toHaveLength(0);
+    expect(create.mock.calls[0][0].tools).toBeUndefined();
+    expect(bundle.ref).toContainEqual(expect.objectContaining({
+      comment: 'openai (gpt-5.6-sol) does not support plugin/image input.',
+    }));
+  });
+
+  it('does not offer image generation to OpenAI audio models', async () => {
+    const create = vi.fn().mockResolvedValueOnce(openAiAnswer);
+
+    await runMedia({ provider: 'openai', model: 'gpt-audio' }, create);
+
+    expect(imageParts(create.mock.calls[0])).toHaveLength(0);
+    expect(create.mock.calls[0][0].tools).toBeUndefined();
+  });
 });
