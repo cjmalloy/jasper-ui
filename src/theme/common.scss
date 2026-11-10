@@ -53,6 +53,14 @@ body.fullscreen {
   opacity: 0;
 }
 
+input[type=color].cleared {
+  background-color: var(--bg);
+  --checker: color-mix(in srgb, var(--border) 20%, transparent);
+  background-image: conic-gradient(var(--checker) 25%, transparent 0 50%, var(--checker) 0 75%, transparent 0);
+  background-size: 12px 12px;
+  border-style: dashed;
+}
+
 input[type=color].cleared::-moz-color-swatch {
   opacity: 0;
 }
@@ -1347,7 +1355,7 @@ details.mini:not([open]) {
   flex-basis: 100% !important;
   display: flex;
   flex-direction: column;
-  input {
+  input:not([type=checkbox], [type=radio]) {
     flex: 1;
     flex-basis: 100% !important;
   }
@@ -1386,6 +1394,10 @@ formly-field-geometries .geometry-item > formly-field > formly-group {
   & > ngx-monaco-editor {
     contain: inline-size;
   }
+}
+
+.editor-field .editor:not(.bubble, .fullscreen) {
+  padding-inline: 0 !important;
 }
 
 .form,
@@ -1503,7 +1515,7 @@ formly-field-geometries .geometry-item > formly-field > formly-group {
   &.skip-margin * {
     margin-right: 0 !important;
   }
-  input {
+  input:not([type=checkbox], [type=radio]) {
     flex: 1;
     flex-basis: 100%;
   }

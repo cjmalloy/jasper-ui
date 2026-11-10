@@ -1,9 +1,21 @@
 /// <reference types="vitest/globals" />
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { FormGroup } from '@angular/forms';
-import { FormlyConfig, FormlyFieldConfig, FormlyFormBuilder } from '@ngx-formly/core';
+import { FormlyConfig, FormlyFieldConfig, FormlyForm, FormlyFormBuilder } from '@ngx-formly/core';
+import { Store } from '../store/store';
 import { getErrorMessage } from './errors';
 import { provideJasperFormly } from './formly.config';
+
+@Component({
+  template: `<formly-form [form]="form" [model]="model" [fields]="fields" />`,
+  imports: [FormlyForm],
+})
+class FormlyHost {
+  form = new FormGroup({});
+  model: any = {};
+  fields: FormlyFieldConfig[] = [];
+}
 
 describe('provideJasperFormly', () => {
   beforeEach(() => {
@@ -45,5 +57,38 @@ describe('provideJasperFormly', () => {
     expect(field.formControl!.valid).toBe(true);
     field.formControl!.setValue(null);
     expect(field.formControl!.valid).toBe(true);
+  });
+
+  it('defaults a range to min', () => {
+    const form = new FormGroup({});
+    const model: any = {};
+    const field: FormlyFieldConfig = { key: 'radius', type: 'range', props: { min: 4, max: 24, step: 4 } };
+    TestBed.inject(FormlyFormBuilder).build({ form, model, options: {}, fieldGroup: [field] });
+    expect(model.radius).toBe(4);
+    expect(field.formControl!.valid).toBe(true);
+  });
+
+  it('has no default location', () => {
+    const form = new FormGroup({});
+    const model: any = {};
+    const field: FormlyFieldConfig = { key: 'where', type: 'location' };
+    TestBed.inject(FormlyFormBuilder).build({ form, model, options: {}, fieldGroup: [field] });
+    expect(model.where).toBeUndefined();
+    expect(field.formControl!.valid).toBe(true);
+    field.formControl!.setValue([1, 2]);
+    expect(field.formControl!.valid).toBe(true);
+  });
+
+  it('requires a location for each point in a list', async () => {
+    TestBed.overrideProvider(Store, { useValue: { hotkey: () => false } });
+    const fixture = TestBed.createComponent(FormlyHost);
+    const field: FormlyFieldConfig = { key: 'points', type: 'list', fieldArray: { type: 'location' } };
+    fixture.componentInstance.fields = [field];
+    fixture.componentInstance.model = { points: [[1, 2], null] };
+    await fixture.whenStable();
+    const [first, second] = field.fieldGroup!;
+    expect(first.formControl!.valid).toBe(true);
+    expect(second.formControl!.errors?.['location']).toBeTruthy();
+    expect(getErrorMessage(second, TestBed.inject(FormlyConfig))).toBe('Pick a location.');
   });
 });

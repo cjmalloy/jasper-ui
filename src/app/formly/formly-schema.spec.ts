@@ -1,8 +1,13 @@
 /// <reference types="vitest/globals" />
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { FormControl, FormGroup } from '@angular/forms';
 import { FormlyConfig, FormlyFieldConfig, FormlyFormBuilder } from '@ngx-formly/core';
 import { isValidSchema, validate } from 'jtd';
+import { get } from 'lodash-es';
+import { AdminService } from '../service/admin.service';
 import {
   formlyDefaults,
   formlySchema,
@@ -11,6 +16,8 @@ import {
   optionalFields,
   typeChain
 } from './formly-schema';
+import { geoFeatureCollectionPlugin } from '../mods/map';
+import { geoStyleSchema } from '../util/geo-style';
 import { provideJasperFormly } from './formly.config';
 
 describe('formly schema', () => {
@@ -127,8 +134,77 @@ describe('formly schema', () => {
     ];
     const schema = formlySchema(config, fields);
     const defaults = formlyDefaults(config, builder, fields);
-    expect(defaults).toEqual({ level: 0, where: [0, 0], tags: ['public'] });
+    expect(defaults).toEqual({ level: 0, tags: ['public'] });
     expect(validate(schema, defaults)).toEqual([]);
+  });
+
+  it('defaults a range to its min', () => {
+    const fields: FormlyFieldConfig[] = [
+      { key: 'level', type: 'range', props: { min: 2, max: 8 } },
+      { key: 'zoom', type: 'range', defaultValue: 5, props: { min: 2 } },
+    ];
+    expect(formlyDefaults(config, builder, fields)).toEqual({ level: 2, zoom: 5 });
+  });
+
+  it('has no default location', () => {
+    const fields: FormlyFieldConfig[] = [
+      { key: 'where', type: 'location' },
+      { key: 'home', type: 'location', defaultValue: [0, 0] },
+    ];
+    const defaults = formlyDefaults(config, builder, fields);
+    expect(defaults).toEqual({ home: [0, 0] });
+    expect(validate(formlySchema(config, fields), defaults)).toEqual([]);
+  });
+
+  it('is a string for a duration', () => {
+    const schema = formlySchema(config, [
+      { key: 'every', type: 'duration' },
+      { key: 'timeout', type: 'duration', props: { required: true } },
+    ]);
+    expect(schema).toEqual({
+      properties: { timeout: { type: 'string' } },
+      optionalProperties: { every: { type: 'string', nullable: true } },
+    });
+    expect(validate(schema, { timeout: 'PT1M', every: null })).toEqual([]);
+    expect(validate(schema, { timeout: 60 })).not.toEqual([]);
+  });
+
+  it('uses the map schemas for geo styles and geometries', () => {
+    const schema = formlySchema(config, [
+      { key: 'style', type: 'geo-style' },
+      { key: 'features', type: 'geometries' },
+    ]) as any;
+    expect(isValidSchema(schema)).toBe(true);
+    expect(schema.optionalProperties.style).toEqual({ ...geoStyleSchema, nullable: true });
+    expect(schema.optionalProperties.features).toEqual((geoFeatureCollectionPlugin.schema as any).properties.features);
+    expect(validate(schema, {
+      style: { color: '#ff0000', strokeWidth: 'small', name: 'x' },
+      features: [{ type: 'Feature', geometry: { type: 'Point', coordinates: [1, 2] } }],
+    })).toEqual([]);
+    expect(validate(schema, { style: null })).toEqual([]);
+    expect(validate(schema, { style: { strokeWidth: 'heavy' } })).not.toEqual([]);
+    expect(validate(schema, { features: [{ type: 'Feature', geometry: { type: 'Point', coordinates: 'here' } }] })).not.toEqual([]);
+  });
+
+  it('allows cleared geo styles in a list', () => {
+    const schema = formlySchema(config, [
+      { key: 'styles', type: 'list', fieldArray: { type: 'geo-style' } },
+    ]) as any;
+    expect(isValidSchema(schema)).toBe(true);
+    expect(validate(schema, { styles: [{ color: '#ff0000' }, null] })).toEqual([]);
+  });
+
+  it('is only a list of values for a multiple select', () => {
+    const options = [{ value: 'a' }, { value: 'b' }];
+    expect(formlySchema(config, [
+      { key: 'many', type: 'select', props: { multiple: true, options } },
+      { key: 'one', type: 'radio', props: { multiple: true, options } },
+    ])).toEqual({
+      optionalProperties: {
+        many: { elements: { enum: ['a', 'b'] } },
+        one: { enum: ['a', 'b'] },
+      },
+    });
   });
 
   it('keeps existing defaults for fields in the form', () => {
@@ -244,5 +320,50 @@ describe('formly schema', () => {
     });
     expect(defaults).toEqual({ profile: { name: 'Alice' }, rows: [{ label: 'a' }] });
     expect(validate(formlySchema(config, fields), defaults)).toEqual([]);
+  });
+});
+
+describe('formly schema for built-in mods', () => {
+  const tightened = ['duration', 'geo-style', 'geometries'];
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideJasperFormly(),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    });
+  });
+
+  function* walk(config: FormlyConfig, fields: FormlyFieldConfig[] | undefined, value: any): Generator<[FormlyFieldConfig, any]> {
+    for (const f of fields || []) {
+      if (!f) continue;
+      const v = f.key ? get(value, f.key as string) : value;
+      if (!f.type && f.fieldGroup) {
+        yield* walk(config, f.fieldGroup, v);
+      } else if (typeChain(config, f.type as string).some(t => tightened.includes(t)) && f.key && v !== undefined) {
+        yield [f, v];
+      }
+    }
+  }
+
+  it('accepts the defaults of every built-in mod', () => {
+    TestBed.inject(FormlyFormBuilder);
+    const config = TestBed.inject(FormlyConfig);
+    const admin = TestBed.inject(AdminService);
+    let checked = 0;
+    for (const mod of admin.mods) {
+      for (const def of [...mod.plugin || [], ...mod.template || []]) {
+        const fields = [...def.config?.form || [], ...def.config?.advancedForm || []];
+        for (const [field, value] of walk(config, fields, def.defaults)) {
+          const schema = formlySchema(config, [{ ...field, key: 'value' }]);
+          expect(validate(schema as any, { value }), `${def.tag} ${field.key}`).toEqual([]);
+          checked++;
+        }
+      }
+    }
+    expect(checked).toBeGreaterThan(0);
   });
 });

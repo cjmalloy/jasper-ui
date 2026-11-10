@@ -9,7 +9,7 @@ import { getErrorMessage } from './errors';
   host: { 'class': 'field' },
   template: `
     <div class="col">
-      <div class="center">{{ formatInterval(model[$any(key)], props.datalist) }}</div>
+      <div class="center duration-label">{{ formatInterval(model[$any(key)], props.datalist) || props.placeholder || unset }}</div>
       <input [duration]="props.datalist"
              type="range"
              min="0"
@@ -31,6 +31,7 @@ import { getErrorMessage } from './errors';
 export class FormlyFieldDuration extends FieldType<FieldTypeConfig> {
   private config = inject(FormlyConfig);
 
+  readonly unset = $localize`Not set`;
 
   validate(input: HTMLInputElement) {
     if (this.showError) {
@@ -113,6 +114,7 @@ export function durationIndex(datalist: DurationOption[] | undefined, value: str
   host: {
     '(change)': 'onChange($any($event.target).value)',
     '(input)': 'onChange($any($event.target).value)',
+    '(click)': 'pick($any($event.target).value)',
     '(blur)': 'onTouched()'
   },
 })
@@ -122,17 +124,30 @@ export class DurationInputAccessor implements ControlValueAccessor {
   onChange: any;
   onTouched: any;
 
+  /**
+   * Without a value the slider sits on the first stop, which doesn't fire
+   * input or change events when clicked.
+   */
+  private empty = false;
+
   readonly datalist = input<DurationOption[]>([], { alias: "duration" });
 
   writeValue(value: any) {
+    this.empty = value === null || value === undefined || value === '';
     this.elementRef.nativeElement.value = durationIndex(this.datalist(), value);
   }
 
   registerOnChange(fn: any) {
     this.onChange = (value: any) => {
       const option = this.datalist()[value];
-      if (option) fn(option.value);
+      if (!option) return;
+      this.empty = false;
+      fn(option.value);
     };
+  }
+
+  pick(value: any) {
+    if (this.empty) this.onChange(value);
   }
 
   registerOnTouched(fn: any) {

@@ -6,6 +6,7 @@ import { FormlyFieldConfig, FormlyForm } from '@ngx-formly/core';
 import { AdminService } from '../service/admin.service';
 import { Store } from '../store/store';
 import { provideJasperFormly } from './formly.config';
+import { typeGroups, typeOptions } from './formly.type';
 
 @Component({
   template: `<formly-form [form]="form" [model]="model" [fields]="fields" />`,
@@ -58,8 +59,24 @@ describe('formly type', () => {
     expect(values).not.toContain('list');
     expect(values).toContain('stencil');
     expect(values).not.toContain('child-plugin');
-    expect(values).not.toContain('geometries');
+    expect(values).toContain('geometries');
     expect(values).not.toContain('userMap');
+  });
+
+  it('names and groups every offered type', async () => {
+    const { field } = await render({ form: [{ key: 'title', type: 'string' }] });
+    const options = child(field.fieldGroup![0], 'type').props!.options as { value: string, label: string, group: string }[];
+    const named = typeGroups().flatMap(([, types]) => types.map(([name]) => name));
+    expect(options.filter(o => !named.includes(o.value)).map(o => o.value)).toEqual([]);
+    expect(options.find(o => o.value === 'string')).toEqual({ value: 'string', label: 'Text', group: 'Text' });
+    expect(options.find(o => o.value === 'geometries')!.group).toBe('Map');
+  });
+
+  it('shows unknown types by name', () => {
+    expect(typeOptions(['string', 'custom'])).toEqual([
+      { value: 'string', label: 'Text', group: 'Text' },
+      { value: 'custom', label: 'custom', group: 'Other' },
+    ]);
   });
 
   it('shows options only for option types', async () => {
@@ -140,5 +157,97 @@ describe('formly type', () => {
     child(field.fieldGroup![0], 'props.label').formControl!.setValue('');
     await fixture.whenStable();
     expect(JSON.parse(JSON.stringify(model.form[0]))).toEqual({ type: 'string', props: {} });
+  });
+
+  function hidden(item: FormlyFieldConfig, ...keys: string[]) {
+    return keys.filter(k => !!child(item, k).hide);
+  }
+
+  it('hides label, placeholder, hint and required where the type ignores them', async () => {
+    const { field } = await render({ form: [
+      { key: 'a', type: 'string' },
+      { key: 'b', type: 'tags' },
+      { key: 'c', type: 'geo-style' },
+      { key: 'd', type: 'range' },
+      { key: 'e', type: 'duration' },
+      { key: 'f', type: 'location' },
+      { key: 'g', type: 'code' },
+      { key: 'h', type: 'boolean' },
+      { key: 'i', type: 'typo' },
+      { key: 'j', type: 'geometries' },
+      { key: 'k', type: 'userMap' },
+    ] });
+    const keys = ['props.label', 'props.placeholder', 'props.hint', 'props.required'];
+    const [string, tags, geoStyle, range, duration, location, code, checkbox, unknown, geometries, userMap] = field.fieldGroup!;
+    expect(hidden(string, ...keys)).toEqual([]);
+    expect(hidden(tags, ...keys)).toEqual(['props.placeholder', 'props.hint', 'props.required']);
+    expect(hidden(geoStyle, ...keys)).toEqual(keys);
+    expect(hidden(range, ...keys)).toEqual(['props.placeholder']);
+    expect(hidden(duration, ...keys)).toEqual([]);
+    expect(hidden(location, ...keys)).toEqual(['props.placeholder']);
+    expect(hidden(code, ...keys)).toEqual(['props.placeholder']);
+    expect(hidden(checkbox, ...keys)).toEqual(['props.placeholder']);
+    expect(hidden(unknown, ...keys)).toEqual([]);
+    expect(hidden(geometries, ...keys)).toEqual(['props.placeholder', 'props.hint', 'props.required']);
+    expect(hidden(userMap, ...keys)).toEqual(['props.placeholder', 'props.hint', 'props.required']);
+  });
+
+  it('edits props only for the types which use them', async () => {
+    const { field } = await render({ form: [
+      { key: 'a', type: 'string' },
+      { key: 'b', type: 'select' },
+      { key: 'c', type: 'enum' },
+      { key: 'd', type: 'radio' },
+      { key: 'e', type: 'multicheckbox' },
+      { key: 'f', type: 'range' },
+      { key: 'g', type: 'code' },
+      { key: 'h', type: 'textarea' },
+      { key: 'i', type: 'tag' },
+      { key: 'j', type: 'query' },
+      { key: 'k', type: 'plugin' },
+    ] });
+    const keys = ['props.multiple', 'props.type', 'props.min', 'props.max', 'props.step', 'props.language', 'props.rows', 'props.prefix'];
+    const shown = (item: FormlyFieldConfig) => keys.filter(k => !child(item, k).hide);
+    expect(field.fieldGroup!.map(shown)).toEqual([
+      [],
+      ['props.multiple'],
+      ['props.multiple'],
+      [],
+      ['props.type'],
+      ['props.min', 'props.max', 'props.step'],
+      ['props.language'],
+      ['props.rows'],
+      ['props.prefix'],
+      ['props.prefix'],
+      [],
+    ]);
+  });
+
+  it('saves new props', async () => {
+    const model = { form: [
+      { key: 'a', type: 'range' },
+      { key: 'b', type: 'select' },
+    ] };
+    const { fixture, field } = await render(model);
+    child(field.fieldGroup![0], 'props.min').formControl!.setValue(2);
+    child(field.fieldGroup![0], 'props.max').formControl!.setValue(8);
+    child(field.fieldGroup![1], 'props.multiple').formControl!.setValue(true);
+    await fixture.whenStable();
+    expect(model.form[0]).toEqual({ key: 'a', type: 'range', props: { min: 2, max: 8 } });
+    expect(model.form[1]).toEqual({ key: 'b', type: 'select', props: { multiple: true } });
+    child(field.fieldGroup![0], 'props.max').formControl!.setValue(null);
+    await fixture.whenStable();
+    expect(JSON.parse(JSON.stringify(model.form[0]))).toEqual({ key: 'a', type: 'range', props: { min: 2 } });
+  });
+
+  it('only keeps an array value type while the type is multicheckbox', async () => {
+    const model: any = { form: [{ key: 'a', type: 'multicheckbox', props: { type: 'array' } }] };
+    const { fixture, field } = await render(model);
+    child(field.fieldGroup![0], 'type').formControl!.setValue('string');
+    await fixture.whenStable();
+    expect(model.form[0].props.type).toBeUndefined();
+    child(field.fieldGroup![0], 'type').formControl!.setValue('multicheckbox');
+    await fixture.whenStable();
+    expect(model.form[0].props.type).toBe('array');
   });
 });

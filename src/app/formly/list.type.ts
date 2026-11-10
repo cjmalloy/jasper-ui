@@ -289,6 +289,8 @@ export class ListTypeComponent extends JasperFieldArrayType {
   maybeRemove(event: FocusEvent, i: number) {
     if (this.groupArray) return;
     if (this.props.keepBlank) return;
+    // A new location is placed by clicking the map, which blurs the input
+    if (this.depth) return;
     const input = event.target as HTMLInputElement;
     if (input.tagName !== 'INPUT') return;
     if (input.classList.contains('preview')) return;
