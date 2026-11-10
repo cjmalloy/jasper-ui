@@ -137,8 +137,7 @@ export class EmbedService {
         table     : sourceMap('table'),
         tablerow  : sourceMap('tablerow'),
         image({href, title, text, tokens}: Tokens.Image): string {
-          if (tokens) text = plainText(tokens);
-          text = escapeHtml(text);
+          text = tokens ? plainText(tokens) : escapeHtml(text);
           const cleanHref = cleanUrl(href);
           if (cleanHref === null) {
             return text;

@@ -28,11 +28,17 @@ export function escapeHtml(text: string) {
 }
 
 /**
- * Plain text of inline tokens, like marked's TextRenderer, but without calling
- * extension renderers, which marked runs even when given a TextRenderer.
+ * Escaped plain text of inline tokens, like marked's TextRenderer, but without
+ * calling extension renderers, which marked runs even when given a TextRenderer.
+ * Code spans and backslash escapes are literal, so their "&" is always escaped.
  */
 export function plainText(tokens: any[]): string {
-  return tokens.map(t => t.type === 'br' ? '\n' : t.tokens?.length ? plainText(t.tokens) : t.text ?? t.raw ?? '').join('');
+  return tokens.map(t => {
+    if (t.type === 'br') return '\n';
+    if (t.tokens?.length) return plainText(t.tokens);
+    const text: string = t.text ?? t.raw ?? '';
+    return t.type === 'codespan' || t.type === 'escape' ? escapeHtml(text.replaceAll('&', '&amp;')) : escapeHtml(text);
+  }).join('');
 }
 
 export interface SrcsetCandidate {

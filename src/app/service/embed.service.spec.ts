@@ -182,6 +182,11 @@ describe('EmbedService', () => {
         expect(parse('![#science ^up][i]\n\n[i]: /ref/x').querySelector<HTMLElement>('.inline-embed')!.title).toBe('#science up');
       });
 
+      it('keeps literal character references from code spans and escapes in image alt text', () => {
+        expect(parse('![`&copy;` \\&copy; &copy;][i]\n\n[i]: https://example.com/a.png').querySelector('img')!.alt).toBe('&copy; &copy; ©');
+        expect(parse('![`&copy;` \\&copy; &copy;][i]\n\n[i]: /ref/x').querySelector<HTMLElement>('.inline-embed')!.title).toBe('&copy; &copy; ©');
+      });
+
       it('keeps hard breaks and drops formatting in image alt text', () => {
         expect(parse('![foo\\\nbar][i]\n\n[i]: https://example.com/a.png').querySelector('img')!.alt).toBe('foo\nbar');
         expect(parse('![**bold** `<code>`][i]\n\n[i]: https://example.com/a.png').querySelector('img')!.alt).toBe('bold <code>');

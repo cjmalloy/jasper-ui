@@ -26,6 +26,14 @@ describe('markdown util', () => {
         { type: 'preserveMath', raw: '$c$', tokens: [] },
       ])).toBe('a\n#b$c$');
     });
+
+    it('escapes the result, keeping character references only in text', () => {
+      expect(plainText([
+        { type: 'codespan', raw: '`&copy;<`', text: '&copy;<' },
+        { type: 'escape', raw: '\\&', text: '&' },
+        { type: 'text', raw: 'copy; &copy; "', text: 'copy; &copy; "' },
+      ])).toBe('&amp;copy;&lt;&amp;copy; &copy; &quot;');
+    });
   });
 
   describe('escapeHtml', () => {
