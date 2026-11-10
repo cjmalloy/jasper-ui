@@ -170,12 +170,12 @@ export interface RootConfig {
       props: {
         label: $localize`Stencils:`,
         addText: $localize`+ Add another stencil`,
-        title: $localize`Submit with an input for each <Placeholder>, such as car/<Make>/<Model>`,
+        title: $localize`Submit with an input for each <Placeholder>`,
       },
       fieldArray: {
         type: 'string',
         props: {
-          placeholder: $localize`car/<Make>/<Model>`,
+          placeholder: $localize`prefix/<Name>`,
         },
       },
     }, {
@@ -189,7 +189,7 @@ export interface RootConfig {
       fieldArray: {
         type: 'string',
         props: {
-          placeholder: $localize`car/<Make>/<Model>`,
+          placeholder: $localize`prefix/<Parent>/<Child>`,
         },
       },
     }, {
@@ -353,12 +353,12 @@ export interface RootConfig {
   addTags?: string[];
   /**
    * Submit with the text page, showing inputs for these tag templates,
-   * such as `car/<Make>/<Model>`. See the inputTag query param.
+   * such as `prefix/<Name>`. See the inputTag query param.
    */
   inputTags?: string[];
   /**
    * Submit with the text page, showing a line for each placeholder of these
-   * tag templates, such as `car/<Make>/<Model>`. See the hierarchicalTag query param.
+   * tag templates, such as `prefix/<Parent>/<Child>`. See the hierarchicalTag query param.
    */
   hierarchicalTags?: string[];
   defaultExpanded?: boolean;

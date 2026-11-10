@@ -5434,7 +5434,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/text/text.component.ts</context>
-          <context context-type="linenumber">486</context>
+          <context context-type="linenumber">487</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7838847050556032477" datatype="html">
@@ -6377,8 +6377,8 @@ Private tags start with an underscore.
           <context context-type="linenumber">127</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1832879454397489615" datatype="html">
-        <source>car/&lt;Make&gt;/&lt;Model&gt;</source>
+      <trans-unit id="9009202749396171133" datatype="html">
+        <source>prefix/&lt;Name&gt;</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
           <context context-type="linenumber">147</context>
@@ -6386,10 +6386,6 @@ Private tags start with an underscore.
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
           <context context-type="linenumber">178</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">192</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6528912154811772415" datatype="html">
@@ -13803,8 +13799,8 @@ F: Fullscreen toggle
           <context context-type="linenumber">172</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8746068517837202171" datatype="html">
-        <source>Submit with an input for each &lt;Placeholder&gt;, such as car/&lt;Make&gt;/&lt;Model&gt;</source>
+      <trans-unit id="6025818215204822960" datatype="html">
+        <source>Submit with an input for each &lt;Placeholder&gt;</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
           <context context-type="linenumber">173</context>
@@ -13829,6 +13825,13 @@ F: Fullscreen toggle
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
           <context context-type="linenumber">187</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7477108271622781847" datatype="html">
+        <source>prefix/&lt;Parent&gt;/&lt;Child&gt;</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/root.ts</context>
+          <context context-type="linenumber">192</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8138852734905091912" datatype="html">
@@ -18863,7 +18866,7 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Submit: Wiki</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/text/text.component.ts</context>
-          <context context-type="linenumber">320</context>
+          <context context-type="linenumber">321</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6932865105766151309" datatype="html">

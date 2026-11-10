@@ -3986,9 +3986,9 @@ Refのみが削除されたファイルはまだ回復できますが、この�
         <source>Submit with one line per &lt;Placeholder&gt;, filled out top down, adding the tag up to each line</source>
         <target>&lt;Placeholder&gt; ごとに1行を表示し、上から順に入力して、各行までのタグを追加して投稿します</target>
       </trans-unit>
-      <trans-unit id="8746068517837202171" datatype="html">
-        <source>Submit with an input for each &lt;Placeholder&gt;, such as car/&lt;Make&gt;/&lt;Model&gt;</source>
-        <target>car/&lt;Make&gt;/&lt;Model&gt; のように、&lt;Placeholder&gt; ごとに入力欄を表示して投稿します</target>
+      <trans-unit id="6025818215204822960" datatype="html">
+        <source>Submit with an input for each &lt;Placeholder&gt;</source>
+        <target>&lt;Placeholder&gt; ごとに入力欄を表示して投稿します</target>
       </trans-unit>
       <trans-unit id="9011317583858638540" datatype="html">
         <source>Stream Updates:</source>
@@ -8611,8 +8611,11 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Must be lower case letters, numbers and periods.</source>
         <target>小文字、数字、ピリオドのみ使用できます。</target>
       </trans-unit>
-      <trans-unit id="1832879454397489615" datatype="html">
-        <source>car/&lt;Make&gt;/&lt;Model&gt;</source>
+      <trans-unit id="9009202749396171133" datatype="html">
+        <source>prefix/&lt;Name&gt;</source>
+      </trans-unit>
+      <trans-unit id="7477108271622781847" datatype="html">
+        <source>prefix/&lt;Parent&gt;/&lt;Child&gt;</source>
       </trans-unit>
       <trans-unit id="6528912154811772415" datatype="html">
         <source>A tag with an input for each &lt;Placeholder&gt;. Commas in the first part make a dropdown, such as +plugin,_plugin/secret/&lt;Name&gt;.</source>

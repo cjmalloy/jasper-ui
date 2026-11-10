@@ -144,7 +144,7 @@ export function formlyType(typeNames: string[]): TypeOption {
           },
           props: {
             label: $localize`Template:`,
-            placeholder: $localize`car/<Make>/<Model>`,
+            placeholder: $localize`prefix/<Name>`,
             hint: $localize`A tag with an input for each <Placeholder>. Commas in the first part make a dropdown, such as +plugin,_plugin/secret/<Name>.`,
           },
         }, {
