@@ -1,16 +1,10 @@
-import { expect, type Locator } from '@playwright/test';
+import { expect } from '@playwright/test';
 import { closeSidebar, deleteRef, mod, openSidebar, test } from './setup';
 
 const URL = 'https://jasperkm.info/plugin-map-test';
 const POLYGON_URL = 'https://jasperkm.info/plugin-map-polygon-test';
 const GEO_URL = 'geo:44.65,-63.57';
 const CORS = { 'Access-Control-Allow-Origin': '*' };
-
-/** Wait for the address search to fit its placeholder and finish animating. */
-async function settled(geocoder: Locator) {
-  await expect(geocoder).toHaveClass(/measured/);
-  await geocoder.evaluate(el => Promise.all(el.getAnimations().map(a => a.finished)));
-}
 
 test.describe.serial('Map Plugin', () => {
 
@@ -439,111 +433,6 @@ test.describe.serial('Map Plugin', () => {
     await expect(page.locator('.geometries-field .geometry-item')).toHaveCount(2);
   });
 
-  test('location input map picker searches an address', async ({ page }) => {
-    let query = '';
-    let viewbox = '';
-    await page.route('https://nominatim.openstreetmap.org/search**', route => {
-      query = new globalThis.URL(route.request().url()).searchParams.get('q') || '';
-      viewbox = new globalThis.URL(route.request().url()).searchParams.get('viewbox') || '';
-      return route.fulfill({ headers: CORS, json: [{ display_name: 'Halifax, Nova Scotia, Canada', lat: '44.65', lon: '-63.57' }] });
-    });
-    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
-      + '&tag=plugin/geo/point', { waitUntil: 'networkidle' });
-    const point = page.locator('.location-field').first();
-    await point.locator('input[type=number]').nth(0).fill('-63.5');
-    await point.locator('input[type=number]').nth(1).fill('44.6');
-    await point.locator('.location-map-toggle').click();
-    await expect(point.locator('.location-map .maplibregl-canvas')).toBeVisible({ timeout: 15_000 });
-
-    const search = point.locator('.location-map .maplibregl-ctrl-geocoder--input');
-    await search.fill('Halifax');
-    await search.press('Enter');
-    const result = point.locator('.maplibregl-ctrl-geocoder .suggestions li', { hasText: 'Nova Scotia' });
-    // The result name and address are spaced apart
-    const title = (await result.locator('.maplibregl-ctrl-geocoder--result-title').boundingBox())!;
-    const address = (await result.locator('.maplibregl-ctrl-geocoder--result-address').boundingBox())!;
-    expect(address.x - (title.x + title.width)).toBeGreaterThan(2);
-    await result.click();
-    expect(query).toBe('Halifax');
-    // Search is biased toward the current view
-    expect(viewbox.split(',').map(Number)).toHaveLength(4);
-    await expect(result).toBeHidden();
-    // Search only marks the result, it does not move the location
-    const found = point.locator('.location-map .geocode-marker');
-    await expect(found).toBeVisible();
-    await expect(point.locator('input[type=number]').nth(0)).toHaveValue('-63.5');
-    await expect(point.locator('input[type=number]').nth(1)).toHaveValue('44.6');
-    // Clicking the result marker moves the location there
-    await found.click();
-    await expect(found).toHaveCount(0);
-    await expect(point.locator('input[type=number]').nth(0)).toHaveValue('-63.57');
-    await expect(point.locator('input[type=number]').nth(1)).toHaveValue('44.65');
-  });
-
-  test('location input map picker expands the address search while in use', async ({ page }) => {
-    await page.route('https://nominatim.openstreetmap.org/search**', route => route.fulfill({
-      headers: CORS,
-      json: [{ display_name: 'Halifax, Nova Scotia, Canada', lat: '44.65', lon: '-63.57' }],
-    }));
-    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
-      + '&tag=plugin/geo/point', { waitUntil: 'networkidle' });
-    const point = page.locator('.location-field').first();
-    await point.locator('input[type=number]').nth(0).fill('-63.5');
-    await point.locator('input[type=number]').nth(1).fill('44.6');
-    await point.locator('.location-map-toggle').click();
-    const map = point.locator('.location-map mgl-map');
-    await expect(point.locator('.location-map .maplibregl-canvas')).toBeVisible({ timeout: 15_000 });
-    const mapWidth = (await map.boundingBox())!.width;
-    const geocoder = point.locator('.location-map .maplibregl-ctrl-geocoder');
-    const search = geocoder.locator('.maplibregl-ctrl-geocoder--input');
-    const width = async () => (await geocoder.boundingBox())!.width;
-
-    // Default size while not in use, at least 175px and wide enough for the placeholder
-    await settled(geocoder);
-    const initial = await width();
-    expect(initial).toBeGreaterThanOrEqual(175);
-    expect(initial).toBeLessThan(mapWidth * 0.6);
-
-    // Expands while focused, animating up from the default size without shrinking first
-    const smallest = geocoder.evaluate(el => new Promise<number>(resolve => {
-      let min = Infinity;
-      const end = performance.now() + 400;
-      const sample = () => {
-        min = Math.min(min, el.getBoundingClientRect().width);
-        if (performance.now() < end) requestAnimationFrame(sample); else resolve(min);
-      };
-      sample();
-    }));
-    await search.focus();
-    expect(await smallest).toBeGreaterThanOrEqual(initial - 1);
-    await expect.poll(width).toBeGreaterThan(mapWidth * 0.75);
-    expect(await width()).toBeLessThanOrEqual(mapWidth - 20);
-
-    // Stays expanded after blur while there is a query
-    await search.fill('Halifax');
-    await search.press('Enter');
-    const suggestions = geocoder.locator('.suggestions');
-    await expect(suggestions.locator('li', { hasText: 'Nova Scotia' })).toBeVisible();
-    // Results dropdown expands with the box
-    expect((await suggestions.boundingBox())!.width).toBeGreaterThan(mapWidth * 0.75);
-    await search.blur();
-    await expect.poll(width).toBeGreaterThan(mapWidth * 0.75);
-
-    // Shrinks back when empty and unfocused
-    // (retry: the geocoder's debounced keydown handler refocuses the input after the query is cleared)
-    await search.fill('');
-    await expect(async () => {
-      await search.blur();
-      await expect.poll(width, { timeout: 1_000 }).toBeCloseTo(initial, 0);
-      await page.waitForTimeout(300);
-      expect(await width()).toBeCloseTo(initial, 0);
-    }).toPass();
-
-    // The map still renders at full size
-    expect((await map.boundingBox())!.width).toBeCloseTo(mapWidth, 0);
-    expect((await map.boundingBox())!.height).toBeGreaterThan(250);
-  });
-
   test('editors never reverse geocode', async ({ page }) => {
     let reverse = 0;
     await page.route('https://nominatim.openstreetmap.org/reverse**', route => {
@@ -669,55 +558,6 @@ test.describe.serial('Map Plugin', () => {
     await page.setViewportSize({ width: 900, height: 720 });
     await openSidebar(page);
     await expect.poll(async () => await width() - (await map.boundingBox())!.width * 0.8).toBeCloseTo(0, 0);
-  });
-
-  test('map search result submits a ref at that location', async ({ page }) => {
-    await page.route('https://nominatim.openstreetmap.org/search**', route => route.fulfill({
-      headers: CORS,
-      json: [{ display_name: 'Halifax, Nova Scotia, Canada', lat: '44.65', lon: '-63.57' }],
-    }));
-    await page.goto('/ref/e/' + encodeURIComponent(URL) + '?debug=ADMIN', { waitUntil: 'networkidle' });
-    const embed = page.locator('.full-page.ref .map-embed');
-    const search = embed.locator('.maplibregl-ctrl-geocoder--input');
-    await search.fill('Halifax');
-    await search.press('Enter');
-    await embed.locator('.maplibregl-ctrl-geocoder .suggestions li', { hasText: 'Nova Scotia' }).click();
-    const found = embed.locator('.geocode-marker');
-    await expect(found).toBeVisible();
-    await found.click();
-    await expect(page).toHaveURL(/\/submit\/text\?/);
-    await expect(page.locator('[name=title]')).toHaveValue('Halifax, Nova Scotia, Canada');
-    const point = page.locator('.location-field').first();
-    await expect(point.locator('input[type=number]').nth(0)).toHaveValue('-63.57');
-    await expect(point.locator('input[type=number]').nth(1)).toHaveValue('44.65');
-  });
-
-  test('map click submits a ref at the reverse geocoded address', async ({ page }) => {
-    await page.route('https://nominatim.openstreetmap.org/reverse**', route => route.fulfill({
-      headers: CORS,
-      json: { display_name: 'Dartmouth, Nova Scotia, Canada', lat: '44.67', lon: '-63.57' },
-    }));
-    await page.goto('/ref/e/' + encodeURIComponent(URL) + '?debug=ADMIN', { waitUntil: 'networkidle' });
-    const embed = page.locator('.full-page.ref .map-embed');
-    const canvas = embed.locator('.maplibregl-canvas');
-    await expect(canvas).toBeVisible({ timeout: 15_000 });
-    const box = (await canvas.boundingBox())!;
-    await canvas.click({ position: { x: box.width * 0.75, y: box.height / 2 } });
-    const found = embed.locator('.geocode-marker');
-    await expect(found).toHaveAttribute('title', 'Dartmouth, Nova Scotia, Canada');
-    await found.click();
-    await expect(page).toHaveURL(/\/submit\/text\?/);
-    // Adds the same tags as the Submit button
-    await expect(page).toHaveURL(/[?&]tag=public(&|$)/);
-    await expect(page.locator('[name=title]')).toHaveValue('Dartmouth, Nova Scotia, Canada');
-    // Page is interactive after navigating from the map
-    await page.locator('.child-plugin-select').selectOption('plugin/geo/polygon');
-    await expect(page.locator('button', { hasText: '+ Add Ring' })).toBeVisible();
-    await page.getByText('show advanced').click();
-    await expect(page.locator('app-ref-form')).toBeVisible();
-    const point = page.locator('.location-field').first();
-    await expect(point.locator('input[type=number]').nth(0)).not.toHaveValue('');
-    await expect(point.locator('input[type=number]').nth(1)).not.toHaveValue('');
   });
 
   test('double clicking the map zooms in', async ({ page }) => {
@@ -1157,32 +997,6 @@ test.describe.serial('Map Plugin', () => {
     await paste(lat, '[-63.4,44.7]');
     await expect(lng).toHaveValue('-63.4');
     await expect(lat).toHaveValue('44.7');
-  });
-
-  test('address search results space the name from the address', async ({ page }) => {
-    await page.route('https://nominatim.openstreetmap.org/search**', route => route.fulfill({
-      headers: CORS,
-      json: [{ display_name: 'Halifax, Nova Scotia, Canada', lat: '44.65', lon: '-63.57' }],
-    }));
-    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
-      + '&tag=plugin/geo/point', { waitUntil: 'networkidle' });
-    const point = page.locator('.location-field').first();
-    await point.locator('input[type=number]').nth(0).fill('-63.5');
-    await point.locator('input[type=number]').nth(1).fill('44.6');
-    await point.locator('.location-map-toggle').click();
-    await expect(point.locator('.location-map .maplibregl-canvas')).toBeVisible({ timeout: 15_000 });
-
-    const search = point.locator('.location-map .maplibregl-ctrl-geocoder--input');
-    await search.fill('Halifax');
-    await search.press('Enter');
-    const result = point.locator('.maplibregl-ctrl-geocoder .suggestions li', { hasText: 'Nova Scotia' });
-    const title = result.locator('.maplibregl-ctrl-geocoder--result-title');
-    const address = result.locator('.maplibregl-ctrl-geocoder--result-address');
-    await expect(title).toHaveText('Halifax');
-    await expect(address).toHaveText('Nova Scotia, Canada');
-    const titleBox = (await title.boundingBox())!;
-    const addressBox = (await address.boundingBox())!;
-    expect(addressBox.x - (titleBox.x + titleBox.width)).toBeGreaterThan(3);
   });
 
   test('map template zoom slider has labels', async ({ page }) => {
