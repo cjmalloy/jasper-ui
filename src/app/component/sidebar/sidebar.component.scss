@@ -13,6 +13,25 @@
   }
 }
 
+.bookmark, .subscribe, .alarm {
+  position: relative;
+  &.saving {
+    // Keep the label's width while saving so the buttons don't jump around
+    .label {
+      visibility: hidden;
+    }
+    .loading-dots {
+      position: absolute;
+      inset: 0;
+      margin: 0;
+      top: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+}
+
 .fake-link {
   display: block;
   text-align: center;

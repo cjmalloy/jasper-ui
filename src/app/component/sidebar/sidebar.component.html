@@ -214,13 +214,15 @@
                     class="bookmark"
                     i18n-title title="Remove from top bar"
                     [disabled]="savingBookmark()"
-                    (click)="removeBookmark()" i18n>&ndash; bookmark</button>
+                    [class.saving]="savingBookmark()"
+                    (click)="removeBookmark()"><span class="label" i18n>&ndash; bookmark</span>@if (savingBookmark()) {<app-loading [inline]="true" />}</button>
           } @else {
             <button type="button"
                     (click)="addBookmark()"
                     i18n-title title="Add to top bar"
                     [disabled]="savingBookmark()"
-                    class="bookmark" i18n>+ bookmark</button>
+                    [class.saving]="savingBookmark()"
+                    class="bookmark"><span class="label" i18n>+ bookmark</span>@if (savingBookmark()) {<app-loading [inline]="true" />}</button>
           }
           @if (admin.home()) {
             @if (user()) {
@@ -229,13 +231,15 @@
                         class="subscribe"
                         i18n-title title="Remove from home screen"
                         [disabled]="savingSub()"
-                        (click)="unsubscribe()" i18n>&ndash; unfollow</button>
+                        [class.saving]="savingSub()"
+                        (click)="unsubscribe()"><span class="label" i18n>&ndash; unfollow</span>@if (savingSub()) {<app-loading [inline]="true" />}</button>
               } @else {
                 <button type="button"
                         (click)="subscribe()"
                         i18n-title title="Add to home screen"
                         [disabled]="savingSub()"
-                        class="subscribe" i18n>+ follow</button>
+                        [class.saving]="savingSub()"
+                        class="subscribe"><span class="label" i18n>+ follow</span>@if (savingSub()) {<app-loading [inline]="true" />}</button>
               }
             } @else {
               @if (inSubs()) {
@@ -243,13 +247,15 @@
                         class="subscribe"
                         i18n-title title="Remove from home screen"
                         [disabled]="savingSub()"
-                        (click)="unsubscribe()" i18n>&ndash; unsubscribe</button>
+                        [class.saving]="savingSub()"
+                        (click)="unsubscribe()"><span class="label" i18n>&ndash; unsubscribe</span>@if (savingSub()) {<app-loading [inline]="true" />}</button>
               } @else {
                 <button type="button"
                         (click)="subscribe()"
                         i18n-title title="Add to home screen"
                         [disabled]="savingSub()"
-                        class="subscribe" i18n>+ subscribe</button>
+                        [class.saving]="savingSub()"
+                        class="subscribe"><span class="label" i18n>+ subscribe</span>@if (savingSub()) {<app-loading [inline]="true" />}</button>
               }
             }
           }
@@ -258,13 +264,15 @@
                     class="alarm"
                     i18n-title title="Remove alarm"
                     [disabled]="savingAlarm()"
-                    (click)="removeAlarm()" i18n>🔇</button>
+                    [class.saving]="savingAlarm()"
+                    (click)="removeAlarm()"><span class="label" i18n>🔇</span>@if (savingAlarm()) {<app-loading [inline]="true" />}</button>
           } @else {
             <button type="button"
                     (click)="addAlarm()"
                     i18n-title title="Add alarm"
                     [disabled]="savingAlarm()"
-                    class="alarm" i18n>🔔</button>
+                    [class.saving]="savingAlarm()"
+                    class="alarm"><span class="label" i18n>🔔</span>@if (savingAlarm()) {<app-loading [inline]="true" />}</button>
           }
         </div>
       }
