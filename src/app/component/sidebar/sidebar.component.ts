@@ -46,6 +46,7 @@ import { getModels, getZipOrTextFile } from '../../util/zip';
 import { parseInputTag } from '../../util/input-tag';
 import { hasPrefix, hasTag, isQuery, localTag, setProtected, setPublic } from '../../util/tag';
 import { BulkComponent } from '../bulk/bulk.component';
+import { LoadingComponent } from '../loading/loading.component';
 import { ChatVideoComponent } from '../chat/chat-video/chat-video.component';
 import { ChatComponent } from '../chat/chat.component';
 import { DebugComponent } from '../debug/debug.component';
@@ -83,6 +84,7 @@ import { SortComponent } from '../sort/sort.component';
     NavComponent,
     RouterLinkActive,
     ChatVideoComponent,
+    LoadingComponent,
   ]
 })
 export class SidebarComponent {

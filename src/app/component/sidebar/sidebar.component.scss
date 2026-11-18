@@ -13,6 +13,23 @@
   }
 }
 
+.saving-wrapper {
+  position: relative;
+  .saving {
+    // Hide the button without removing it, so the layout doesn't jump and it can't be clicked twice
+    visibility: hidden;
+  }
+  .saving-placeholder {
+    position: absolute;
+    inset: 0;
+    top: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 .fake-link {
   display: block;
   text-align: center;
