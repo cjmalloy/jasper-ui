@@ -436,6 +436,7 @@ export class SubmitWebPage implements HasChanges {
   private readonly feedDefaultThumbnail = (scraped: Record<string, any>) => {
     const thumbnail = scraped['plugin/thumbnail'];
     if (!this.feed || !thumbnail) return {};
+    if (this.webForm.get(['plugins', 'plugin/script/feed', 'defaultThumbnail'])?.dirty) return {};
     const feed = this.webForm.value.plugins?.['plugin/script/feed'] || {};
     return { 'plugin/script/feed': { ...feed, defaultThumbnail: { ...feed.defaultThumbnail || {}, ...thumbnail } } };
   };
