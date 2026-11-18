@@ -240,6 +240,10 @@ The goal is a **simple, easy-to-navigate CSS tree**:
    - **Timing**: wait for a specific locator or `waitForResponse`, not fixed sleeps.
    - **Ports in use**: the root compose stack is still running.
 
+## CI Workflows
+
+- `pages.yml` runs on `workflow_run` after Test/Playwright, but those runs need a separate approval when Copilot triggered the original run. Each `clean` job therefore dispatches `pages.yml` itself when `github.actor == 'Copilot'` (needs `actions: write`), so approving the test runs also publishes their reports.
+
 ## Code Conventions
 
 - Stack: Angular 22 (zoneless, signals), TypeScript 6, Formly, RxJS, Vitest, Playwright.
