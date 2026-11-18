@@ -1,7 +1,6 @@
 import { Component, effect, inject, untracked, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, filter, of, Subject, Subscription, switchMap } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { filter, Subject, Subscription } from 'rxjs';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
@@ -15,7 +14,8 @@ import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getTitle } from '../../../util/format';
 import { getArgs } from '../../../util/query';
-import { hasTag, updateMetadata } from '../../../util/tag';
+import { watchNewResponses } from '../../../util/response';
+import { hasTag } from '../../../util/tag';
 
 @Component({
   selector: 'app-ref-errors',
@@ -46,7 +46,7 @@ export class RefErrorsComponent implements HasChanges {
     const bookmarks = this.bookmarks;
     store.view.defaultSort.set(['published']);
     if (!this.store.view.filter().length) bookmarks.setFilters(['query/' + (store.account.origin() || '*')]);
-    const untilDestroyed = takeUntilDestroyed<Ref | undefined>();
+    const untilDestroyed = takeUntilDestroyed<Ref>();
     this.query.watch(() => ({
       ...getArgs(
         '+plugin/log:!plugin/delete',
@@ -65,13 +65,13 @@ export class RefErrorsComponent implements HasChanges {
       untracked(() => {
         if (this.store.view.url() && this.config.websockets) {
           this.watch?.unsubscribe();
-          this.watch = this.stomp.watchResponse(this.store.view.url()).pipe(
-            switchMap(url => this.refs.getCurrent(url)),
-            tap(ref => updateMetadata(this.store.view.ref()!, ref)),
+          this.watch = watchNewResponses(this.stomp, this.refs, this.store.view.url()).pipe(
             filter(ref => hasTag('+plugin/log', ref)),
-            catchError(err => of(undefined)),
             untilDestroyed,
-          ).subscribe(ref => this.newRefs$.next(ref));
+          ).subscribe(ref => {
+            this.store.view.addResponse(ref);
+            this.newRefs$.next(ref);
+          });
         }
       });
     });

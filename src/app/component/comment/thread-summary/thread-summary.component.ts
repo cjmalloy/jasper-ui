@@ -51,7 +51,8 @@ export class ThreadSummaryComponent {
       switchMap(refs => refs ?? EMPTY),
       takeUntilDestroyed(),
     ).subscribe(comment => {
-      if (comment) this.newRefs.update(refs => [comment, ...refs]);
+      if (!comment || this.list().some(r => r.url === comment.url)) return;
+      this.newRefs.update(refs => [comment, ...refs.filter(r => r.url !== comment.url)]);
     });
   }
 
