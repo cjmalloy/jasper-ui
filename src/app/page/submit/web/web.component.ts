@@ -222,13 +222,13 @@ export class SubmitWebPage implements HasChanges {
                 this.addTag('plugin/repost');
                 this.addSource(url);
                 if (url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
-                  this.refForm.scrapePlugins(url, { 'plugin/thumbnail': { radius: 24 } });
+                  this.refForm.scrapePlugins(url, { 'plugin/thumbnail': { radius: 24 } }, this.feedDefaultThumbnail);
                   const username = url.substring(url.indexOf('@'));
                   if (!this.store.submit.title()) this.webForm.get('title')!.setValue(username);
                   const tag = username.toLowerCase().replace(/[^a-z0-9]+/, '');
                   this.addFeedTags(tag);
                 } else {
-                  this.refForm.scrapePlugins(url);
+                  this.refForm.scrapePlugins(url, { 'plugin/thumbnail': { radius: 4 } }, this.feedDefaultThumbnail);
                   if (!this.store.submit.title() && !this.hasDraft) this.refForm.scrapeTitle();
                 }
               } else {
@@ -432,6 +432,14 @@ export class SubmitWebPage implements HasChanges {
     this.serverError.set([]);
     this.submitted.set(false);
   }
+
+  private readonly feedDefaultThumbnail = (scraped: Record<string, any>) => {
+    const thumbnail = scraped['plugin/thumbnail'];
+    if (!this.feed || !thumbnail) return {};
+    if (this.webForm.get(['plugins', 'plugin/script/feed', 'defaultThumbnail'])?.dirty) return {};
+    const feed = this.webForm.value.plugins?.['plugin/script/feed'] || {};
+    return { 'plugin/script/feed': { ...feed, defaultThumbnail: { ...feed.defaultThumbnail || {}, ...thumbnail } } };
+  };
 
   private addFeedTags(...tags: string[]) {
     if (!this.feed) return;

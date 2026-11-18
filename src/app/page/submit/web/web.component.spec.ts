@@ -2,7 +2,7 @@
 import { HttpErrorResponse, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
 import { throwError } from 'rxjs';
 import { LinksFormComponent } from '../../../form/links/links.component';
@@ -88,5 +88,21 @@ describe('SubmitWebPage', () => {
     expect(component.alreadyExists()).toBe(false);
     expect(component.submitting()).toBe(false);
     expect(component.serverError()).toEqual(['Ref already modified']);
+  });
+
+  it('only fills the feed default thumbnail while it is pristine', async () => {
+    await new Promise(resolve => setTimeout(resolve, 10));
+    component.addTag('plugin/script/feed');
+    const plugins = component.webForm.get('plugins') as FormGroup;
+    if (!plugins.get('plugin/script/feed')) plugins.addControl('plugin/script/feed', new FormGroup({}));
+    const feed = plugins.get('plugin/script/feed') as FormGroup;
+    if (!feed.get('defaultThumbnail')) feed.addControl('defaultThumbnail', new FormGroup({ url: new FormControl('') }));
+    const thumbnail = { url: 'https://blog.example/icon.png', radius: 4 };
+
+    expect(component['feedDefaultThumbnail']({ 'plugin/thumbnail': thumbnail })['plugin/script/feed'].defaultThumbnail)
+      .toEqual(expect.objectContaining(thumbnail));
+
+    feed.get('defaultThumbnail')!.markAsDirty();
+    expect(component['feedDefaultThumbnail']({ 'plugin/thumbnail': thumbnail })).toEqual({});
   });
 });
