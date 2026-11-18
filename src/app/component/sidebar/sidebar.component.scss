@@ -13,22 +13,20 @@
   }
 }
 
-.bookmark, .subscribe, .alarm {
+.saving-wrapper {
   position: relative;
-  &.saving {
-    // Keep the label's width while saving so the buttons don't jump around
-    .label {
-      visibility: hidden;
-    }
-    .loading-dots {
-      position: absolute;
-      inset: 0;
-      margin: 0;
-      top: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+  .saving {
+    // Hide the button without removing it, so the layout doesn't jump and it can't be clicked twice
+    visibility: hidden;
+  }
+  .saving-placeholder {
+    position: absolute;
+    inset: 0;
+    top: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 
