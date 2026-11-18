@@ -6,11 +6,13 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { Subject } from 'rxjs';
 
+import { Ref } from '../../../model/ref';
 import { ThreadSummaryComponent } from './thread-summary.component';
 
 describe('ThreadSummaryComponent', () => {
   let component: ThreadSummaryComponent;
   let fixture: ComponentFixture<ThreadSummaryComponent>;
+  let newRefs$: Subject<Ref | undefined>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -24,11 +26,18 @@ describe('ThreadSummaryComponent', () => {
 
     fixture = TestBed.createComponent(ThreadSummaryComponent);
     component = fixture.componentInstance;
-    fixture.componentRef.setInput('newRefs$', new Subject());
+    newRefs$ = new Subject();
+    fixture.componentRef.setInput('newRefs$', newRefs$);
     fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should not duplicate a new ref received twice', () => {
+    newRefs$.next({ url: 'comment:a', title: 'first' });
+    newRefs$.next({ url: 'comment:a', title: 'second' });
+    expect(component.newRefs()).toEqual([{ url: 'comment:a', title: 'second' }]);
   });
 });

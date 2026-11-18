@@ -27,9 +27,11 @@ import { RefService } from '../../service/api/ref.service';
 import { StompService } from '../../service/api/stomp.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { ConfigService } from '../../service/config.service';
+import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
+import { ThreadStore } from '../../store/thread';
 import { markRead } from '../../util/response';
-import { hasTag, localPluginResponses, pluginResponses, privateTag, top } from '../../util/tag';
+import { hasTag, isAuthorTag, localPluginResponses, pluginResponses, privateTag, top } from '../../util/tag';
 
 @Component({
   selector: 'app-ref-page',
@@ -53,11 +55,25 @@ export class RefPage implements HasChanges {
   private ts = inject(TaggingService);
   private router = inject(Router);
   private stomp = inject(StompService);
+  private query = inject(QueryStore);
+  private threadStore = inject(ThreadStore);
 
 
   private readonly injector = inject(Injector);
 
-  readonly newResponses = signal<number>(0);
+  private readonly newResponseUrls = signal<string[]>([]);
+  readonly newResponses = computed(() => {
+    switch (this.store.view.current()) {
+      // These pages fetch new responses, so they can be filtered by type and author
+      case 'ref/summary':
+      case 'ref/thread':
+      case 'ref/errors':
+        return this.store.view.responses()
+          .filter(ref => this.showsResponse(ref) && !isAuthorTag(this.store.account.tag(), ref)).length;
+    }
+    const shown = new Set(this.store.view.responses().map(ref => ref.url));
+    return this.newResponseUrls().filter(url => !shown.has(url)).length;
+  });
   private destroyRef = inject(DestroyRef);
 
   readonly ref = viewChild<RefComponent>('ref');
@@ -67,7 +83,6 @@ export class RefPage implements HasChanges {
   private watchKey = '';
   private watchResponsesKey = '';
   private watchResponses?: Subscription;
-  private seen = new Set<string>();
 
   saveChanges() {
     const ref = this.ref();
@@ -141,7 +156,8 @@ export class RefPage implements HasChanges {
       this.store.view.clear();
       return;
     }
-    this.newResponses.set(0);
+    this.newResponseUrls.set([]);
+    this.store.view.responses.set([]);
     this.refs.count({ url, obsolete: true }).subscribe(count => this.store.view.versions.set(count));
     const fetchTop = (ref: Ref) => hasTag('plugin/thread', ref) || hasTag('plugin/comment', ref);
     const cached = this.store.view.ref();
@@ -169,14 +185,34 @@ export class RefPage implements HasChanges {
       this.watchResponsesKey = url;
       this.watchResponses?.unsubscribe();
       this.watchResponses = this.stomp.watchResponse(url).pipe(
-        filter(url => url != this.store.view.url()),
-        filter(url => !url.startsWith('tag:')),
-        filter(url => !this.seen.has(url)),
+        filter(res => res !== url && !res.startsWith('tag:')),
+        filter(res => !this.newResponseUrls().includes(res) && !this.visible(res)),
         takeUntilDestroyed(this.destroyRef),
-      ).subscribe(url => {
-        this.seen.add(url);
-        this.newResponses.update(n => n + 1);
-      });
+      ).subscribe(res => this.newResponseUrls.update(urls => [...urls, res]));
+    }
+  }
+
+  /**
+   * Responses already listed on the page were edited, not created.
+   */
+  private visible(url: string) {
+    if (this.query.page()?.content.some(ref => ref.url === url)) return true;
+    for (const refs of this.threadStore.cache().values()) {
+      if (refs.some(ref => ref.url === url)) return true;
+    }
+    return false;
+  }
+
+  /**
+   * Whether the current sub page lists this response.
+   */
+  private showsResponse(ref: Ref) {
+    switch (this.store.view.current()) {
+      case 'ref/comments': return hasTag('plugin/comment', ref);
+      case 'ref/thread': return hasTag('plugin/thread', ref);
+      case 'ref/errors': return hasTag('+plugin/log', ref);
+      case 'ref/responses': return !hasTag('internal', ref);
+      default: return hasTag('plugin/comment', ref) || hasTag('plugin/thread', ref) || !hasTag('internal', ref);
     }
   }
 
