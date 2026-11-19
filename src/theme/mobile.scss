@@ -427,7 +427,7 @@ $tablet-width: 948px;
     left: 0 !important;
   }
 
-  .info, .actions, .advanced-actions * {
+  .info, .actions:not(.bulk, .debug), .advanced-actions * {
     font-size: 16px;
     line-height: 28px;
     height: 28px;
