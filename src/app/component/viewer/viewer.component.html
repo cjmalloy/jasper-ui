@@ -67,6 +67,7 @@
            [autoplay]="autoplay()"
            controls
            [appResize]="!disableResize()"
+           (loadedmetadata)="setVideoRatio(video)"
            (playing)="playing.emit(videoUrl())"
            (pause)="!this.ended && pausing.emit(videoUrl())"
            (ended)="ended.emit(videoUrl())">

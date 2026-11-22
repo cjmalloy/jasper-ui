@@ -329,6 +329,11 @@ export class ViewerComponent {
     }
   }
 
+  setVideoRatio(video: HTMLVideoElement) {
+    if (!video.videoWidth || !video.videoHeight) return;
+    video.style.setProperty('--video-ratio', '' + video.videoWidth / video.videoHeight);
+  }
+
   private setAudio(value: ElementRef<HTMLAudioElement> | undefined) {
     this.removeAudioListener();
     if (!value) return;
@@ -360,6 +365,10 @@ export class ViewerComponent {
         this.embeds.writeIframe(oembed, i, this.embedWidth(), true)
           .then(() => {
             if (this.oembed() !== oembed || this.iframe()?.nativeElement !== i) return;
+            // Players fill their iframe, so CSS may shrink them while keeping their shape (ex. markdown in fullscreen)
+            const ratio = oembed.html?.startsWith('<iframe') && oembed.width && oembed.height;
+            i.style.aspectRatio = ratio ? `${oembed.width} / ${oembed.height}` : '';
+            i.classList.toggle('keep-ratio', !!ratio);
             const width = this.embedSize()?.width || 0;
             if (oembed.width! > width) {
               const s = width / oembed.width!;

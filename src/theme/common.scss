@@ -2535,6 +2535,39 @@ footer {
       max-width: min(100%, 45vh * var(--image-ratio, 1000));
       height: auto !important;
     }
+    // Same height as the normal view, narrower when the column is
+    .video-expand:not(.resized) {
+      width: min(100%, 240px * var(--video-ratio, 16 / 9)) !important;
+      height: auto !important;
+      aspect-ratio: var(--video-ratio, 16 / 9);
+      // Undo the zoom on narrow screens, or Chrome hides the controls in the overflow menu
+      @media (max-width: 740px) {
+        zoom: 50%;
+        width: min(100%, 480px * var(--video-ratio, 16 / 9)) !important;
+      }
+    }
+    .embed-container:not(.loading),
+    .embed-container > iframe,
+    .list-item {
+      max-width: 100%;
+    }
+    .embed-container:has(> iframe.keep-ratio) {
+      height: auto !important;
+    }
+    .embed-container > iframe.keep-ratio {
+      height: auto !important;
+      transform: none !important;
+      margin: 0 !important;
+    }
+    .qr-expand:not(.resized) {
+      max-width: 100%;
+      height: auto;
+      aspect-ratio: 1;
+    }
+    .katex-display {
+      max-width: 100%;
+      overflow: auto hidden;
+    }
   }
   & > .code {
     display: contents;
