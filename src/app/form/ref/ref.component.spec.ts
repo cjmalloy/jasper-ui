@@ -194,4 +194,20 @@ describe('RefFormComponent', () => {
 
     expect(component.ref()?.plugins?.['plugin/thumbnail']).toEqual({ url: 'https://yt3.example/thumb.jpg', radius: 24 });
   });
+
+  it('adds derived plugins from the scraped plugins', () => {
+    const site = 'https://blog.example';
+    component.url().setValue('https://blog.example/feed.xml');
+
+    component.scrapePlugins(site, { 'plugin/thumbnail': { radius: 4 } }, scraped => ({
+      'plugin/script/feed': { defaultThumbnail: scraped['plugin/thumbnail'] },
+    }));
+
+    httpMock.expectOne(request => request.url.includes('/api/v1/scrape/web'))
+      .flush({ url: site, tags: [], plugins: { 'plugin/thumbnail': { url: 'https://blog.example/icon.png' } } });
+
+    expect(component.ref()?.plugins?.['plugin/script/feed']).toEqual({
+      defaultThumbnail: { url: 'https://blog.example/icon.png', radius: 4 },
+    });
+  });
 });

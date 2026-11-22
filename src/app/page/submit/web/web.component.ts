@@ -222,13 +222,13 @@ export class SubmitWebPage implements HasChanges {
                 this.addTag('plugin/repost');
                 this.addSource(url);
                 if (url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
-                  this.refForm.scrapePlugins(url, { 'plugin/thumbnail': { radius: 24 } });
+                  this.refForm.scrapePlugins(url, { 'plugin/thumbnail': { radius: 24 } }, this.feedDefaultThumbnail);
                   const username = url.substring(url.indexOf('@'));
                   if (!this.store.submit.title()) this.webForm.get('title')!.setValue(username);
                   const tag = username.toLowerCase().replace(/[^a-z0-9]+/, '');
                   this.addFeedTags(tag);
                 } else {
-                  this.refForm.scrapePlugins(url);
+                  this.refForm.scrapePlugins(url, { 'plugin/thumbnail': { radius: 4 } }, this.feedDefaultThumbnail);
                   if (!this.store.submit.title() && !this.hasDraft) this.refForm.scrapeTitle();
                 }
               } else {
@@ -433,13 +433,23 @@ export class SubmitWebPage implements HasChanges {
     this.submitted.set(false);
   }
 
+  private readonly feedDefaultThumbnail = (scraped: Record<string, any>) => {
+    const thumbnail = scraped['plugin/thumbnail'];
+    if (!this.feed || !thumbnail) return {};
+    const feed = this.refForm.pluginsFormComponent().getValue()['plugin/script/feed'] || {};
+    const current = feed.defaultThumbnail || {};
+    if (current.url || current.emoji || current.color) return {};
+    return { 'plugin/script/feed': { ...feed, defaultThumbnail: { ...current, ...thumbnail } } };
+  };
+
   private addFeedTags(...tags: string[]) {
     if (!this.feed) return;
     tags = tags.filter(t => t !== 'plugin/script/feed');
-    const ref = this.webForm.value || {};
-    ref.plugins ||= {};
-    ref.plugins['plugin/script/feed'] ||= {};
-    ref.plugins['plugin/script/feed'].addTags = uniq([...ref.plugins['plugin/script/feed'].addTags || [], ...tags]);
-    this.refForm.pluginsFormComponent().setValue(ref.plugins);
+    const plugins = this.refForm.pluginsFormComponent().getValue();
+    const feed = plugins['plugin/script/feed'] || {};
+    this.refForm.pluginsFormComponent().setValue({
+      ...plugins,
+      'plugin/script/feed': { ...feed, addTags: uniq([...feed.addTags || [], ...tags]) },
+    });
   }
 }

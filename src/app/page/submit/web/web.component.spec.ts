@@ -2,13 +2,15 @@
 import { HttpErrorResponse, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
 import { throwError } from 'rxjs';
 import { LinksFormComponent } from '../../../form/links/links.component';
 import { RefFormComponent } from '../../../form/ref/ref.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
 import { provideJasperFormly } from '../../../formly/formly.config';
+import { feedPlugin } from '../../../mods/sync/feed';
+import { AdminService } from '../../../service/admin.service';
 
 import { SubmitWebPage } from './web.component';
 
@@ -88,5 +90,33 @@ describe('SubmitWebPage', () => {
     expect(component.alreadyExists()).toBe(false);
     expect(component.submitting()).toBe(false);
     expect(component.serverError()).toEqual(['Ref already modified']);
+  });
+
+  it('only fills the feed default thumbnail while it is empty', async () => {
+    await new Promise(resolve => setTimeout(resolve, 10));
+    component.addTag('plugin/script/feed');
+    const plugins = component.webForm.get('plugins') as FormGroup;
+    if (!plugins.get('plugin/script/feed')) plugins.addControl('plugin/script/feed', new FormGroup({}));
+    const feed = plugins.get('plugin/script/feed') as FormGroup;
+    if (!feed.get('defaultThumbnail')) feed.addControl('defaultThumbnail', new FormGroup({ url: new FormControl('') }));
+    const thumbnail = { url: 'https://blog.example/icon.png', radius: 4 };
+
+    expect(component['feedDefaultThumbnail']({ 'plugin/thumbnail': thumbnail })['plugin/script/feed'].defaultThumbnail)
+      .toEqual(expect.objectContaining(thumbnail));
+
+    feed.get(['defaultThumbnail', 'url'])!.setValue('cache:uploaded');
+    expect(component['feedDefaultThumbnail']({ 'plugin/thumbnail': thumbnail })).toEqual({});
+  });
+
+  it('keeps every feed tag added before the feed form renders', async () => {
+    TestBed.inject(AdminService)['pluginToStatus']([feedPlugin]);
+    await new Promise(resolve => setTimeout(resolve, 10));
+    component.addTag('plugin/script/feed');
+    component['addFeedTags']('public');
+    component['addFeedTags']('news');
+    await fixture.whenStable();
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    expect(component.writeRef().plugins['plugin/script/feed'].addTags).toEqual(['public', 'news']);
   });
 });

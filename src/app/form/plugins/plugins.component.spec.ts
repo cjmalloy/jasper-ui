@@ -46,4 +46,12 @@ describe('PluginsFormComponent', () => {
     component.plugins().addControl('custom', new UntypedFormControl('value'));
     expect(component.empty()).toBe(false);
   });
+
+  it('includes set values until the plugin forms render them', async () => {
+    component.setValue({ 'plugin/test': { addTags: ['public'] } });
+    expect(component.plugins().value).toEqual({});
+    expect(component.getValue()).toEqual({ 'plugin/test': { addTags: ['public'] } });
+    await fixture.whenStable();
+    expect(component.getValue()).toEqual({});
+  });
 });
