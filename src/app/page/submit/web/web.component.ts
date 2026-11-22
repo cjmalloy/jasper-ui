@@ -202,15 +202,9 @@ export class SubmitWebPage implements HasChanges {
           }
           let url = this.store.submit.url()?.trim();
           if (this.feed) {
+            // Feeds always use the RSS URL, so skip the internal repost URL
             if (this.store.submit.tags().includes('public')) this.addFeedTags('public');
             this.addFeedTags(...interestingTags(this.store.submit.tags()));
-          }
-          if (this.store.submit.repost()) {
-            this.url = 'internal:' + uuid();
-            this.addTag('plugin/repost');
-            this.addSource(url);
-            if (this.feed) this.scrapeFeedThumbnail(url);
-          } else if (this.feed) {
             this.scrape.rss(url).pipe(
               switchMap(value => {
                 if (!value) return of(value);
@@ -241,6 +235,10 @@ export class SubmitWebPage implements HasChanges {
                 }
               }
             });
+          } else if (this.store.submit.repost()) {
+            this.url = 'internal:' + uuid();
+            this.addTag('plugin/repost');
+            this.addSource(url);
           } else {
             this.oembeds.get(url).subscribe(oembed => {
               if (!this.store.submit.title() && !this.hasDraft) this.refForm.scrapeTitle();
