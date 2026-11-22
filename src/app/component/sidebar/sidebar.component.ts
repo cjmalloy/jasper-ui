@@ -409,8 +409,10 @@ export class SidebarComponent {
     ).subscribe();
   }
 
-  readonly inSubs = computed(() => {
-    return this.store.account.subs().includes(this.tag()!);
+  // Hold the previous state while saving so the hidden button label doesn't change under the loading placeholder
+  readonly inSubs = linkedSignal<{ saving: boolean, value: boolean }, boolean>({
+    source: () => ({ saving: this.savingSub(), value: this.store.account.subs().includes(this.tag()!) }),
+    computation: (src, prev) => src.saving && prev ? prev.value : src.value,
   });
 
   readonly bookmark = computed(() => {
@@ -418,12 +420,14 @@ export class SidebarComponent {
     return qs ? `${this.tag()}?${qs}` : this.tag()!;
   });
 
-  readonly inBookmarks = computed(() => {
-    return this.store.account.bookmarks().includes(this.bookmark());
+  readonly inBookmarks = linkedSignal<{ saving: boolean, value: boolean }, boolean>({
+    source: () => ({ saving: this.savingBookmark(), value: this.store.account.bookmarks().includes(this.bookmark()) }),
+    computation: (src, prev) => src.saving && prev ? prev.value : src.value,
   });
 
-  readonly inAlarms = computed(() => {
-    return this.store.account.alarms().includes(this.tag()!);
+  readonly inAlarms = linkedSignal<{ saving: boolean, value: boolean }, boolean>({
+    source: () => ({ saving: this.savingAlarm(), value: this.store.account.alarms().includes(this.tag()!) }),
+    computation: (src, prev) => src.saving && prev ? prev.value : src.value,
   });
 
   set showRemotes(value: boolean) {
