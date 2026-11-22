@@ -2165,6 +2165,14 @@ formly-field-radio, formly-field-multicheckbox {
   }
 }
 
+// Wrap confirm text in the overflow popup so yes / no stay on screen
+.advanced-actions app-confirm-action {
+  &, * {
+    height: auto;
+    white-space: normal;
+  }
+}
+
 .hotkey .action.force-delete .fake-link {
   color: var(--active) !important;
 }

@@ -48,6 +48,7 @@ export class ActionListComponent {
   overlayRef?: OverlayRef;
 
   private overlayEvents?: Subscription;
+  private overlayResize?: ResizeObserver;
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -97,8 +98,17 @@ export class ActionListComponent {
     this.overlayRef = this.overlay.create({
       positionStrategy,
       scrollStrategy: this.overlay.scrollStrategies.reposition(),
+      // CDK will not push an overlay wider than the viewport, and it pushes the right edge
+      // in by both viewport margins, so leave room for 8px on each side plus the extra 8px
+      maxWidth: 'calc(100% - 24px)',
     });
     this.overlayRef.attach(new TemplatePortal(this.actionsMenu(), this.viewContainerRef));
+    if (window.ResizeObserver) {
+      // Reposition when the menu content resizes (e.g. confirm text) so it stays on screen
+      const overlayRef = this.overlayRef;
+      this.overlayResize = new ResizeObserver(() => overlayRef.updatePosition());
+      this.overlayResize.observe(overlayRef.overlayElement.firstElementChild || overlayRef.overlayElement);
+    }
     this.overlayEvents = this.overlayRef.outsidePointerEvents().subscribe((event: MouseEvent) => {
       switch (event.type) {
         case 'click':
@@ -113,6 +123,8 @@ export class ActionListComponent {
   }
 
   closeAdvanced() {
+    this.overlayResize?.disconnect();
+    this.overlayResize = undefined;
     this.overlayRef?.dispose();
     this.overlayEvents?.unsubscribe();
     this.overlayRef = undefined;
