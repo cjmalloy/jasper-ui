@@ -92,20 +92,37 @@ describe('SubmitWebPage', () => {
     expect(component.serverError()).toEqual(['Ref already modified']);
   });
 
-  it('only fills the feed default thumbnail while it is pristine', async () => {
+  it('only fills the feed default thumbnail until it is overridden', async () => {
     await new Promise(resolve => setTimeout(resolve, 10));
     component.addTag('plugin/script/feed');
     const plugins = component.webForm.get('plugins') as FormGroup;
     if (!plugins.get('plugin/script/feed')) plugins.addControl('plugin/script/feed', new FormGroup({}));
     const feed = plugins.get('plugin/script/feed') as FormGroup;
-    if (!feed.get('defaultThumbnail')) feed.addControl('defaultThumbnail', new FormGroup({ url: new FormControl('') }));
+    if (!feed.get('defaultThumbnail')) feed.addControl('defaultThumbnail', new FormGroup({ url: new FormControl(''), radius: new FormControl(0) }));
+    const url = feed.get(['defaultThumbnail', 'url'])!;
     const thumbnail = { url: 'https://blog.example/icon.png', radius: 4 };
 
+    const filled = component['feedDefaultThumbnail']({ 'plugin/thumbnail': thumbnail })['plugin/script/feed'].defaultThumbnail;
+    expect(filled).toEqual(expect.objectContaining(thumbnail));
+
+    feed.get('defaultThumbnail')!.patchValue(filled);
     expect(component['feedDefaultThumbnail']({ 'plugin/thumbnail': thumbnail })['plugin/script/feed'].defaultThumbnail)
       .toEqual(expect.objectContaining(thumbnail));
 
-    feed.get('defaultThumbnail')!.markAsDirty();
+    url.setValue('cache:uploaded');
+    expect(url.pristine).toBe(true);
     expect(component['feedDefaultThumbnail']({ 'plugin/thumbnail': thumbnail })).toEqual({});
+  });
+
+  it('keeps a restored feed default thumbnail', async () => {
+    await new Promise(resolve => setTimeout(resolve, 10));
+    component.addTag('plugin/script/feed');
+    const plugins = component.webForm.get('plugins') as FormGroup;
+    if (!plugins.get('plugin/script/feed')) plugins.addControl('plugin/script/feed', new FormGroup({}));
+    const feed = plugins.get('plugin/script/feed') as FormGroup;
+    if (!feed.get('defaultThumbnail')) feed.addControl('defaultThumbnail', new FormGroup({ url: new FormControl('https://draft.example/icon.png') }));
+
+    expect(component['feedDefaultThumbnail']({ 'plugin/thumbnail': { url: 'https://blog.example/icon.png', radius: 4 } })).toEqual({});
   });
 
   it('keeps every feed tag added before the feed form renders', async () => {

@@ -13,7 +13,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { uniq, without } from 'lodash-es';
+import { isEqual, pickBy, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import {
   catchError,
@@ -433,12 +433,20 @@ export class SubmitWebPage implements HasChanges {
     this.submitted.set(false);
   }
 
+  /**
+   * The default thumbnail last filled in from a scraped thumbnail. Any other
+   * value was typed, uploaded or restored from a draft, so it is kept.
+   */
+  private scrapedDefaultThumbnail?: Record<string, any>;
+
   private readonly feedDefaultThumbnail = (scraped: Record<string, any>) => {
     const thumbnail = scraped['plugin/thumbnail'];
     if (!this.feed || !thumbnail) return {};
-    if (this.webForm.get(['plugins', 'plugin/script/feed', 'defaultThumbnail'])?.dirty) return {};
     const feed = this.refForm.pluginsFormComponent().getValue()['plugin/script/feed'] || {};
-    return { 'plugin/script/feed': { ...feed, defaultThumbnail: { ...feed.defaultThumbnail || {}, ...thumbnail } } };
+    const set = (value?: Record<string, any>) => pickBy(value || {}, v => v !== '' && v !== null && v !== undefined && v !== 0);
+    if (!isEqual(set(feed.defaultThumbnail), set(this.scrapedDefaultThumbnail))) return {};
+    this.scrapedDefaultThumbnail = { ...feed.defaultThumbnail || {}, ...thumbnail };
+    return { 'plugin/script/feed': { ...feed, defaultThumbnail: this.scrapedDefaultThumbnail } };
   };
 
   private addFeedTags(...tags: string[]) {
