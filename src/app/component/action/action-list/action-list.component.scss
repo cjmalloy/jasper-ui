@@ -1,3 +1,10 @@
 :host {
   display: contents;
 }
+
+.advanced-actions {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+}

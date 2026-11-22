@@ -98,6 +98,9 @@ export class ActionListComponent {
     this.overlayRef = this.overlay.create({
       positionStrategy,
       scrollStrategy: this.overlay.scrollStrategies.reposition(),
+      // CDK will not push an overlay wider than the viewport, and it pushes the right edge
+      // in by both viewport margins, so leave room for 8px on each side plus the extra 8px
+      maxWidth: 'calc(100% - 24px)',
     });
     this.overlayRef.attach(new TemplatePortal(this.actionsMenu(), this.viewContainerRef));
     if (window.ResizeObserver) {

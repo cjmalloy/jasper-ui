@@ -8,7 +8,7 @@ async function clickOutside(page: Page) {
 
 test.describe.serial('Overlays', () => {
   test('enable mods', async ({ page }) => {
-    await mod(page, '#mod-plugin\\/user\\/read');
+    await mod(page, '#mod-plugin\\/user\\/read', '#mod-modtools');
   });
 
   test('creates a ref', async ({ page }) => {
@@ -42,6 +42,25 @@ test.describe.serial('Overlays', () => {
     await expect(menu).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(menu).toHaveCount(0);
+  });
+
+  test('action menu stays on screen when confirm text expands it', async ({ page }) => {
+    const width = 375;
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto(`/ref/e/${encodeURIComponent('test:overlays')}?debug=USER`, { waitUntil: 'networkidle' });
+    const menu = page.locator('.advanced-actions');
+    await page.locator('.full-page.ref .actions .show-more').click();
+    await expect(menu).toBeVisible();
+    await menu.locator('.fake-link', { hasText: 'flag' }).click();
+    const yes = menu.locator('.fake-link', { hasText: 'yes' });
+    await expect(yes).toBeVisible();
+    await expect(async () => {
+      const box = (await menu.boundingBox())!;
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(width);
+      const yesBox = (await yes.boundingBox())!;
+      expect(yesBox.x + yesBox.width).toBeLessThanOrEqual(box.x + box.width);
+    }).toPass();
   });
 
   test('backup options close on outside click and Escape', async ({ page }) => {
