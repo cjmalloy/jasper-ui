@@ -117,6 +117,7 @@ export class ImageDirective {
       this.el.style.width = defaultWidth + 'px';
       this.el.style.height = defaultHeight + 'px';
       this.el.style.backgroundSize = '100% 100%';
+      this.setRatio(defaultWidth, defaultHeight);
       return;
     }
     if (this.grid()) {
@@ -142,6 +143,19 @@ export class ImageDirective {
     } else {
       this.el.style.width = this.dim.width + 'px';
       this.el.style.height = this.dim.height + 'px';
+    }
+    // Keep the shape when CSS limits the size, such as markdown in fullscreen
+    const px = this.el.style.width.endsWith('px') && this.el.style.height.endsWith('px');
+    this.setRatio(px ? parseFloat(this.el.style.width) : 0, px ? parseFloat(this.el.style.height) : 0);
+  }
+
+  private setRatio(width: number, height: number) {
+    const ratio = width && height ? width / height : 0;
+    this.el.style.aspectRatio = ratio ? `${width} / ${height}` : '';
+    if (ratio) {
+      this.el.style.setProperty('--image-ratio', '' + ratio);
+    } else {
+      this.el.style.removeProperty('--image-ratio');
     }
   }
 }
