@@ -9,6 +9,8 @@ import { LinksFormComponent } from '../../../form/links/links.component';
 import { RefFormComponent } from '../../../form/ref/ref.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
 import { provideJasperFormly } from '../../../formly/formly.config';
+import { feedPlugin } from '../../../mods/sync/feed';
+import { AdminService } from '../../../service/admin.service';
 
 import { SubmitWebPage } from './web.component';
 
@@ -104,5 +106,17 @@ describe('SubmitWebPage', () => {
 
     feed.get('defaultThumbnail')!.markAsDirty();
     expect(component['feedDefaultThumbnail']({ 'plugin/thumbnail': thumbnail })).toEqual({});
+  });
+
+  it('keeps every feed tag added before the feed form renders', async () => {
+    TestBed.inject(AdminService)['pluginToStatus']([feedPlugin]);
+    await new Promise(resolve => setTimeout(resolve, 10));
+    component.addTag('plugin/script/feed');
+    component['addFeedTags']('public');
+    component['addFeedTags']('news');
+    await fixture.whenStable();
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    expect(component.writeRef().plugins['plugin/script/feed'].addTags).toEqual(['public', 'news']);
   });
 });
