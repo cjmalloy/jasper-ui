@@ -437,17 +437,18 @@ export class SubmitWebPage implements HasChanges {
     const thumbnail = scraped['plugin/thumbnail'];
     if (!this.feed || !thumbnail) return {};
     if (this.webForm.get(['plugins', 'plugin/script/feed', 'defaultThumbnail'])?.dirty) return {};
-    const feed = this.webForm.value.plugins?.['plugin/script/feed'] || {};
+    const feed = this.refForm.pluginsFormComponent().getValue()['plugin/script/feed'] || {};
     return { 'plugin/script/feed': { ...feed, defaultThumbnail: { ...feed.defaultThumbnail || {}, ...thumbnail } } };
   };
 
   private addFeedTags(...tags: string[]) {
     if (!this.feed) return;
     tags = tags.filter(t => t !== 'plugin/script/feed');
-    const ref = this.webForm.value || {};
-    ref.plugins ||= {};
-    ref.plugins['plugin/script/feed'] ||= {};
-    ref.plugins['plugin/script/feed'].addTags = uniq([...ref.plugins['plugin/script/feed'].addTags || [], ...tags]);
-    this.refForm.pluginsFormComponent().setValue(ref.plugins);
+    const plugins = this.refForm.pluginsFormComponent().getValue();
+    const feed = plugins['plugin/script/feed'] || {};
+    this.refForm.pluginsFormComponent().setValue({
+      ...plugins,
+      'plugin/script/feed': { ...feed, addTags: uniq([...feed.addTags || [], ...tags]) },
+    });
   }
 }

@@ -408,7 +408,7 @@ export class RefFormComponent {
         this.ref.update(ref => ({
           ...ref,
           plugins: {
-            ...this.group().value.plugins || {},
+            ...this.pluginsFormComponent().getValue(),
             ...scraped,
             ...derive?.(scraped) || {},
           },
