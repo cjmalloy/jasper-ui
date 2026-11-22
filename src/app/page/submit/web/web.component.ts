@@ -201,16 +201,13 @@ export class SubmitWebPage implements HasChanges {
             this.webForm.get('title')!.setValue(this.store.submit.title());
           }
           let url = this.store.submit.url()?.trim();
-          if (this.feed) {
-            if (this.store.submit.tags().includes('public')) this.addFeedTags('public');
-            this.addFeedTags(...interestingTags(this.store.submit.tags()));
-          }
           if (this.store.submit.repost()) {
             this.url = 'internal:' + uuid();
             this.addTag('plugin/repost');
             this.addSource(url);
-            if (this.feed) this.scrapeFeedThumbnail(url);
           } else if (this.feed) {
+            if (this.store.submit.tags().includes('public')) this.addFeedTags('public');
+            this.addFeedTags(...interestingTags(this.store.submit.tags()));
             this.scrape.rss(url).pipe(
               switchMap(value => {
                 if (!value) return of(value);
@@ -224,18 +221,18 @@ export class SubmitWebPage implements HasChanges {
                 this.url = value;
                 this.addTag('plugin/repost');
                 this.addSource(url);
-                this.scrapeFeedThumbnail(url);
-                if (this.youtubeChannel(url)) {
+                if (url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
+                  this.refForm.scrapePlugins(url, { 'plugin/thumbnail': { radius: 24 } }, this.feedDefaultThumbnail);
                   const username = url.substring(url.indexOf('@'));
                   if (!this.store.submit.title()) this.webForm.get('title')!.setValue(username);
                   const tag = username.toLowerCase().replace(/[^a-z0-9]+/, '');
                   this.addFeedTags(tag);
                 } else {
+                  this.refForm.scrapePlugins(url, { 'plugin/thumbnail': { radius: 4 } }, this.feedDefaultThumbnail);
                   if (!this.store.submit.title() && !this.hasDraft) this.refForm.scrapeTitle();
                 }
               } else {
                 // No RSS URL found or found value already exists
-                this.scrapeFeedThumbnail(url);
                 if (!this.store.submit.title() && !this.hasDraft) {
                   this.refForm.scrapeTitle();
                 }
@@ -434,14 +431,6 @@ export class SubmitWebPage implements HasChanges {
     this.alreadyExists.set(false);
     this.serverError.set([]);
     this.submitted.set(false);
-  }
-
-  private youtubeChannel(url: string) {
-    return url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@');
-  }
-
-  private scrapeFeedThumbnail(url: string) {
-    this.refForm.scrapePlugins(url, { 'plugin/thumbnail': { radius: this.youtubeChannel(url) ? 24 : 4 } }, this.feedDefaultThumbnail);
   }
 
   private readonly feedDefaultThumbnail = (scraped: Record<string, any>) => {
