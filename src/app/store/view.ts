@@ -55,6 +55,10 @@ export class ViewStore {
   readonly top = signal<Ref | undefined>(undefined);
   readonly lastSelected = signal<Ref | undefined>(undefined);
   readonly versions = signal(0);
+  /**
+   * Responses shown on the ref page since it loaded, from replies or websocket updates.
+   */
+  readonly responses = signal<Ref[]>([]);
   private readonly extsSource = signal<() => Ext[]>(() => []);
   /**
    * Exts for the current view. Pages bind a reactive source with {@link watchExts},
@@ -142,6 +146,10 @@ export class ViewStore {
     this.exts.set([]);
     this.extTemplates.set([]);
     this.selectedUser.set(undefined);
+  }
+
+  addResponse(ref: Ref) {
+    this.responses.update(refs => [...refs.filter(r => r.url !== ref.url), ref]);
   }
 
   preloadRef(ref: Ref, topRef?: Ref) {

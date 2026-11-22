@@ -12,8 +12,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { uniq } from 'lodash-es';
-import { catchError, filter, of, Subject, Subscription, switchMap } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { filter, Subject, Subscription } from 'rxjs';
 import { CommentReplyComponent } from '../../../component/comment/comment-reply/comment-reply.component';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -30,7 +29,8 @@ import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getTitle } from '../../../util/format';
 import { getArgs } from '../../../util/query';
-import { hasTag, pluginResponses, removeTag, top, updateMetadata } from '../../../util/tag';
+import { watchNewResponses } from '../../../util/response';
+import { hasTag, pluginResponses, removeTag, top } from '../../../util/tag';
 
 @Component({
   selector: 'app-ref-thread',
@@ -120,11 +120,8 @@ export class RefThreadComponent implements HasChanges {
           if (this.watchUrl !== topUrl) {
             this.watchUrl = topUrl;
             this.watch?.unsubscribe();
-            this.watch = this.stomp.watchResponse(topUrl).pipe(
-              switchMap(url => this.refs.getCurrent(url)), // TODO: fix race conditions
-              tap(ref => updateMetadata(this.store.view.ref()!, ref)),
+            this.watch = watchNewResponses(this.stomp, this.refs, topUrl).pipe(
               filter(ref => hasTag('plugin/thread', ref)),
-              catchError(err => of(undefined)),
               takeUntilDestroyed(this.destroyRef),
             ).subscribe(ref => this.newRefs$.next(ref));
           }
@@ -132,6 +129,7 @@ export class RefThreadComponent implements HasChanges {
       });
     }, { injector: this.injector });
     this.newRefs$.subscribe(c => {
+      if (c) this.store.view.addResponse(c);
       if (c && this.store.view.ref()) {
         if (hasTag('plugin/thread', c) && !hasTag('+plugin/placeholder', c) && (!this.to() || c.published! > this.to().published!)) {
           this.lastRef.set(c);

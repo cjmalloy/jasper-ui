@@ -9,6 +9,7 @@ import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { getMailbox, mailboxes } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
+import { ConfigService } from '../../../service/config.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
@@ -31,6 +32,7 @@ export class RefCommentsComponent implements HasChanges {
   store = inject(Store);
   thread = inject(ThreadStore);
   private admin = inject(AdminService);
+  private config = inject(ConfigService);
 
 
   private readonly injector = inject(Injector);
@@ -66,7 +68,9 @@ export class RefCommentsComponent implements HasChanges {
       }
     }, { injector: this.injector });
     this.newComments$.subscribe(c => {
-      if (c && this.store.view.ref()) {
+      if (c) this.store.view.addResponse(c);
+      // The server pushes the updated metadata over websockets
+      if (c && this.store.view.ref() && !this.config.websockets) {
         updateMetadata(this.store.view.ref()!, c);
         this.store.eventBus.refresh(this.store.view.ref()!);
       }

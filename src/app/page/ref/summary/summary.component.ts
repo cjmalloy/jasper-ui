@@ -1,7 +1,8 @@
 import { Component, computed, DestroyRef, effect, inject, viewChild, viewChildren } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { uniq } from 'lodash-es';
-import { Subject } from 'rxjs';
+import { EMPTY, Subject, switchMap } from 'rxjs';
 import { CommentReplyComponent } from '../../../component/comment/comment-reply/comment-reply.component';
 import { CommentThreadComponent } from '../../../component/comment/comment-thread/comment-thread.component';
 import { ThreadSummaryComponent } from '../../../component/comment/thread-summary/thread-summary.component';
@@ -13,12 +14,15 @@ import { Ref } from '../../../model/ref';
 import { getMailbox, mailboxes } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
+import { StompService } from '../../../service/api/stomp.service';
+import { ConfigService } from '../../../service/config.service';
 import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
 import { getTitle } from '../../../util/format';
 import { getArgs } from '../../../util/query';
+import { watchNewResponses } from '../../../util/response';
 import { hasTag, pluginResponses, removeTag, top, updateMetadata } from '../../../util/tag';
 
 @Component({
@@ -29,6 +33,8 @@ import { hasTag, pluginResponses, removeTag, top, updateMetadata } from '../../.
 })
 export class RefSummaryComponent implements HasChanges {
   private mod = inject(ModService);
+  private config = inject(ConfigService);
+  private stomp = inject(StompService);
   admin = inject(AdminService);
   refs = inject(RefService);
   store = inject(Store);
@@ -68,6 +74,12 @@ export class RefSummaryComponent implements HasChanges {
       ),
       responses: this.store.view.url(),
     }));
+    if (this.config.websockets) {
+      toObservable(this.store.view.url).pipe(
+        switchMap(url => url ? watchNewResponses(this.stomp, this.refs, url) : EMPTY),
+        takeUntilDestroyed(),
+      ).subscribe(ref => this.addResponse(ref));
+    }
   }
 
   saveChanges() {
@@ -120,17 +132,22 @@ export class RefSummaryComponent implements HasChanges {
   });
 
   onReply(ref?: Ref) {
-    if (ref && this.store.view.ref()) {
+    // The server pushes the updated metadata over websockets
+    if (ref && this.store.view.ref() && !this.config.websockets) {
       updateMetadata(this.store.view.ref()!, ref);
     }
     this.store.eventBus.reload(ref);
-    if (hasTag('plugin/comment', ref)) {
-      this.newComment$?.next(ref);
-    } else if (hasTag('plugin/thread', ref)) {
-      this.newThread$?.next(ref);
-    } else if (!hasTag('internal', ref)) {
-      this.newResp$?.next(ref);
-    }
+    if (ref) this.addResponse(ref);
+  }
 
+  private addResponse(ref: Ref) {
+    this.store.view.addResponse(ref);
+    if (hasTag('plugin/comment', ref)) {
+      this.newComment$.next(ref);
+    } else if (hasTag('plugin/thread', ref)) {
+      this.newThread$.next(ref);
+    } else if (!hasTag('internal', ref)) {
+      this.newResp$.next(ref);
+    }
   }
 }
