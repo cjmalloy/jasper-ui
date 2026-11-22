@@ -46,7 +46,6 @@ import { getModels, getZipOrTextFile } from '../../util/zip';
 import { parseInputTag } from '../../util/input-tag';
 import { hasPrefix, hasTag, isQuery, localTag, setProtected, setPublic } from '../../util/tag';
 import { BulkComponent } from '../bulk/bulk.component';
-import { LoadingComponent } from '../loading/loading.component';
 import { ChatVideoComponent } from '../chat/chat-video/chat-video.component';
 import { ChatComponent } from '../chat/chat.component';
 import { DebugComponent } from '../debug/debug.component';
@@ -84,7 +83,6 @@ import { SortComponent } from '../sort/sort.component';
     NavComponent,
     RouterLinkActive,
     ChatVideoComponent,
-    LoadingComponent,
   ]
 })
 export class SidebarComponent {
@@ -409,7 +407,7 @@ export class SidebarComponent {
     ).subscribe();
   }
 
-  // Hold the previous state while saving so the hidden button label doesn't change under the loading placeholder
+  // Hold the previous state while saving so the button label only changes once, after saving finishes
   readonly inSubs = linkedSignal<{ saving: boolean, value: boolean }, boolean>({
     source: () => ({ saving: this.savingSub(), value: this.store.account.subs().includes(this.tag()!) }),
     computation: (src, prev) => src.saving && prev ? prev.value : src.value,
