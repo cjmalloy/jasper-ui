@@ -2525,12 +2525,13 @@ footer {
     height: 45vh !important;
   }
   // Markdown stays zoomed, so shrink images sized for the normal view to fit the screen
+  // until they are resized by hand
   & > .md-container {
     img, .loading {
       max-width: 100%;
       max-height: 45vh;
     }
-    .image-expand:not(.loading) {
+    .image-expand:not(.loading):not(.resized) {
       max-width: min(100%, 45vh * var(--image-ratio, 1000));
       height: auto !important;
     }
