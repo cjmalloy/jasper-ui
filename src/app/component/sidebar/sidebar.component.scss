@@ -24,6 +24,9 @@
     inset: 0;
     top: 0;
     margin: 0;
+    // The dots sit on the text baseline, so shift them up to visually center
+    padding-bottom: 0.5em;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
