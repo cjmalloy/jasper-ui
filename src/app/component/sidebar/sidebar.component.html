@@ -226,7 +226,7 @@
                       class="bookmark" i18n>+ bookmark</button>
             }
             @if (savingBookmark()) {
-              <app-loading class="saving-placeholder" [inline]="true" />
+              <app-loading class="saving-placeholder" />
             }
           </span>
           @if (admin.home()) {
@@ -265,7 +265,7 @@
                 }
               }
               @if (savingSub()) {
-                <app-loading class="saving-placeholder" [inline]="true" />
+                <app-loading class="saving-placeholder" />
               }
             </span>
           }
@@ -286,7 +286,7 @@
                       class="alarm" i18n>🔔</button>
             }
             @if (savingAlarm()) {
-              <app-loading class="saving-placeholder" [inline]="true" />
+              <app-loading class="saving-placeholder" />
             }
           </span>
         </div>
