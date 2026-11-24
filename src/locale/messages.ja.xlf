@@ -7890,9 +7890,21 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>♾️ Infinite Scroll</source>
         <target>♾️ 無限スクロール</target>
       </trans-unit>
-      <trans-unit id="4127433719505381838" datatype="html">
-        <source>Load more results as you scroll down lists, instead of paging.</source>
-        <target>ページ送りの代わりに、リストを下へスクロールすると結果を追加で読み込みます。</target>
+      <trans-unit id="1741171109054813269" datatype="html">
+        <source>Load more results as you scroll down lists, instead of paging. Override per tag with the Infinite Scroll template setting, or per page with the infinite=true or infinite=false query param.</source>
+        <target>ページ送りの代わりに、リストを下へスクロールすると結果を追加で読み込みます。タグごとにテンプレートの無限スクロール設定で、またはページごとに infinite=true / infinite=false クエリパラメータで上書きできます。</target>
+      </trans-unit>
+      <trans-unit id="4659580842560944650" datatype="html">
+        <source>Infinite Scroll:</source>
+        <target>無限スクロール:</target>
+      </trans-unit>
+      <trans-unit id="8990769651805334695" datatype="html">
+        <source>On</source>
+        <target>オン</target>
+      </trans-unit>
+      <trans-unit id="3500458863157551898" datatype="html">
+        <source>Off</source>
+        <target>オフ</target>
       </trans-unit>
       <trans-unit id="1847047605496409443" datatype="html">
         <source>Street</source>

@@ -82,6 +82,8 @@ export class NavComponent {
   readonly localUrl = computed(() => {
     const url = this.url();
     if (url.toLowerCase().startsWith('tag:/'))return true
+    // Protocol-relative URLs, such as the proxy with a //host API, are external
+    if (url.startsWith('//')) return false;
     if (url.startsWith(this.baseHref)) return true
     if (url.startsWith(getPath(this.baseHref)!)) return true;
     if (url.startsWith('/')) return true;

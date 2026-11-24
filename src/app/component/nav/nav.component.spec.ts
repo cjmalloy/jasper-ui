@@ -42,6 +42,13 @@ describe('NavComponent', () => {
     expect(component.nav()).toEqual(['/tag', 'second']);
   });
 
+  it('should link protocol-relative urls externally', () => {
+    fixture.componentRef.setInput('url', '//localhost:8081/api/v1/proxy/file.png?url=cache:1');
+    fixture.componentRef.setInput('external', true);
+    expect(component.localUrl()).toBe(false);
+    expect(component.nav()).toBeUndefined();
+  });
+
   it('should not treat plain hashtag as custom text', () => {
     fixture.componentRef.setInput('url', '/tag/notes');
     fixture.componentRef.setInput('text', '#notes');

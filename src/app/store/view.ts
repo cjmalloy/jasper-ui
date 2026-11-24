@@ -458,6 +458,15 @@ export class ViewStore {
     return this.exts()[0]?.name || this.viewExt()?.name || (this.viewExt()?.tag || this.tag()).substring(this.tag().lastIndexOf('/') + 1);
   });
 
+  /**
+   * Infinite scroll override from the infinite query param, or undefined to use the default.
+   */
+  readonly infinite = computed<boolean | undefined>(() => {
+    const infinite = this.route.routeSnapshot()?.queryParams['infinite'];
+    if (infinite === undefined) return undefined;
+    return infinite !== 'false';
+  });
+
   readonly cols = computed(() => {
     return parseInt(this.route.routeSnapshot()?.queryParams['cols'] || this.viewExt()?.config?.defaultCols || 0);
   });

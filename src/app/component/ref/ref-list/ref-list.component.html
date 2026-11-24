@@ -1,3 +1,9 @@
+@if (infiniteControls()) {
+  <app-page-controls class="infinite-controls"
+                     [infinite]="true"
+                     [page]="page()"
+                     [defaultCols]="cols()" />
+}
 <div class="list-container"
      [class.hide-numbers]="colStyle()"
      [style.grid-template-columns]="colStyle()"
@@ -86,10 +92,9 @@
     @if (!newRefs().length && emptyMessage()) {
       <p class="no-results">{{ emptyMessage() }}</p>
     }
-  } @else if (pageControls()) {
-    <app-page-controls (click)="resetMore($event)"
-                       [showPageLast]="showPageLast()"
-                       [page]="lastPage()"
+  } @else if (pageControls() && !infiniteScroll()) {
+    <app-page-controls [showPageLast]="showPageLast()"
+                       [page]="page()"
                        [defaultCols]="cols()"
                        [showPrev]="showPrev()" />
   }

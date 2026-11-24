@@ -16,6 +16,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
+import { isEqual } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, forkJoin, map, Observable, of, startWith, switchMap } from 'rxjs';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -28,6 +29,7 @@ import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
+import { cursorPage } from '../../../util/cursor-page';
 import { withStableDateSort } from '../../../util/query';
 import { LoadingComponent } from '../../loading/loading.component';
 import { PageControlsComponent } from '../../page-controls/page-controls.component';
@@ -150,7 +152,24 @@ export class RefListComponent implements HasChanges {
     return more.base && more.base === this.page() ? more : NO_MORE;
   });
 
-  readonly infiniteScroll = computed(() => this.pageControls() && !!this.admin.getTemplate('config/infinite'));
+  /**
+   * Infinite scroll is enabled by the infinite query param, then the ext config, then the config/infinite template.
+   */
+  readonly infiniteScroll = computed(() => {
+    if (!this.pageControls()) return false;
+    const template = this.admin.getTemplate('config/infinite');
+    if (!template) return false;
+    return this.store.view.infinite()
+      ?? this.ext()?.config?.defaultInfinite
+      ?? template.config?.defaultInfinite
+      ?? true;
+  });
+
+  /**
+   * With infinite scroll the page controls can't be reached, so show the column selector above the list.
+   */
+  readonly infiniteControls = computed(() =>
+    this.infiniteScroll() && !!this.page()?.content.length && (this.cols() !== undefined || !!this.store.view.cols()));
 
   readonly loadingMore = computed(() => this.morePages().loading);
 
@@ -171,7 +190,9 @@ export class RefListComponent implements HasChanges {
   readonly hasMore = computed(() => {
     const page = this.page();
     const last = this.lastPage();
-    if (!this.infiniteScroll() || !this.query.args() || !page || !last || this.morePages().error) return false;
+    if (!this.infiniteScroll() || !page || !last || this.morePages().error) return false;
+    const args = this.query.args();
+    if (!args || !isEqual(args, this.query.pageArgs())) return false;
     if (page !== this.query.page() || !last.content.length) return false;
     return last.page.number < last.page.totalPages - 1;
   });
@@ -182,28 +203,22 @@ export class RefListComponent implements HasChanges {
    */
   readonly moreSpacer = computed(() => this.hasMore() || !!this.morePages().base);
 
-  /**
-   * Explicit pagination to the current URL won't change the page, so clear appended pages.
-   */
-  resetMore(event: MouseEvent) {
-    const href = (event.target as Element | null)?.closest('a')?.getAttribute('href');
-    if (!href || href !== this.router.url || !this.morePages().base) return;
-    this.more.set(NO_MORE);
-    window.scrollTo(0, 0);
-  }
-
   loadMore() {
     const base = this.page();
     const args = this.query.args();
     const last = this.lastPage();
     if (!this.hasMore() || this.loadingMore() || !base || !args || !last) return;
-    this.more.set({ ...this.morePages(), base, loading: true });
-    this.refs.page(withStableDateSort({ ...args, page: last.page.number + 1 })).pipe(
+    const pending: MorePages = { ...this.morePages(), base, loading: true };
+    this.more.set(pending);
+    const target = last.page.number + 1;
+    const request = cursorPage(this.refs, last, args, target)
+      ?? this.refs.page(withStableDateSort({ ...args, page: target }));
+    request.pipe(
       map(page => ({ page, error: false })),
       catchError(() => of({ page: undefined, error: true })),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(({ page, error }) => {
-      this.more.update(more => more.base !== base ? more : {
+      this.more.update(more => more !== pending ? more : {
         base,
         pages: page ? [...more.pages, page] : more.pages,
         loading: false,
@@ -257,7 +272,7 @@ export class RefListComponent implements HasChanges {
   addNewRef(ref: Ref) {
     // TODO: verify read before clearing?
     this.accounts.clearNotificationsIfNone(ref.modified, ref.origin);
-    if (ref.url !== this.store.view.url() && !this.page()?.content.find(r => r.url === ref.url) && !this.moreRefs().find(r => r.url === ref.url)) {
+    if (ref.url !== this.store.view.url() && !this.page()?.content.find(r => r.url === ref.url) && !this.moreRefs().find(r => refKey(r) === refKey(ref))) {
       const index = this.newRefs().findIndex(r => r.url === ref.url);
       if (index !== -1) {
         this.newRefs.update(newRefs => newRefs.map((r, i) => i === index ? ref : r));

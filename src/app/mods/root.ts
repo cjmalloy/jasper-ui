@@ -91,6 +91,7 @@ export interface RootConfig {
   hideEdit?: boolean;
   disableResize?: boolean;
   defaultCols?: number;
+  defaultInfinite?: boolean;
 }
 \`\`\`
     `,
@@ -270,6 +271,17 @@ export interface RootConfig {
         ],
       },
     }, {
+      key: 'defaultInfinite',
+      type: 'select',
+      props: {
+        label: $localize`Infinite Scroll:`,
+        options: [
+          { label: $localize`Default` },
+          { value: true, label: $localize`On` },
+          { value: false, label: $localize`Off` },
+        ],
+      },
+    }, {
       key: 'childTags',
       type: 'number',
       props: {
@@ -329,6 +341,7 @@ export interface RootConfig {
       hideEdit: { type: 'boolean'},
       disableResize: { type: 'boolean'},
       defaultCols: { type: 'int8'},
+      defaultInfinite: { type: 'boolean'},
       childTags: { type: 'int8'},
       noFloatingSidebar: { type: 'boolean'},
       defaults: { type: 'boolean'},
@@ -365,6 +378,10 @@ export interface RootConfig {
   hideEdit?: boolean;
   disableResize?: boolean;
   defaultCols?: number;
+  /**
+   * Override the global config/infinite default for this tag.
+   */
+  defaultInfinite?: boolean;
   childTags?: number;
   noFloatingSidebar?: boolean;
   defaults?: boolean;
