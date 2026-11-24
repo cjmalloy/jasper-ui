@@ -1,6 +1,6 @@
 import { Component, computed, inject, input, linkedSignal } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { delay } from 'lodash-es';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
@@ -20,6 +20,7 @@ import { cursorPage, plainClick } from '../../util/cursor-page';
   },
   imports: [
     RouterLink,
+    RouterLinkActive,
     ReactiveFormsModule,
     FormsModule,
   ]
