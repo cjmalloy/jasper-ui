@@ -178,7 +178,7 @@ export class UserPage implements HasChanges {
   delete() {
     // TODO: Better dialogs
     if (confirm($localize`Are you sure you want to delete this user?`)) {
-      const deleteNotice = !isDeletorTag(this.store.view.selectedUser()!.tag) && this.admin.getPlugin('plugin/delete')
+      const deleteNotice = this.store.view.selectedUser()!.origin === this.store.account.origin() && !isDeletorTag(this.store.view.selectedUser()!.tag) && this.admin.getPlugin('plugin/delete')
         ? this.users.create(tagDeleteNotice(this.store.view.selectedUser()!))
         : of(null);
       this.users.delete(this.store.view.localTag() + this.store.account.origin()).pipe(

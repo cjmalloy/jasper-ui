@@ -272,13 +272,13 @@ export class BulkComponent {
       );
     } else if (type === 'ext' || type === 'user') {
       return this.batch$<Ext | User>(tag => this.tagService().delete(tag.tag + tag.origin).pipe(
-        switchMap(() => !isDeletorTag(tag.tag) && this.admin.getPlugin('plugin/delete')
+        switchMap(() => tag.origin === this.store.account.origin() && !isDeletorTag(tag.tag) && this.admin.getPlugin('plugin/delete')
           ? this.tagService().create(tagDeleteNotice(tag))
           : of(null)),
       ));
     } else {
       return this.batch$<Plugin | Template>(tag => this.tagService().delete(tag.tag + tag.origin).pipe(
-        switchMap(() => !isDeletorTag(tag.tag) && this.admin.getPlugin('plugin/delete')
+        switchMap(() => tag.origin === this.store.account.origin() && !isDeletorTag(tag.tag) && this.admin.getPlugin('plugin/delete')
           ? this.tagService().create(tagDeleteNotice(tag))
           : of(null)),
       ));
