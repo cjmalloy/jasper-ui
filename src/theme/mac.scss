@@ -102,6 +102,11 @@ body.ios {
   input, textarea {
     background-color: var(--form-bg);
   }
+  // A backdrop-filter on a sticky element repaints every frame while scrolling
+  .buttons.floating.stuck::before {
+    backdrop-filter: none;
+    background-color: var(--bg);
+  }
   input:not([type=checkbox]):not([type=radio]) {
     height: 28px;
   }
