@@ -24,6 +24,8 @@ export class ResizeHandleDirective {
   readonly resized = signal(false);
 
   readonly hitArea = input(24);
+  /** Keeps the grip reachable, so the embed can't be collapsed. */
+  readonly minSize = input(48);
   readonly appResizeHandle = input<boolean | string | undefined>(true);
   readonly child = input<HTMLElement | undefined>();
   readonly initChild = input(false);
@@ -99,8 +101,8 @@ export class ResizeHandleDirective {
       this.el.nativeElement.classList.add('resized');
       // Mobile embeds take the full width, so only the height can change (see resizeCursor)
       resizeToPointer(this.el.nativeElement, this.start, event,
-        this.config.mobile() ? undefined : width => this.setWidth(width + 'px'),
-        height => this.setHeight(height + 'px'));
+        this.config.mobile() ? undefined : width => this.setWidth(Math.max(this.minSize(), width) + 'px'),
+        height => this.setHeight(Math.max(this.minSize(), height) + 'px'));
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();

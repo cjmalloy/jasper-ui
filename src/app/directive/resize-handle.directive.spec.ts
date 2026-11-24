@@ -86,6 +86,19 @@ describe('ResizeHandleDirective hit test', () => {
     computed.mockRestore();
   });
 
+  it('should not collapse below the minimum size', () => {
+    const el = document.createElement('div');
+    Object.defineProperty(el, 'offsetWidth', { value: 400 });
+    Object.defineProperty(el, 'offsetHeight', { value: 300 });
+    el.getBoundingClientRect = () => ({ left: 100, top: 400, right: 500, bottom: 700, width: 400, height: 300 } as DOMRect);
+    const directive = create(el);
+    const event = (x: number, y: number) => ({ button: 0, clientX: x, clientY: y, preventDefault: vi.fn(), stopPropagation: vi.fn(), stopImmediatePropagation: vi.fn() } as any);
+    directive.onPointerDown(event(495, 695));
+    directive.onPointerMove(event(0, 0));
+    expect(el.style.width).toBe('48px');
+    expect(el.style.height).toBe('48px');
+  });
+
   it('should mark the host resized before measuring the first move', () => {
     // Stand in for a 2x zoom and the fullscreen `:not(.resized) { height: auto }` rule
     const el = document.createElement('div');
