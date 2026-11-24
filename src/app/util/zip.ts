@@ -57,10 +57,13 @@ export function filterModels<T extends Cursor>(models: T[]): FilteredModels {
   };
 }
 
+export const notModelsError = () => $localize`JSON is not a Ref, an Ext or a { ref, ext } bundle.`;
+
 export function getModels<T extends Cursor>(json?: string): T[] {
   if (!json) return [];
-  const models = JSON.parse(json);
-  return (isArray(models) ? models : [models]).map(m => {
+  const models = toModels(JSON.parse(json));
+  if (!models) throw notModelsError();
+  return models.map(m => {
     m.upload = true;
     delete m.created;
     if (!('tag' in m) && !m.url) m.url = 'comment:' + uuid();
@@ -69,14 +72,37 @@ export function getModels<T extends Cursor>(json?: string): T[] {
 }
 
 export function isModelsJson(text?: string) {
-  if (!text?.trim()) return false;
+  const json = parseJson(text);
+  return json !== undefined && !!toModels(json)?.length;
+}
+
+export function isInvalidModelsJson(text?: string) {
+  const json = parseJson(text);
+  return !!json && typeof json === 'object' && !toModels(json);
+}
+
+function parseJson(text?: string) {
+  if (!text?.trim()) return undefined;
   try {
-    const json = JSON.parse(text);
-    const models = isArray(json) ? json : [json];
-    return !!models.length && models.every(isModel);
+    return JSON.parse(text);
   } catch {
-    return false;
+    return undefined;
   }
+}
+
+function toModels(json: any): any[] | undefined {
+  if (isBundle(json)) return [...json.ext ?? [], ...json.ref ?? []];
+  const models = isArray(json) ? json : [json];
+  return models.every(isModel) ? models : undefined;
+}
+
+function isBundle(m: any) {
+  if (!m || typeof m !== 'object' || isArray(m)) return false;
+  if ('tag' in m || m.url || typeof m.comment === 'string') return false;
+  return (isArray(m.ref) || isArray(m.ext))
+    && Object.keys(m).every(k => (k === 'ref' || k === 'ext') && isArray(m[k]))
+    && (m.ref ?? []).every(isModel)
+    && (m.ext ?? []).every(isModel);
 }
 
 function isModel(m: any) {
