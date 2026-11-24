@@ -19,7 +19,7 @@
                (copied)="query.refresh()" />
     </div>
   }
-@if (uiTemplate()) {
+@if (uiTemplates().length) {
   <app-md class="ui"
           [class]="'ui ' + cssClass(ext()?.tag)"
           [disableSanitizer]="true"

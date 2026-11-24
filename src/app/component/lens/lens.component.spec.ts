@@ -71,7 +71,7 @@ describe('LensComponent', () => {
       Handlebars.registerHelper('lensUiProbe', (a: LensUiApi) => { actions = a; });
       fixture.destroy();
       refs = { page: vi.spyOn(TestBed.inject(RefService), 'page') as any };
-      vi.spyOn(TestBed.inject(AdminService), 'getTemplates').mockReturnValue([template]);
+      vi.spyOn(TestBed.inject(AdminService), 'getTemplateUi').mockReturnValue([template]);
       fixture = TestBed.createComponent(LensComponent);
       fixture.componentRef.setInput('ext', { tag: 'test', config: { peek: 2 } });
       fixture.componentRef.setInput('tag', 'science');

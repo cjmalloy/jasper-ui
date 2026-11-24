@@ -26,6 +26,11 @@ export interface Template extends Config {
      */
     ui?: string,
     /**
+     * Do not render UIs from inherited Templates. If unset UIs
+     * will stack from abstract to specific inheritance.
+     */
+    overrideUi?: boolean,
+    /**
      * Optional handlebars template to render in the sidebar.
      */
     sidebarUi?: string,

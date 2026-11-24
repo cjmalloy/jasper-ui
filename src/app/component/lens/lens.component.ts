@@ -88,21 +88,18 @@ export class LensComponent implements HasChanges {
 
   readonly plugins = computed(() => hasPrefix(this.ext()?.tag, 'plugin') ? [this.ext()!.tag] : undefined);
   readonly header = computed(() => this.ext()?.config?.header);
-  readonly uiTemplate = computed(() => {
-    if (!this.ext()) return undefined;
-    return [...this.admin.getTemplates(this.ext()!.tag)].reverse().find(t => t.config?.ui);
-  });
+  readonly uiTemplates = computed(() => this.ext() ? this.admin.getTemplateUi(this.ext()!.tag) : []);
 
   /** Hydrated template UI. Hydrating runs the template's deferred scripts, so only redo it when the inputs change. */
   private readonly ui = computed(() => {
-    const template = this.uiTemplate();
-    if (!template) return undefined;
+    const templates = this.uiTemplates();
+    if (!templates.length) return undefined;
     const ext = this.ext()!;
     const page = this.page();
     const query = this.tag();
     const params = { size: this.size(), sort: this.sort(), filter: this.filter(), search: this.search() };
     const args = this.args() ?? getArgs(query, params.sort, params.filter, params.search);
-    return untracked(() => this.hydrateUi(template, ext, page, query, params, args));
+    return untracked(() => this.hydrateUi(templates, ext, page, query, params, args));
   });
   readonly uiMarkdown = computed(() => this.ui()?.text);
 
@@ -122,7 +119,7 @@ export class LensComponent implements HasChanges {
       && ![...this.mounted].find(c => (c.instance as any).saveChanges?.() === false);
   }
 
-  private hydrateUi(template: Template, ext: Ext, page: Page<Ref> | undefined, query: string, params: any, args: RefPageArgs) {
+  private hydrateUi(templates: Template[], ext: Ext, page: Page<Ref> | undefined, query: string, params: any, args: RefPageArgs) {
     let alive = true;
     const cleanups: (() => void)[] = [];
     const cleanup = () => {
@@ -176,12 +173,12 @@ export class LensComponent implements HasChanges {
       matches: ref => !!query && !!capturesAny([query], ref.tags),
       onDestroy,
     };
-    const text = hydrate(template.config, 'ui', getTemplateScope(this.store.account.roles(), template, ext, this.el.nativeElement, {
+    const text = templates.map(template => hydrate(template.config, 'ui', getTemplateScope(this.store.account.roles(), template, ext, this.el.nativeElement, {
       actions,
       query,
       page,
       params,
-    }));
+    }))).join('');
     return { text, cleanup };
   }
 

@@ -1050,6 +1050,18 @@ export class AdminService {
     return [];
   }
 
+  getTemplateUi(tag = ''): Template[] {
+    const template = this.getTemplate(tag);
+    const parent = tag ? tag.substring(0, tag.lastIndexOf('/')) : null;
+    if (template?.config?.ui) {
+      if (!tag || template.config?.overrideUi) return [template];
+      return [...this.getTemplateUi(parent!), template]
+    } else if (tag) {
+      return this.getTemplateUi(parent!);
+    }
+    return [];
+  }
+
   getTemplateSidebarUi(tag = ''): Template[] {
     const template = this.getTemplate(tag);
     const parent = tag ? tag.substring(0, tag.lastIndexOf('/')) : null;
