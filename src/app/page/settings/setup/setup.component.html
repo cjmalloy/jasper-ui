@@ -52,7 +52,7 @@
               @if (c.config?.experimental) {
                 <span>🧪️</span>
               }
-              @if (installed(c) && hasAdminForm(c)) {
+              @if (installed(c) && hasDefaultsForm(c)) {
                 <span class="config">
                   <span class="fake-link no-select mod-config-link" (click)="configMod(c)" i18n>⚙️ config</span>
                 </span>
@@ -142,6 +142,7 @@
           <span><!-- Entity --></span>
           <h3 class="mod-config-entity">{{ e.entity.name || e.entity.tag }}</h3>
           <app-admin-config class="mod-config-form"
+                            fieldName="defaults"
                             [group]="e.group"
                             [fields]="e.fields" />
         }

@@ -44,7 +44,6 @@ describe('SettingsSetupPage', () => {
                 getTemplate() { },
                 getMod() { },
                 getInstalledMod() { },
-                getTemplateAdminForm: vi.fn((tag: string) => status.templates[tag]?.config?.adminForm || []),
                 updateMod$: vi.fn(() => of(null)),
                 noMods: vi.fn(() => false),
                 installingDefaults: signal(false),
@@ -263,10 +262,11 @@ describe('SettingsSetupPage', () => {
   });
 
   describe('configMod', () => {
-    const adminForm = [{ key: 'title', type: 'string' }];
-    const plugin = { tag: 'plugin/a', name: 'A', origin: '', config: { mod: 'Combo', title: 'a', adminForm } };
-    const other = { tag: 'plugin/b', name: 'B', origin: '', config: { mod: 'Combo' } };
-    const template = { tag: 'combo', name: 'Combo', origin: '', config: { mod: 'Combo', title: 't', adminForm } };
+    const form = [{ key: 'title', type: 'string', props: { required: true } }];
+    const adminForm = [{ key: 'secret', type: 'string' }];
+    const plugin = { tag: 'plugin/a', name: 'A', origin: '', config: { mod: 'Combo', form }, defaults: { title: 'a' } };
+    const other = { tag: 'plugin/b', name: 'B', origin: '', config: { mod: 'Combo', adminForm } };
+    const template = { tag: 'combo', name: 'Combo', origin: '', config: { mod: 'Combo', form }, defaults: { title: 't', keep: true } };
 
     beforeEach(() => {
       status.plugins = { 'plugin/a': plugin, 'plugin/b': other };
@@ -276,19 +276,20 @@ describe('SettingsSetupPage', () => {
 
     afterEach(() => component.cancelConfig());
 
-    it('should show a config link only for installed mods with admin forms', () => {
-      expect(component.hasAdminForm(plugin)).toBe(true);
+    it('should show a config link only for installed mods with forms for defaults', () => {
+      expect(component.hasDefaultsForm(plugin)).toBe(true);
       admin.getInstalledMod = () => ({ plugin: [other], template: [] });
-      expect(component.hasAdminForm(other)).toBe(false);
+      expect(component.hasDefaultsForm(other)).toBe(false);
       admin.getInstalledMod = () => undefined;
-      expect(component.hasAdminForm(plugin)).toBe(false);
+      expect(component.hasDefaultsForm(plugin)).toBe(false);
     });
 
-    it('should combine every admin form in the mod', () => {
+    it('should combine the defaults form of every entity in the mod', () => {
       component.configMod(plugin);
       fixture.detectChanges();
       expect(component.configState()!.entries.map(e => e.entity.tag)).toEqual(['plugin/a', 'combo']);
       expect(document.querySelectorAll('.mod-config-popup .mod-config-form').length).toBe(2);
+      expect(component.configState()!.entries[0].fields[0].props!.required).toBe(false);
     });
 
     it('should only save changed configs', () => {
@@ -298,11 +299,15 @@ describe('SettingsSetupPage', () => {
       const updateTemplate = vi.spyOn(templates, 'update').mockReturnValue(of('cursor'));
       component.configMod(plugin);
       const entry = component.configState()!.entries[1];
-      entry.group.controls.config.setValue(JSON.stringify({ ...template.config, title: 'changed' }));
+      entry.group.controls.defaults.setValue(JSON.stringify({ ...template.defaults, title: 'changed' }));
       entry.group.markAsDirty();
       component.saveConfig();
       expect(updatePlugin).not.toHaveBeenCalled();
-      expect(updateTemplate).toHaveBeenCalledWith(expect.objectContaining({ tag: 'combo', config: expect.objectContaining({ title: 'changed' }) }));
+      expect(updateTemplate).toHaveBeenCalledWith(expect.objectContaining({
+        tag: 'combo',
+        config: template.config,
+        defaults: { title: 'changed', keep: true },
+      }));
       expect(component.configState()).toBeUndefined();
       expect(admin.reload$).toHaveBeenCalled();
       expect(component.installMessages()).toContainEqual('Saved Combo config.');
@@ -351,17 +356,17 @@ describe('SettingsSetupPage', () => {
       component.configMod(plugin);
       const [saved, failed] = component.configState()!.entries;
       saved.entity.modifiedString = '2024-01-01T00:00:00Z';
-      saved.group.controls.config.setValue(JSON.stringify({ ...plugin.config, title: 'first' }));
+      saved.group.controls.defaults.setValue(JSON.stringify({ title: 'first' }));
       saved.group.markAsDirty();
       failed.group.markAsDirty();
       component.saveConfig();
-      saved.group.controls.config.setValue(JSON.stringify({ ...plugin.config, title: 'second' }));
+      saved.group.controls.defaults.setValue(JSON.stringify({ title: 'second' }));
       saved.group.markAsDirty();
       component.saveConfig();
       expect(updatePlugin).toHaveBeenCalledTimes(2);
       expect(updatePlugin.mock.calls[1][0]).toEqual(expect.objectContaining({
         modifiedString: '2024-01-02T00:00:00Z',
-        config: expect.objectContaining({ title: 'second' }),
+        defaults: { title: 'second' },
       }));
     });
   });

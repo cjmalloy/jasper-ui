@@ -6,13 +6,14 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, DestroyRef, inject, signal, TemplateRef, viewChild, ViewContainerRef } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { FormlyFieldConfig } from '@ngx-formly/core';
-import { cloneDeep, forOwn, omit, sortBy, uniq } from 'lodash-es';
+import { FormlyConfig, FormlyFieldConfig, FormlyFormBuilder } from '@ngx-formly/core';
+import { forOwn, sortBy, uniq } from 'lodash-es';
 import { catchError, concat, EMPTY, last, Observable, of, Subscription, switchMap, tap, throwError } from 'rxjs';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { AdminConfigComponent } from '../../../form/admin-config/admin-config.component';
 import { DiffComponent } from '../../../form/diff/diff.component';
+import { configFormFields, optionalFields } from '../../../formly/formly-schema';
 import { Plugin } from '../../../model/plugin';
 import { Config, Mod, ModType } from '../../../model/tag';
 import { Template } from '../../../model/template';
@@ -37,7 +38,7 @@ interface ModConfigEntry {
   type: 'plugin' | 'template';
   entity: Plugin | Template;
   fields: FormlyFieldConfig[];
-  group: FormGroup<{ config: FormControl<string> }>;
+  group: FormGroup<{ defaults: FormControl<string> }>;
 }
 
 interface ModConfigState {
@@ -70,6 +71,9 @@ export class SettingsSetupPage {
   store = inject(Store);
   private fb = inject(UntypedFormBuilder);
   private overlay = inject(Overlay);
+  private formlyConfig = inject(FormlyConfig);
+  // Constructing the builder registers the formly types needed to filter the defaults form
+  private formlyBuilder = inject(FormlyFormBuilder);
   private vc = inject(ViewContainerRef);
 
 
@@ -402,28 +406,33 @@ export class SettingsSetupPage {
     const entry = (type: 'plugin' | 'template', entity: Plugin | Template, fields: FormlyFieldConfig[]): ModConfigEntry => ({
       type,
       entity,
-      fields: cloneDeep(fields),
+      fields,
       group: new FormGroup({
-        config: new FormControl(JSON.stringify(omit(entity.config || {}, '_cache'), null, 2), { nonNullable: true }),
+        defaults: new FormControl(JSON.stringify(entity.defaults || {}, null, 2), { nonNullable: true }),
       }),
     });
     return [
-      ...(installed.plugin || [])
-        .filter(p => p.origin === this.store.account.origin() && p.config?.adminForm?.length)
-        .map(p => entry('plugin', p, p.config!.adminForm!)),
-      ...(installed.template || [])
-        .filter(t => t.origin === this.store.account.origin())
-        .map(t => ({ t, fields: this.admin.getTemplateAdminForm(t.tag) }))
-        .filter(({ fields }) => fields.length)
-        .map(({ t, fields }) => entry('template', t, fields)),
-    ];
+      ...(installed.plugin || []).map(p => ['plugin', p] as const),
+      ...(installed.template || []).map(t => ['template', t] as const),
+    ]
+      .filter(([, e]) => e.origin === this.store.account.origin())
+      .map(([type, e]) => ({ type, e, fields: this.defaultsFields(e) }))
+      .filter(({ fields }) => fields.length)
+      .map(({ type, e, fields }) => entry(type, e, fields));
   }
 
-  hasAdminForm(config: Config) {
+  /**
+   * The Default Values form from the plugin and template editors.
+   */
+  private defaultsFields(entity: Plugin | Template) {
+    return optionalFields(this.formlyConfig, configFormFields(entity.config));
+  }
+
+  hasDefaultsForm(config: Config) {
     const installed = this.admin.getInstalledMod(modId(config));
     if (!installed) return false;
-    return installed.plugin?.some(p => p.origin === this.store.account.origin() && p.config?.adminForm?.length) ||
-      installed.template?.some(t => t.origin === this.store.account.origin() && this.admin.getTemplateAdminForm(t.tag).length);
+    return [...installed.plugin || [], ...installed.template || []]
+      .some(e => e.origin === this.store.account.origin() && this.defaultsFields(e).length);
   }
 
   configMod(config: Config) {
@@ -455,20 +464,20 @@ export class SettingsSetupPage {
     let saved = false;
     for (const e of state.entries) {
       if (!e.group.dirty) continue;
-      let config: any;
+      let defaults: any;
       try {
-        config = JSON.parse(e.group.controls.config.value);
+        defaults = JSON.parse(e.group.controls.defaults.value);
       } catch (err: any) {
         this.configErrors.update(errors => [...errors, err.message]);
         continue;
       }
       const update$ = e.type === 'plugin'
-        ? this.plugins.update({ ...e.entity as Plugin, config })
-        : this.templates.update({ ...e.entity as Template, config });
+        ? this.plugins.update({ ...e.entity as Plugin, defaults })
+        : this.templates.update({ ...e.entity as Template, defaults });
       updates.push(update$.pipe(tap(cursor => {
         saved = true;
         // Keep the new cursor so re-saving this entry after a partial failure passes the optimistic update check
-        e.entity = { ...e.entity, config, modifiedString: cursor };
+        e.entity = { ...e.entity, defaults, modifiedString: cursor };
         e.group.markAsPristine();
       })));
     }

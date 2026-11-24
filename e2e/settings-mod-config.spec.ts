@@ -12,44 +12,48 @@ test.describe.serial('Mod Config', () => {
   }
 
   test('enable mods', async ({ page }) => {
-    await mod(page, '[id="mod-plugin/thread"]');
+    await mod(page, '#mod-blog', '[id="mod-plugin/thread"]');
   });
 
-  test('only installed mods with admin forms have a config link', async ({ page }) => {
+  test('only installed mods with forms for defaults have a config link', async ({ page }) => {
     await page.goto('/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
+    const blog = page.locator('.mod-row', { has: page.locator('#mod-blog') });
+    await expect(blog.locator('.mod-config-link')).toBeVisible();
+    // Only has an admin form
     const thread = page.locator('.mod-row', { has: page.locator('[id="mod-plugin/thread"]') });
-    await expect(thread.locator('.mod-config-link')).toBeVisible();
+    await expect(thread.locator('.mod-config-link')).toHaveCount(0);
     const deleted = page.locator('.mod-row', { has: page.locator('[id="mod-plugin/delete"]') });
     await expect(deleted.locator('.mod-config-link')).toHaveCount(0);
   });
 
-  test('edit mod config from setup page', async ({ page, request }) => {
+  test('edit mod defaults from setup page', async ({ page, request }) => {
     await page.goto('/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
-    const thread = page.locator('.mod-row', { has: page.locator('[id="mod-plugin/thread"]') });
-    await thread.locator('.mod-config-link').click();
+    const blog = page.locator('.mod-row', { has: page.locator('#mod-blog') });
+    await blog.locator('.mod-config-link').click();
 
     const popup = page.locator('.mod-config-popup');
     await expect(popup).toBeVisible();
     await expect(popup.locator('.mod-config-form')).toHaveCount(1);
-    const textarea = popup.locator('.mod-config-form .editor-field textarea');
-    await expect(textarea).toHaveValue(/# plugin\/thread/);
-    await textarea.fill('# Custom thread instructions');
+    const checkbox = popup.locator('.mod-config-form input[type="checkbox"]').first();
+    await expect(checkbox).not.toBeChecked();
+    await checkbox.check();
     await popup.locator('.mod-config-save').click();
     await expect(popup).toHaveCount(0);
     await expect(page.locator('.log div', { hasText: 'config.' }).first()).toBeAttached();
 
-    const res = await request.get(`${api}/plugin`, {
+    const res = await request.get(`${api}/template`, {
       headers: await headers(request),
-      params: { tag: 'plugin/thread' + localOrigin() },
+      params: { tag: 'blog' + localOrigin() },
     });
     expect(res.ok()).toBeTruthy();
-    const plugin = await res.json();
-    expect(plugin.config.aiInstructions).toBe('# Custom thread instructions');
-    expect(plugin.config.adminForm).toBeTruthy();
+    const template = await res.json();
+    expect(template.defaults.filterTags).toBe(true);
+    expect(template.defaults.noFloatingSidebar).toBe(true);
+    expect(template.config.form).toBeTruthy();
 
     await page.goto('/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
-    await thread.locator('.mod-config-link').click();
-    await expect(popup.locator('.mod-config-form .editor-field textarea')).toHaveValue('# Custom thread instructions');
+    await blog.locator('.mod-config-link').click();
+    await expect(popup.locator('.mod-config-form input[type="checkbox"]').first()).toBeChecked();
     await popup.locator('.mod-config-cancel').click();
     await expect(popup).toHaveCount(0);
   });
