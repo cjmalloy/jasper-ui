@@ -86,6 +86,8 @@ export class RefListComponent implements HasChanges {
 
   readonly list = viewChildren(RefComponent);
   private readonly moreEl = viewChild<ElementRef<HTMLElement>>('more');
+  private readonly listContainer = viewChild<ElementRef<HTMLElement>>('listContainer');
+  private readonly listItems = viewChildren(RefComponent, { read: ElementRef });
 
   readonly pinned = toSignal(toObservable(computed(() => this.ext()?.config?.pinned as string[] | undefined)).pipe(
     switchMap(pins => pins?.length ? forkJoin(pins.map(pin => this.refs.getCurrent(pin).pipe(
@@ -115,6 +117,43 @@ export class RefListComponent implements HasChanges {
         this.loadMore();
       }, { rootMargin: '100% 0px' });
       observer.observe(el);
+      onCleanup(() => observer.disconnect());
+    });
+    // Grid masonry for themes that set --masonry-row on the list container
+    afterRenderEffect(onCleanup => {
+      const container = this.listContainer()?.nativeElement;
+      const items = this.listItems().map(e => e.nativeElement as HTMLElement);
+      if (!container || !('ResizeObserver' in window)) return;
+      let lastRow = 0;
+      let lastWidth = 0;
+      const observer = new ResizeObserver(entries => {
+        const style = getComputedStyle(container);
+        const row = parseFloat(style.getPropertyValue('--masonry-row')) || 0;
+        const width = container.clientWidth;
+        const all = row !== lastRow || width !== lastWidth;
+        lastRow = row;
+        lastWidth = width;
+        if (!row) {
+          if (all) for (const item of items) item.style.removeProperty('--masonry-span');
+          return;
+        }
+        // Rows have no gap, so span the column gap to space items evenly
+        const gap = parseFloat(style.columnGap) || 0;
+        // Read every height before writing so layout is only computed once
+        const heights = all
+          ? items.map(item => [item, item.getBoundingClientRect().height] as const)
+          : entries
+            .filter(e => e.target !== container)
+            .map(e => [e.target as HTMLElement, e.borderBoxSize?.[0]?.blockSize ?? e.target.getBoundingClientRect().height] as const);
+        for (const [item, height] of heights) {
+          const span = '' + Math.max(1, Math.ceil((height + gap) / row));
+          if (item.style.getPropertyValue('--masonry-span') !== span) {
+            item.style.setProperty('--masonry-span', span);
+          }
+        }
+      });
+      observer.observe(container);
+      for (const item of items) observer.observe(item);
       onCleanup(() => observer.disconnect());
     });
   }

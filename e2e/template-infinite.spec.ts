@@ -114,4 +114,53 @@ test.describe.serial('Infinite scroll', () => {
     await expect(page.locator('.infinite-controls')).toHaveCount(0);
     await expect(page.locator('.page-controls .next-page')).not.toHaveClass(/disabled/);
   });
+
+  test('masonry keeps loaded images in place when more load', async ({ page, request }) => {
+    await mod(page, '#mod-cache', '#mod-images', '#mod-masonry');
+    const origin = localOrigin();
+    for (let i = 0; i < 8; i++) {
+      const upload = await request.post(`${api}/proxy`, {
+        headers: { ...await headers(request), 'Content-Type': 'image/png' },
+        params: { title: `masonry-${i}.png`, mime: 'image/png', origin },
+        data: png(10, [30, 60, 40, 80][i % 4], [200, 20 * i, 100]),
+      });
+      expect(upload.ok()).toBeTruthy();
+      const { url } = await upload.json();
+      const tagged = await request.patch(`${api}/tags`, {
+        headers: await headers(request),
+        params: { url, origin, tags: ['public', 'plugin/image'] },
+      });
+      expect(tagged.ok()).toBeTruthy();
+    }
+    await page.goto(`/tag/plugin/image?debug=ADMIN&pageSize=${pageSize}`, { waitUntil: 'networkidle' });
+    const refs = page.locator('.list-container > .ref');
+    await expect(refs.first()).toBeVisible();
+    await expect(page.locator('.list-container .image-expand.loading')).toHaveCount(0);
+    await expect(page.locator('.infinite-scroll app-loading')).toHaveCount(0);
+    const boxes = () => refs.evaluateAll(els => els.map(el => {
+      const { left, top, width, height } = el.getBoundingClientRect();
+      return { left: Math.round(left), top: Math.round(top + scrollY), width: Math.round(width), height: Math.round(height) };
+    }));
+    const before = await boxes();
+    // Refs fill the shortest column instead of lining up in rows
+    const columns = [...new Set(before.map(b => b.left))];
+    expect(columns.length).toBeGreaterThan(1);
+    for (const left of columns) {
+      const column = before.filter(b => b.left === left).sort((a, b) => a.top - b.top);
+      for (let i = 1; i < column.length; i++) {
+        const gap = column[i].top - column[i - 1].top - column[i - 1].height;
+        expect(gap).toBeGreaterThanOrEqual(0);
+        expect(gap).toBeLessThanOrEqual(16);
+      }
+    }
+
+    const list = await page.locator('.list-container').boundingBox();
+    const cols = await page.locator('.infinite-controls select').boundingBox();
+    expect(list!.x + list!.width - cols!.x - cols!.width).toBeLessThan(16);
+
+    await page.locator('.infinite-scroll').scrollIntoViewIfNeeded();
+    await expect(refs).not.toHaveCount(before.length);
+    await expect(page.locator('.list-container .image-expand.loading')).toHaveCount(0);
+    expect((await boxes()).slice(0, before.length)).toEqual(before);
+  });
 });

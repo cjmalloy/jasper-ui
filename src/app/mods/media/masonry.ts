@@ -6,31 +6,15 @@ export const masonryTemplate: Template = {
   name: $localize`🧱️ Masonry`,
   config: {
     mod: $localize`🧱️ Masonry`,
-    version: 4,
+    version: 5,
     type: 'plugin',
     default: false,
     description: $localize`Overrides the built-in Image viewer with a masonry layout where images have a fixed width and variable height.`,
     // language=CSS
     css: `
       body app-ref-list.plugin_image .list-container {
-        display: block;
-        column-gap: 8px;
-        column-count: 1;
-        @media (min-width: 1000px) {
-          column-count: 2;
-        }
-        @media (min-width: 1500px) {
-          column-count: 3;
-        }
-        @media (min-width: 2000px) {
-          column-count: 4;
-        }
-        &.hide-numbers {
-          column-count: var(--cols);
-        }
+        grid-auto-flow: row;
         & > .ref {
-          break-inside: avoid;
-          margin-bottom: 8px;
           .image-expand {
             min-height: 0;
             &.loading {
@@ -43,8 +27,19 @@ export const masonryTemplate: Template = {
       @supports (display: grid-lanes) {
         body app-ref-list.plugin_image .list-container {
           display: grid-lanes;
+        }
+      }
+      /* Without grid-lanes, the list sets --masonry-span to the number of rows each ref covers.
+         Refs are placed in order, so loading more refs never moves the ones above. */
+      @supports not (display: grid-lanes) {
+        body app-ref-list.plugin_image .list-container {
+          --masonry-row: 4px;
+          grid-auto-rows: var(--masonry-row);
+          row-gap: 0;
+          align-items: start;
           & > .ref {
-            margin-bottom: 0;
+            --masonry-row: initial;
+            grid-row-end: span var(--masonry-span, 1);
           }
         }
       }

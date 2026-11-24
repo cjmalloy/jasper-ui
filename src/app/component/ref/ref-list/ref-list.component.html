@@ -4,10 +4,10 @@
                      [page]="page()"
                      [defaultCols]="cols()" />
 }
-<div class="list-container"
+<div #listContainer
+     class="list-container"
      [class.hide-numbers]="colStyle()"
-     [style.grid-template-columns]="colStyle()"
-     [style.--cols]="cols() || null">
+     [style.grid-template-columns]="colStyle()">
   @for (ref of pinned(); track ref.origin + '@' + ref.url) {
     <div class="list-number">&bullet;</div>
     <app-ref class="pinned ref-list-item"
