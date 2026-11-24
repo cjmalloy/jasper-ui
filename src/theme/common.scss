@@ -1989,6 +1989,8 @@ formly-field-radio, formly-field-multicheckbox {
 
 .toggle {
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   display: block;
   clear: both;
   margin: 4px 8px 4px 2px;
@@ -2520,7 +2522,8 @@ footer {
   }
 }
 
-.embed:fullscreen {
+.embed:fullscreen,
+.embed.pseudo-fullscreen {
   zoom: 200%;
   overflow: auto;
   width: 100vw;
@@ -2540,6 +2543,17 @@ footer {
   & > .embed-container.zoom > iframe {
     width: 50vw !important;
     height: 50vh !important;
+  }
+  // Embeds like Tweets are sized for the normal view, so show them at 100% on phones
+  @media (max-width: 740px) {
+    & > .embed-container.zoom {
+      zoom: 50%;
+    }
+    & > .embed-container.zoom,
+    & > .embed-container.zoom > iframe {
+      width: 100vw !important;
+      height: 100vh !important;
+    }
   }
   & > *:not(.zoom) {
     zoom: 50%;
@@ -2629,6 +2643,46 @@ footer {
       }
     }
   }
+}
+
+// Covers the window where the Fullscreen API is missing (ex. iPhone)
+.embed.pseudo-fullscreen {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483646;
+  box-sizing: border-box;
+  // Percentages like the real :fullscreen, since viewport units would be zoomed
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0;
+  border: none;
+  background: var(--bg);
+  color: inherit;
+}
+
+body.pseudo-fullscreen-open {
+  overflow: hidden;
+}
+
+.pseudo-fullscreen-close {
+  position: fixed;
+  inset: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) auto auto;
+  z-index: 2147483647;
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 20px;
+  line-height: 38px;
+  text-align: center;
+  opacity: 0.8;
 }
 
 ngx-monaco-editor,

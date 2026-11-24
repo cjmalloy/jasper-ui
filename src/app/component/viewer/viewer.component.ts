@@ -211,6 +211,10 @@ export class ViewerComponent {
       });
     });
     effect(() => {
+      this.config.mobile();
+      untracked(() => this.resizeEmbed());
+    });
+    effect(() => {
       const value = this.videoEl();
       untracked(() => this.setVideo(value));
     });
@@ -232,6 +236,13 @@ export class ViewerComponent {
 
   init() {
     this.measureLayout();
+    this.sizeEmbed();
+    this.reload(this.currentAudio);
+    this.reload(this.currentVideo);
+    this.setPdfIframe(this.pdfIframeEl());
+  }
+
+  private sizeEmbed() {
     const ref = this.ref();
     const layout = this.layout();
     if (hasTag('plugin/fullscreen', ref)) {
@@ -242,9 +253,24 @@ export class ViewerComponent {
         height: ref?.plugins?.['plugin/embed']?.height || (this.config.mobile() ? layout.height : Math.floor(layout.height * 0.8)),
       });
     }
-    this.reload(this.currentAudio);
-    this.reload(this.currentVideo);
-    this.setPdfIframe(this.pdfIframeEl());
+  }
+
+  /**
+   * Fetch the oEmbed again sized for the new layout when switching between mobile and desktop.
+   */
+  private resizeEmbed() {
+    const size = this.embedSize();
+    if (!size) return;
+    this.measureLayout();
+    this.sizeEmbed();
+    if (isEqual(size, this.embedSize())) return;
+    const i = this.iframe()?.nativeElement;
+    if (!i) return;
+    i.style.width = '';
+    i.style.height = '';
+    i.style.transform = '';
+    i.style.marginRight = '';
+    i.style.marginBottom = '';
   }
 
   private readonly initializeLayout = afterNextRender(() => this.measureLayout());

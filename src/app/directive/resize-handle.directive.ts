@@ -125,7 +125,27 @@ export class ResizeHandleDirective {
 
   private hit(event: PointerEvent) {
     const rect = this.el.nativeElement.getBoundingClientRect();
+    const grip = this.config.mobile() && this.grip(rect);
+    if (grip) {
+      // Mobile draws a larger grip away from the corner (see .resize-handle:before), so hit test the grip itself
+      const pad = this.hitArea() / 2;
+      return event.clientX >= grip.left - pad && event.clientX <= grip.right + pad
+        && event.clientY >= grip.top - pad && event.clientY <= grip.bottom + pad;
+    }
     return rect.right - event.clientX + rect.bottom - event.clientY < this.hitArea();
+  }
+
+  private grip(rect: DOMRect) {
+    const style = getComputedStyle(this.el.nativeElement, '::before');
+    const width = parseFloat(style.width), height = parseFloat(style.height);
+    const right = parseFloat(style.right), bottom = parseFloat(style.bottom);
+    if (!width || !height || isNaN(right) || isNaN(bottom)) return undefined;
+    return {
+      left: rect.right - right - width,
+      right: rect.right - right,
+      top: rect.bottom - bottom - height,
+      bottom: rect.bottom - bottom,
+    };
   }
 
   private setWidth(width: string) {

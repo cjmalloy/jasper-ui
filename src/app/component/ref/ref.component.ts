@@ -52,6 +52,8 @@ import { OriginMapService } from '../../service/origin-map.service';
 import { UploadCacheService } from '../../service/upload-cache.service';
 import { Store } from '../../store/store';
 import { controlState, controlValue, scrollToFirstInvalid } from '../../util/form';
+import { exitPseudoFullscreen, pseudoFullscreenElement, requestFullscreen } from '../../util/fullscreen';
+import { isApple } from '../../util/keyboard';
 import {
   authors,
   clickableLink,
@@ -281,6 +283,7 @@ export class RefComponent implements HasChanges {
   private overwrittenModified? = '';
   private diffSubscription?: Subscription;
   private closeOffFullscreen = false;
+  private longPressed = false;
   private focusViewer = false;
   private preloadingUrl = '';
 
@@ -390,6 +393,8 @@ export class RefComponent implements HasChanges {
     if (this.lastSelected()) {
       this.store.view.clearLastSelected();
     }
+    const pseudo = pseudoFullscreenElement();
+    if (pseudo && this.el.nativeElement.contains(pseudo)) exitPseudoFullscreen();
   });
 
   unlockViewer(event: Event) {
@@ -533,6 +538,8 @@ export class RefComponent implements HasChanges {
   onFullscreenChange() {
     if (!this.fullscreen()) return;
     if (document.fullscreenElement) return;
+    const pseudo = pseudoFullscreenElement();
+    if (pseudo && this.el.nativeElement.contains(pseudo)) return;
     this.fullscreen.set(this.fullscreenRequired());
     if (this.closeOffFullscreen) this.expanded.set(false);
   }
@@ -545,7 +552,7 @@ export class RefComponent implements HasChanges {
     if (value) {
       if (this.fullscreen()) {
         this.focusViewer = false;
-        value.el.nativeElement.requestFullscreen().then(() => {
+        requestFullscreen(value.el.nativeElement).then(() => {
           value.el.nativeElement.focus({ preventScroll: true });
         }).catch((err: TypeError) => {
           console.warn('Could not make fullscreen.');
@@ -556,6 +563,8 @@ export class RefComponent implements HasChanges {
         // Defer to ensure the viewer's DOM is fully rendered before focusing
         defer(() => value.el.nativeElement.focus({ preventScroll: true }));
       }
+    } else if (pseudoFullscreenElement()?.isConnected === false) {
+      exitPseudoFullscreen();
     }
   }
 
@@ -1108,7 +1117,7 @@ export class RefComponent implements HasChanges {
     this.closeOffFullscreen = !this.expanded();
     const viewer = this.viewer();
     if (viewer) {
-      viewer.el.nativeElement.requestFullscreen().then(() => {
+      requestFullscreen(viewer.el.nativeElement).then(() => {
         viewer.el.nativeElement.focus({ preventScroll: true });
       }).catch(() => {
         console.warn('Could not make fullscreen.');
@@ -1117,10 +1126,44 @@ export class RefComponent implements HasChanges {
     this.expanded.set(true);
   }
 
+  /** Long-press on iOS, which does not fire contextmenu. */
+  longPressStart(event: PointerEvent) {
+    if (event.pointerType !== 'touch' || !isApple()) return;
+    this.longPressed = false;
+    const x = event.clientX, y = event.clientY;
+    const off = () => {
+      clearTimeout(timer);
+      window.removeEventListener('pointermove', move, { capture: true });
+      window.removeEventListener('pointerup', off, { capture: true });
+      window.removeEventListener('pointercancel', off, { capture: true });
+      removeOnDestroy();
+    };
+    const move = (e: PointerEvent) => {
+      if (Math.hypot(e.clientX - x, e.clientY - y) > 10) off();
+    };
+    const timer = setTimeout(() => {
+      off();
+      this.longPressed = true;
+      this.pip();
+    }, 500);
+    const removeOnDestroy = this.destroyRef.onDestroy(off);
+    window.addEventListener('pointermove', move, { capture: true });
+    window.addEventListener('pointerup', off, { capture: true });
+    window.addEventListener('pointercancel', off, { capture: true });
+  }
+
+  onToggleClick() {
+    if (this.longPressed) {
+      this.longPressed = false;
+      return;
+    }
+    this.toggle();
+  }
+
   /** Editing and source modes have no viewer to make fullscreen. */
   private canFallbackFullscreen() {
     return !this.fullscreen() && !this.editing() && !this.viewSource()
-      && !!this.admin.getPlugin('plugin/fullscreen') && document.fullscreenEnabled;
+      && !!this.admin.getPlugin('plugin/fullscreen');
   }
 
   /**

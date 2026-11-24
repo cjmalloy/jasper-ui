@@ -63,6 +63,29 @@ describe('ResizeHandleDirective hit test', () => {
     expect(el.style.height).toBe('400px');
   });
 
+  it('should start dragging from the mobile grip away from the corner', () => {
+    const el = document.createElement('div');
+    Object.defineProperty(el, 'offsetWidth', { value: 400 });
+    Object.defineProperty(el, 'offsetHeight', { value: 300 });
+    el.getBoundingClientRect = () => ({ left: 100, top: 400, right: 500, bottom: 700, width: 400, height: 300 } as DOMRect);
+    // Grip 24x48 drawn 22px from the right, hanging 25px below the bottom (x 454-478, y 677-725)
+    const computed = vi.spyOn(window, 'getComputedStyle').mockImplementation(() =>
+      ({ width: '24px', height: '48px', right: '22px', bottom: '-25px' }) as any);
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ConfigService, useValue: { mobile: () => true } },
+        { provide: ElementRef, useValue: { nativeElement: el } },
+      ],
+    });
+    const directive = TestBed.runInInjectionContext(() => new ResizeHandleDirective());
+    const event = (x: number, y: number) => ({ button: 0, clientX: x, clientY: y, preventDefault: vi.fn(), stopPropagation: vi.fn(), stopImmediatePropagation: vi.fn() } as any);
+    directive.onPointerDown(event(300, 690));
+    expect(directive.dragging()).toBe(false);
+    directive.onPointerDown(event(466, 685));
+    expect(directive.dragging()).toBe(true);
+    computed.mockRestore();
+  });
+
   it('should mark the host resized before measuring the first move', () => {
     // Stand in for a 2x zoom and the fullscreen `:not(.resized) { height: auto }` rule
     const el = document.createElement('div');

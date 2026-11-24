@@ -107,6 +107,37 @@ describe('RefComponent', () => {
       window.dispatchEvent(new Event('pointerup'));
       expect(component.fullscreen()).toBe(false);
     });
+
+    describe('on iOS, which does not fire contextmenu', () => {
+      beforeEach(() => {
+        vi.useFakeTimers();
+        vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)');
+      });
+      afterEach(() => vi.useRealTimers());
+
+      const touch = (x = 0, y = 0) => ({ pointerType: 'touch', clientX: x, clientY: y } as any);
+
+      it('opens fullscreen on a touch long-press and ignores the click that follows', () => {
+        const toggle = vi.spyOn(component, 'toggle');
+        component.longPressStart(touch());
+        vi.advanceTimersByTime(500);
+        expect(component.fullscreen()).toBe(true);
+        component.onToggleClick();
+        expect(toggle).not.toHaveBeenCalled();
+        component.onToggleClick();
+        expect(toggle).toHaveBeenCalledTimes(1);
+      });
+
+      it('does not open fullscreen on a tap or a scroll', () => {
+        component.longPressStart(touch());
+        window.dispatchEvent(new Event('pointerup'));
+        vi.advanceTimersByTime(500);
+        component.longPressStart(touch());
+        window.dispatchEvent(Object.assign(new Event('pointermove'), { clientX: 0, clientY: 20 }));
+        vi.advanceTimersByTime(500);
+        expect(component.fullscreen()).toBe(false);
+      });
+    });
   });
 
   it('lists recipients sharing a Template signature once', () => {
