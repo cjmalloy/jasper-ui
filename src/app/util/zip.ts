@@ -100,7 +100,7 @@ function isBundle(m: any) {
   if (!m || typeof m !== 'object' || isArray(m)) return false;
   if ('tag' in m || m.url || typeof m.comment === 'string') return false;
   return (isArray(m.ref) || isArray(m.ext))
-    && Object.keys(m).every(k => k === 'ref' || k === 'ext')
+    && Object.keys(m).every(k => (k === 'ref' || k === 'ext') && isArray(m[k]))
     && (m.ref ?? []).every(isModel)
     && (m.ext ?? []).every(isModel);
 }
