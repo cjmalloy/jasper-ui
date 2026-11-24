@@ -1554,11 +1554,16 @@ formly-field-geometries .geometry-item > formly-field > formly-group {
     }
   }
   @media (max-width: 740px), (pointer: coarse) {
-    position: static;
     grid-column: auto;
-    container-type: normal;
-    &::before {
-      display: none;
+    // iOS hides the island under the keyboard. Android resizes the viewport,
+    // so the island is unstuck while the keyboard is open.
+    body:not(.ios):not(.android) &,
+    body.keyboard-open & {
+      position: static;
+      container-type: normal;
+      &::before {
+        display: none;
+      }
     }
   }
 }
