@@ -1,5 +1,5 @@
 import { expect, type Page } from '@playwright/test';
-import { mod, openTextSubmit, test } from './setup';
+import { adminHeaders, localOrigin, mod, openTextSubmit, test } from './setup';
 
 test.describe.serial('Ref Actions', () => {
   let page: Page;
@@ -192,6 +192,45 @@ test.describe.serial('Ref Actions', () => {
         .map(r => Math.round(r.top)));
       expect(new Set(tops).size).toBe(1);
       expect(await height()).toBe(rowHeight);
+    } finally {
+      await mobile.close();
+    }
+  });
+
+  test('fits the edit form and markdown link toggles in a ref list on mobile', async ({ browser, request }) => {
+    const api = (process.env.MAIN_API || 'http://localhost:8081') + '/api/v1';
+    await request.get(`${api}/plugin/page`);
+    const xsrf = (await request.storageState()).cookies.find(c => c.name === 'XSRF-TOKEN')?.value || '';
+    const title = 'Mobile Layout ' + Date.now();
+    const created = await request.post(`${api}/ref`, {
+      headers: { Authorization: 'Bearer ' + adminHeaders.jwt, 'X-XSRF-TOKEN': xsrf },
+      data: {
+        url: 'comment:' + title.replace(/ /g, '-'),
+        title,
+        comment: 'See [an internal link](/ref/comment:mobile-layout-target) inline.',
+        tags: ['public'],
+        origin: localOrigin(),
+      },
+    });
+    expect(created.ok(), await created.text()).toBeTruthy();
+    const mobile = await browser.newPage({ viewport: { width: 320, height: 800 } });
+    try {
+      await mobile.goto(`/tag/@*?search=${encodeURIComponent(title)}&debug=ADMIN`, { waitUntil: 'networkidle' });
+      const ref = mobile.locator('.ref-list .ref').filter({ has: mobile.locator('.link a', { hasText: title }) }).first();
+      const right = (e: Element) => e.getBoundingClientRect().right;
+      const left = (e: Element) => e.getBoundingClientRect().left;
+
+      await ref.locator(':scope > button.toggle').click();
+      const toggle = ref.locator('.md .toggle.embed');
+      await expect(toggle).toBeVisible();
+      const link = ref.locator('.md a', { hasText: 'an internal link' });
+      expect(await toggle.evaluate(left)).toBeGreaterThanOrEqual(await link.evaluate(right));
+
+      await ref.locator('.actions-toggle').click();
+      await ref.locator(':scope > .actions .fake-link', { hasText: /^edit$/ }).click();
+      const form = ref.locator(':scope > form.form');
+      await expect(form).toBeVisible();
+      expect(await form.evaluate(right)).toBeLessThanOrEqual(await ref.evaluate(right));
     } finally {
       await mobile.close();
     }

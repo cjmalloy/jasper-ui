@@ -1782,6 +1782,9 @@ formly-field-radio, formly-field-multicheckbox {
   & > .comment-reply {
     justify-self: start;
   }
+  & > .form {
+    min-width: 0;
+  }
 }
 
 .list-item:not(.full-page):not(.expand),

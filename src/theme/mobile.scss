@@ -393,7 +393,7 @@ $tablet-width: 948px;
     display: block !important;
   }
 
-  .embed:not(.comment-body) {
+  .embed:not(.comment-body, .toggle) {
     position: relative;
     left: -8px;
     margin: 0;
