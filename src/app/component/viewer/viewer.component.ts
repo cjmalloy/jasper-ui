@@ -438,7 +438,6 @@ export class ViewerComponent {
   });
 
   readonly resizable = computed(() => {
-    if (this.config.mobile()) return false;
     if (this.ref()?.plugins?.['plugin/embed']?.noResize) return false;
     const html = this.oembed()?.html;
     return !html || html.startsWith('<iframe');
@@ -500,9 +499,8 @@ export class ViewerComponent {
 
   readonly embedWidth = computed(() => {
     if (this.embed()?.width) return Math.min(this.embed().width, this.layout().parentWidth - ((this.thread() || !this.config.mobile()) ? 32 : 12)) + 'px';
-    if (this.config.mobile() && this.layout().landscape) {
-      return this.thread() ? 'calc(100vw - 32px)' : 'calc(100vw - 12px)';
-    }
+    if (this.config.mobile() && !this.thread()) return '100%';
+    if (this.config.mobile() && this.layout().landscape) return 'calc(100vw - 32px)';
     return this.config.huge() ? '67%' : '80%';
   });
 

@@ -333,6 +333,14 @@ $tablet-width: 948px;
   .embed mgl-map {
     width: 100% !important;
   }
+  // The grip hangs below the map like other embeds, so don't clip it
+  .map-embed mgl-map.resize-handle {
+    overflow: visible;
+    margin-bottom: 26px;
+    & > div {
+      border-radius: inherit;
+    }
+  }
 
   .json-editor ngx-monaco-editor,
   .diff-editor ngx-monaco-diff-editor {
