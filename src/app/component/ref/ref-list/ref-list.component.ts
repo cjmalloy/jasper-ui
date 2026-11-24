@@ -1,20 +1,23 @@
 import {
   afterNextRender,
+  afterRenderEffect,
   Component,
   computed,
   DestroyRef,
   effect,
+  ElementRef,
   forwardRef,
   inject,
   input,
   signal,
   untracked,
+  viewChild,
   viewChildren
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
-import { catchError, forkJoin, Observable, of, startWith, switchMap } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, startWith, switchMap } from 'rxjs';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
@@ -22,10 +25,25 @@ import { Ref } from '../../../model/ref';
 import { score } from '../../../mods/vote';
 import { AccountService } from '../../../service/account.service';
 import { RefService } from '../../../service/api/ref.service';
+import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
+import { withStableDateSort } from '../../../util/query';
 import { LoadingComponent } from '../../loading/loading.component';
 import { PageControlsComponent } from '../../page-controls/page-controls.component';
 import { RefComponent } from '../ref.component';
+
+interface MorePages {
+  base?: Page<Ref>;
+  pages: Page<Ref>[];
+  loading: boolean;
+  error: boolean;
+}
+
+const NO_MORE: MorePages = { pages: [], loading: false, error: false };
+
+function refKey(ref: Ref) {
+  return ref.origin + '@' + ref.url;
+}
 
 @Component({
   selector: 'app-ref-list',
@@ -43,6 +61,7 @@ export class RefListComponent implements HasChanges {
   private router = inject(Router);
   private store = inject(Store);
   private refs = inject(RefService);
+  private query = inject(QueryStore);
 
   private destroyRef = inject(DestroyRef);
 
@@ -59,8 +78,10 @@ export class RefListComponent implements HasChanges {
   readonly newRefs$ = input<Observable<Ref | undefined>>();
   readonly insertNewAtTop = input(false);
   readonly showPrev = input(true);
+  readonly infiniteScroll = input(false);
 
   readonly list = viewChildren(RefComponent);
+  private readonly moreEl = viewChild<ElementRef<HTMLElement>>('more');
 
   readonly pinned = toSignal(toObservable(computed(() => this.ext()?.config?.pinned as string[] | undefined)).pipe(
     switchMap(pins => pins?.length ? forkJoin(pins.map(pin => this.refs.getCurrent(pin).pipe(
@@ -79,6 +100,18 @@ export class RefListComponent implements HasChanges {
       const page = this.page();
       if (!page) return;
       untracked(() => this.checkPage(page));
+    });
+    // Syncs the infinite scroll sentinel with an IntersectionObserver
+    afterRenderEffect(onCleanup => {
+      const el = this.moreEl()?.nativeElement;
+      if (!el || this.loadingMore() || !('IntersectionObserver' in window)) return;
+      const observer = new IntersectionObserver(entries => {
+        if (!entries.some(e => e.isIntersecting)) return;
+        observer.disconnect();
+        this.loadMore();
+      }, { rootMargin: '100% 0px' });
+      observer.observe(el);
+      onCleanup(() => observer.disconnect());
     });
   }
 
@@ -105,6 +138,66 @@ export class RefListComponent implements HasChanges {
     return this.expandedInput()!;
   });
 
+
+  private readonly more = signal<MorePages>(NO_MORE);
+
+  /**
+   * Pages loaded by infinite scroll after the current page, discarded when the current page changes.
+   */
+  private readonly morePages = computed(() => {
+    const more = this.more();
+    return more.base && more.base === this.page() ? more : NO_MORE;
+  });
+
+  readonly loadingMore = computed(() => this.morePages().loading);
+
+  readonly moreRefs = computed(() => {
+    const seen = new Set(this.page()?.content.map(refKey));
+    return this.morePages().pages
+      .flatMap(p => p.content)
+      .filter(ref => {
+        const key = refKey(ref);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+  });
+
+  readonly lastPage = computed(() => this.morePages().pages.at(-1) || this.page());
+
+  readonly hasMore = computed(() => {
+    const page = this.page();
+    const last = this.lastPage();
+    if (!this.infiniteScroll() || !page || !last || this.morePages().error) return false;
+    if (page !== this.query.page() || !last.content.length) return false;
+    return last.page.number < last.page.totalPages - 1;
+  });
+
+  loadMore() {
+    const base = this.page();
+    const args = this.query.args();
+    const last = this.lastPage();
+    if (!this.hasMore() || this.loadingMore() || !base || !args || !last) return;
+    this.more.set({ ...this.morePages(), base, loading: true });
+    this.refs.page(withStableDateSort({ ...args, page: last.page.number + 1 })).pipe(
+      map(page => ({ page, error: false })),
+      catchError(() => of({ page: undefined, error: true })),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(({ page, error }) => {
+      this.more.update(more => more.base !== base ? more : {
+        base,
+        pages: page ? [...more.pages, page] : more.pages,
+        loading: false,
+        error,
+      });
+    });
+  }
+
+  moreNumber(ref: Ref, i: number) {
+    if (this.showVotes()) return score(ref);
+    const page = this.page()!;
+    return i + page.content.length + page.page.number * page.page.size + 1;
+  }
 
   private checkPage(page: Page<Ref>) {
     if (page) {

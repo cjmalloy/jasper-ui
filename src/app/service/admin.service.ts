@@ -40,6 +40,7 @@ import { durationMod } from '../mods/media/duration';
 import { embedMod } from '../mods/media/embed';
 import { fileMod } from '../mods/media/file';
 import { imageMod } from '../mods/media/image';
+import { infiniteMod } from '../mods/media/infinite';
 import { masonryMod } from '../mods/media/masonry';
 import { mp3Mod } from '../mods/media/mp3';
 import { pdfEmbedUrl, pdfMod } from '../mods/media/pdf';
@@ -225,6 +226,7 @@ export class AdminService {
     voteMod,
     imageMod,
     masonryMod,
+    infiniteMod,
     lensMod,
     pipMod,
     chessMod,

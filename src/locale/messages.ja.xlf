@@ -7886,6 +7886,14 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Overrides the built-in Image viewer with a masonry layout where images have a fixed width and variable height.</source>
         <target>組み込みの画像ビューアを、画像の幅が固定で高さが可変のメイソンリーレイアウトで上書きします。</target>
       </trans-unit>
+      <trans-unit id="7951502714394214251" datatype="html">
+        <source>♾️ Infinite Scroll</source>
+        <target>♾️ 無限スクロール</target>
+      </trans-unit>
+      <trans-unit id="4510671341908596575" datatype="html">
+        <source>Loads more images in the built-in Image viewer as you scroll down, instead of paging.</source>
+        <target>組み込みの画像ビューアで、ページ送りの代わりに下へスクロールすると画像を追加で読み込みます。</target>
+      </trans-unit>
       <trans-unit id="1847047605496409443" datatype="html">
         <source>Street</source>
         <target>通り</target>

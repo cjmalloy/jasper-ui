@@ -43,9 +43,22 @@
                [expandInline]="expandInline()" />
     }
   }
+  @for (ref of moreRefs(); track ref.origin + '@' + ref.url; let i = $index) {
+    <div class="list-number">{{ moreNumber(ref, i) }}</div>
+    <app-ref class="ref-list-item"
+             [ref]="ref"
+             [scrollToLatest]="true"
+             [plugins]="plugins()"
+             [hideEdit]="ext()?.config?.hideEdit"
+             [disableResize]="ext()?.config?.disableResize"
+             [showAlarm]="showAlarm()"
+             [showToggle]="showToggle()"
+             [expanded]="expanded()"
+             [expandInline]="expandInline()" />
+  }
   @if (!insertNewAtTop()) {
     @for (ref of newRefs(); track ref.origin + '@' + ref.url; let i = $index) {
-      <div class="list-number">{{ getNumber(i + (page()?.content?.length || 0)) }}</div>
+      <div class="list-number">{{ getNumber(i + (page()?.content?.length || 0) + moreRefs().length) }}</div>
       <app-ref class="ref-list-item"
                [ref]="ref"
                [scrollToLatest]="true"
@@ -58,6 +71,13 @@
     }
   }
 </div>
+@if (hasMore()) {
+  <div #more class="infinite-scroll">
+    @if (loadingMore()) {
+      <app-loading />
+    }
+  </div>
+}
 @if (page()) {
   @if (!page()!.content.length) {
     @if (!newRefs().length && emptyMessage()) {
@@ -65,7 +85,7 @@
     }
   } @else if (pageControls()) {
     <app-page-controls [showPageLast]="showPageLast()"
-                       [page]="page()"
+                       [page]="lastPage()"
                        [defaultCols]="cols()"
                        [showPrev]="showPrev()" />
   }
