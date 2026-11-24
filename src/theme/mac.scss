@@ -110,10 +110,6 @@ body.ios {
   button[type=submit] {
     color: revert;
   }
-  button:disabled {
-    // iOS defaults to -apple-system-tertiary-label, which is nearly invisible
-    color: var(--info);
-  }
   input[type=color] {
     border-radius: 5px;
     border: solid 1px -apple-system-secondary-label;
