@@ -46,8 +46,8 @@ export class PluginService {
     );
   }
 
-  update(plugin: Plugin): Observable<void> {
-    return this.http.put<void>(this.base, writePlugin(plugin)).pipe(
+  update(plugin: Plugin): Observable<string> {
+    return this.http.put<string>(this.base, writePlugin(plugin)).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }

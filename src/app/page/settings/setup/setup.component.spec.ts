@@ -294,8 +294,8 @@ describe('SettingsSetupPage', () => {
     it('should only save changed configs', () => {
       const plugins = TestBed.inject(PluginService);
       const templates = TestBed.inject(TemplateService);
-      const updatePlugin = vi.spyOn(plugins, 'update').mockReturnValue(of(undefined));
-      const updateTemplate = vi.spyOn(templates, 'update').mockReturnValue(of(undefined));
+      const updatePlugin = vi.spyOn(plugins, 'update').mockReturnValue(of('cursor'));
+      const updateTemplate = vi.spyOn(templates, 'update').mockReturnValue(of('cursor'));
       component.configMod(plugin);
       const entry = component.configState()!.entries[1];
       entry.group.controls.config.setValue(JSON.stringify({ ...template.config, title: 'changed' }));
@@ -332,7 +332,7 @@ describe('SettingsSetupPage', () => {
     });
 
     it('should refresh mods and keep unsaved edits after a partial failure', () => {
-      vi.spyOn(TestBed.inject(PluginService), 'update').mockReturnValue(of(undefined));
+      vi.spyOn(TestBed.inject(PluginService), 'update').mockReturnValue(of('cursor'));
       vi.spyOn(TestBed.inject(TemplateService), 'update').mockReturnValue(throwError(() => ({ status: 500, message: 'boom' })));
       component.configMod(plugin);
       const [saved, failed] = component.configState()!.entries;
@@ -343,6 +343,26 @@ describe('SettingsSetupPage', () => {
       expect(saved.group.dirty).toBe(false);
       expect(failed.group.dirty).toBe(true);
       expect(component.configState()).toBeTruthy();
+    });
+
+    it('should resend a saved entry with its new cursor after a partial failure', () => {
+      const updatePlugin = vi.spyOn(TestBed.inject(PluginService), 'update').mockReturnValue(of('2024-01-02T00:00:00Z'));
+      vi.spyOn(TestBed.inject(TemplateService), 'update').mockReturnValue(throwError(() => ({ status: 500, message: 'boom' })));
+      component.configMod(plugin);
+      const [saved, failed] = component.configState()!.entries;
+      saved.entity.modifiedString = '2024-01-01T00:00:00Z';
+      saved.group.controls.config.setValue(JSON.stringify({ ...plugin.config, title: 'first' }));
+      saved.group.markAsDirty();
+      failed.group.markAsDirty();
+      component.saveConfig();
+      saved.group.controls.config.setValue(JSON.stringify({ ...plugin.config, title: 'second' }));
+      saved.group.markAsDirty();
+      component.saveConfig();
+      expect(updatePlugin).toHaveBeenCalledTimes(2);
+      expect(updatePlugin.mock.calls[1][0]).toEqual(expect.objectContaining({
+        modifiedString: '2024-01-02T00:00:00Z',
+        config: expect.objectContaining({ title: 'second' }),
+      }));
     });
   });
 });

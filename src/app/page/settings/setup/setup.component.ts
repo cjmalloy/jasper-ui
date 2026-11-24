@@ -451,7 +451,7 @@ export class SettingsSetupPage {
       this.configErrors.set([$localize`Please fix the errors in the form.`]);
       return;
     }
-    const updates: Observable<void>[] = [];
+    const updates: Observable<string>[] = [];
     let saved = false;
     for (const e of state.entries) {
       if (!e.group.dirty) continue;
@@ -465,8 +465,10 @@ export class SettingsSetupPage {
       const update$ = e.type === 'plugin'
         ? this.plugins.update({ ...e.entity as Plugin, config })
         : this.templates.update({ ...e.entity as Template, config });
-      updates.push(update$.pipe(tap(() => {
+      updates.push(update$.pipe(tap(cursor => {
         saved = true;
+        // Keep the new cursor so re-saving this entry after a partial failure passes the optimistic update check
+        e.entity = { ...e.entity, config, modifiedString: cursor };
         e.group.markAsPristine();
       })));
     }
