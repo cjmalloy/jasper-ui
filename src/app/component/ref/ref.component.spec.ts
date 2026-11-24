@@ -47,11 +47,21 @@ describe('RefComponent', () => {
       const getPlugin = admin.getPlugin.bind(admin);
       vi.spyOn(admin, 'getPlugin').mockImplementation((tag: any) => tag === 'plugin/fullscreen' ? {} : getPlugin(tag));
       Object.defineProperty(document, 'fullscreenEnabled', { configurable: true, value: true });
+      (document.documentElement as any).requestFullscreen = vi.fn(() => Promise.resolve());
       markRead = vi.spyOn(component, 'markRead').mockImplementation(() => {});
     });
     afterEach(() => {
       delete (document as any).fullscreenEnabled;
+      delete (document.documentElement as any).requestFullscreen;
       delete (navigator as any).userActivation;
+    });
+
+    it('skips fullscreen without the Fullscreen API (ex. iPhone)', () => {
+      delete (document.documentElement as any).requestFullscreen;
+      const event = { preventDefault: vi.fn(), stopPropagation: vi.fn() } as any;
+      component.pip(event);
+      expect(component.fullscreen()).toBe(false);
+      expect(event.preventDefault).not.toHaveBeenCalled();
     });
 
     it('opens fullscreen', () => {
@@ -106,37 +116,6 @@ describe('RefComponent', () => {
       window.dispatchEvent(new Event('pointercancel'));
       window.dispatchEvent(new Event('pointerup'));
       expect(component.fullscreen()).toBe(false);
-    });
-
-    describe('on iOS, which does not fire contextmenu', () => {
-      beforeEach(() => {
-        vi.useFakeTimers();
-        vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)');
-      });
-      afterEach(() => vi.useRealTimers());
-
-      const touch = (x = 0, y = 0) => ({ pointerType: 'touch', clientX: x, clientY: y } as any);
-
-      it('opens fullscreen on a touch long-press and ignores the click that follows', () => {
-        const toggle = vi.spyOn(component, 'toggle');
-        component.longPressStart(touch());
-        vi.advanceTimersByTime(500);
-        expect(component.fullscreen()).toBe(true);
-        component.onToggleClick();
-        expect(toggle).not.toHaveBeenCalled();
-        component.onToggleClick();
-        expect(toggle).toHaveBeenCalledTimes(1);
-      });
-
-      it('does not open fullscreen on a tap or a scroll', () => {
-        component.longPressStart(touch());
-        window.dispatchEvent(new Event('pointerup'));
-        vi.advanceTimersByTime(500);
-        component.longPressStart(touch());
-        window.dispatchEvent(Object.assign(new Event('pointermove'), { clientX: 0, clientY: 20 }));
-        vi.advanceTimersByTime(500);
-        expect(component.fullscreen()).toBe(false);
-      });
     });
   });
 

@@ -49,7 +49,7 @@
   <span class="host">({{ host() }})</span>
 </div>
 @if (showToggle() && (thread() || commentNoTitle() || viewerEmbeds().length)) {
-  <button type="button" class="toggle" (click)="onToggleClick()" (contextmenu)="pip($event)" (pointerdown)="longPressStart($event)">
+  <button type="button" class="toggle" (click)="toggle()" (contextmenu)="pip($event)">
     @if (editing() || viewSource() || diffing()) {
       <span class="toggle-x">✕</span>
     } @else if (fullscreen() || store.hotkey() && admin.getPlugin('plugin/fullscreen')) {
