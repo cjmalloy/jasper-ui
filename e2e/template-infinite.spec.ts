@@ -33,7 +33,7 @@ function png(width: number, height: number, rgb: [number, number, number]) {
   ]);
 }
 
-test.describe.serial('Image infinite scroll', () => {
+test.describe.serial('Infinite scroll', () => {
   const api = (process.env.MAIN_API || 'http://localhost:8081') + '/api/v1';
   const pageSize = 6;
   const total = 10;
@@ -68,13 +68,32 @@ test.describe.serial('Image infinite scroll', () => {
     }
   });
 
-  test('loads the next page when scrolled to the bottom', async ({ page }) => {
+  test('loads the next image page when scrolled to the bottom', async ({ page }) => {
     await page.goto(`/tag/plugin/image?debug=ADMIN&pageSize=${pageSize}`, { waitUntil: 'networkidle' });
     const refs = page.locator('.list-container > .ref');
     await expect(refs).toHaveCount(pageSize);
     await expect(page.locator('.infinite-scroll')).toBeAttached();
 
     await page.locator('.infinite-scroll').scrollIntoViewIfNeeded();
+    await expect(refs).toHaveCount(total);
+    await expect(page.locator('.infinite-scroll')).toHaveCount(0);
+    await expect(page.locator('.page-controls .next-page')).toHaveClass(/disabled/);
+  });
+
+  test('loads every page of a plain tag', async ({ page, request }) => {
+    const origin = localOrigin();
+    const tag = 'infinitetest';
+    for (let i = 0; i < total; i++) {
+      const created = await request.post(`${api}/ref`, {
+        headers: await headers(request),
+        data: { url: `comment:infinite-${i}`, origin, title: `Infinite ${i}`, tags: ['public', tag] },
+      });
+      expect(created.ok()).toBeTruthy();
+    }
+    await page.goto(`/tag/${tag}?debug=ADMIN&pageSize=${pageSize}`, { waitUntil: 'networkidle' });
+    const refs = page.locator('.list-container > .ref');
+    await expect(refs.first()).toBeVisible();
+    await page.locator('.page-controls').scrollIntoViewIfNeeded();
     await expect(refs).toHaveCount(total);
     await expect(page.locator('.infinite-scroll')).toHaveCount(0);
     await expect(page.locator('.page-controls .next-page')).toHaveClass(/disabled/);

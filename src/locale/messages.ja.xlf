@@ -7890,9 +7890,9 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>♾️ Infinite Scroll</source>
         <target>♾️ 無限スクロール</target>
       </trans-unit>
-      <trans-unit id="4510671341908596575" datatype="html">
-        <source>Loads more images in the built-in Image viewer as you scroll down, instead of paging.</source>
-        <target>組み込みの画像ビューアで、ページ送りの代わりに下へスクロールすると画像を追加で読み込みます。</target>
+      <trans-unit id="4127433719505381838" datatype="html">
+        <source>Load more results as you scroll down lists, instead of paging.</source>
+        <target>ページ送りの代わりに、リストを下へスクロールすると結果を追加で読み込みます。</target>
       </trans-unit>
       <trans-unit id="1847047605496409443" datatype="html">
         <source>Street</source>

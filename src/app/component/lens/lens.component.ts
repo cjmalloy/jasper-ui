@@ -61,7 +61,6 @@ export class LensComponent implements HasChanges {
 
   readonly plugins = computed(() => hasPrefix(this.ext()?.tag, 'plugin') ? [this.ext()!.tag] : undefined);
   readonly header = computed(() => this.ext()?.config?.header);
-  readonly infiniteScroll = computed(() => this.ext()?.tag === 'plugin/image' && !!this.admin.getTemplate('plugin/image/infinite'));
 
   readonly list = viewChildren<HasChanges>('lens');
 

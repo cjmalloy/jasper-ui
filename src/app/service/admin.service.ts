@@ -30,6 +30,7 @@ import { backgammonMod } from '../mods/games/backgammon';
 import { chessMod } from '../mods/games/chess';
 import { jezzballMod } from '../mods/games/jezzball';
 import { helpMod } from '../mods/help';
+import { infiniteMod } from '../mods/infinite';
 import { homeMod } from '../mods/home';
 import { lensMod } from '../mods/lens';
 import { mailboxMod } from '../mods/mailbox';
@@ -40,7 +41,6 @@ import { durationMod } from '../mods/media/duration';
 import { embedMod } from '../mods/media/embed';
 import { fileMod } from '../mods/media/file';
 import { imageMod } from '../mods/media/image';
-import { infiniteMod } from '../mods/media/infinite';
 import { masonryMod } from '../mods/media/masonry';
 import { mp3Mod } from '../mods/media/mp3';
 import { pdfEmbedUrl, pdfMod } from '../mods/media/pdf';
@@ -167,6 +167,7 @@ export class AdminService {
     // Configs
     experimentsMod,
     helpMod,
+    infiniteMod,
     indexHelperMod,
     wikiMod,
     graphMod,
@@ -226,7 +227,6 @@ export class AdminService {
     voteMod,
     imageMod,
     masonryMod,
-    infiniteMod,
     lensMod,
     pipMod,
     chessMod,

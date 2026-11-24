@@ -24,6 +24,7 @@ import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
 import { score } from '../../../mods/vote';
 import { AccountService } from '../../../service/account.service';
+import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
@@ -58,6 +59,7 @@ function refKey(ref: Ref) {
 })
 export class RefListComponent implements HasChanges {
   private accounts = inject(AccountService);
+  private admin = inject(AdminService);
   private router = inject(Router);
   private store = inject(Store);
   private refs = inject(RefService);
@@ -78,7 +80,6 @@ export class RefListComponent implements HasChanges {
   readonly newRefs$ = input<Observable<Ref | undefined>>();
   readonly insertNewAtTop = input(false);
   readonly showPrev = input(true);
-  readonly infiniteScroll = input(false);
 
   readonly list = viewChildren(RefComponent);
   private readonly moreEl = viewChild<ElementRef<HTMLElement>>('more');
@@ -148,6 +149,8 @@ export class RefListComponent implements HasChanges {
     const more = this.more();
     return more.base && more.base === this.page() ? more : NO_MORE;
   });
+
+  readonly infiniteScroll = computed(() => this.pageControls() && !!this.admin.getTemplate('config/infinite'));
 
   readonly loadingMore = computed(() => this.morePages().loading);
 
