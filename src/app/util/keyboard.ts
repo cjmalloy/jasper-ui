@@ -1,3 +1,13 @@
+/**
+ * The OS hotkey is Cmd on Apple platforms and Ctrl everywhere else.
+ * Electron and some browsers don't always identify macOS in the user agent,
+ * so check every platform hint.
+ */
+export function isApple(nav: Navigator = navigator): boolean {
+  const platform = (nav as any).userAgentData?.platform || nav.platform || '';
+  return /^(mac|iphone|ipad|ipod)/i.test(platform) || /mac os x|macintosh|iphone|ipad|ipod/i.test(nav.userAgent || '');
+}
+
 export function seekEnd(media: HTMLMediaElement): number | undefined {
   if (isFinite(media.duration)) return media.duration;
   if (media.seekable.length) return media.seekable.end(media.seekable.length - 1);
