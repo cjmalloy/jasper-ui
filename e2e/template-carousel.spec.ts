@@ -69,6 +69,41 @@ test.describe.serial('Carousel Template', () => {
     await expect(slides.last().locator('.carousel-caption')).toBeEmpty();
   });
 
+  test('shows the caption to keyboard users', async ({ page }) => {
+    await page.goto(`/tag/${tag}?debug=USER&pageSize=5&sort=published,ASC&view=carousel`, { waitUntil: 'networkidle' });
+    const caption = page.locator('.carousel-slide.active .carousel-caption');
+    await expect(caption.locator('.link a')).toHaveText('Slide 0');
+    await expect(caption).toBeHidden();
+    await page.locator('.carousel-frame').focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    await expect(caption).toBeVisible();
+  });
+
+  test('keeps a caption draft', async ({ page }) => {
+    await page.goto(`/tag/${tag}?debug=ADMIN&pageSize=5&sort=published,ASC&view=carousel`, { waitUntil: 'networkidle' });
+    const first = page.locator('.carousel-slide').first();
+    await first.locator('.carousel-media').hover();
+    await first.locator('.carousel-caption .actions .fake-link', { hasText: 'edit' }).click();
+    await first.locator('.carousel-caption [name=title]').fill('Draft title');
+    await page.locator('.carousel-frame').focus();
+    for (let i = 1; i < count; i++) {
+      await page.keyboard.press('ArrowRight');
+      await expect(page.locator('.carousel-slide.active .carousel-caption .link a')).toHaveText(`Slide ${i}`);
+    }
+    await expect(page.locator('.carousel-slide').nth(1).locator('.carousel-caption')).toBeEmpty();
+    await expect(first.locator('.carousel-caption [name=title]')).toHaveValue('Draft title');
+
+    let message = '';
+    page.once('dialog', dialog => {
+      message = dialog.message();
+      dialog.dismiss();
+    });
+    await page.locator('.tabs a', { hasText: 'list' }).first().click();
+    expect(message).toBe('Discard draft?');
+    await expect(first.locator('.carousel-caption [name=title]')).toHaveValue('Draft title');
+  });
+
   test('embeds as a lens', async ({ page, request }) => {
     const res = await request.post(`${api}/ref`, {
       headers: await headers(request),

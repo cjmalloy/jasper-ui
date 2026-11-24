@@ -2,7 +2,7 @@ import { Component, computed, forwardRef, inject, input, viewChildren } from '@a
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
-import { Ref, RefSort } from '../../model/ref';
+import { Ref, RefPageArgs, RefSort } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { QueryStore } from '../../store/query';
@@ -55,6 +55,8 @@ export class LensComponent implements HasChanges {
   readonly filter = input<UrlFilter[]>([]);
   readonly search = input('');
   readonly page = input<Page<Ref> | undefined>();
+  /** Args used to load {@link page}, if different from tag, sort, filter and search. */
+  readonly args = input<RefPageArgs | undefined>();
   readonly pageControls = input(true);
   readonly showAlarm = input(true);
   readonly showVotes = input(false);

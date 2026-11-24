@@ -20,7 +20,8 @@
     </div>
   }
 @if (listUi(); as template) {
-  <app-list-ui [class]="cssClass(ext()?.tag)"
+  <app-list-ui #lens
+               [class]="cssClass(ext()?.tag)"
                [template]="template"
                [ext]="ext()!"
                [tag]="tag()"
@@ -28,7 +29,8 @@
                [size]="size()"
                [sort]="sort()"
                [filter]="filter()"
-               [search]="search()" />
+               [search]="search()"
+               [args]="args()" />
 } @else if (isTemplate('grid')) {
   @defer {
     <app-grid #lens

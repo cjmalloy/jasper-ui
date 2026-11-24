@@ -12,9 +12,9 @@ import {
 import { firstValueFrom } from 'rxjs';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
-import { Ref, RefSort } from '../../model/ref';
+import { Ref, RefPageArgs, RefSort } from '../../model/ref';
 import { active, hydrate, sortOrder } from '../../model/tag';
-import { getTemplateScope, ListUiApi, Template } from '../../model/template';
+import { getTemplateScope, ListUiApi, ListUiMount, Template } from '../../model/template';
 import { AdminService } from '../../service/admin.service';
 import { GraphService } from '../../service/api/graph.service';
 import { RefService } from '../../service/api/ref.service';
@@ -22,7 +22,7 @@ import { Store } from '../../store/store';
 import { createEmbed, createRef } from '../../util/embed';
 import { getTitle } from '../../util/format';
 import { getScheme } from '../../util/http';
-import { getArgs, UrlFilter } from '../../util/query';
+import { getArgs, UrlFilter, withStableDateSort } from '../../util/query';
 import { capturesAny } from '../../util/tag';
 import { RefListComponent } from '../ref/ref-list/ref-list.component';
 
@@ -57,8 +57,11 @@ export class ListUiComponent {
   readonly sort = input<RefSort[]>([]);
   readonly filter = input<UrlFilter[]>([]);
   readonly search = input('');
+  /** Args used to load {@link page}, so further pages use the same query and filters. */
+  readonly args = input<RefPageArgs | undefined>();
 
   private cleanup?: () => void;
+  private mounted = new Set<ComponentRef<unknown>>();
 
   constructor() {
     inject(DestroyRef).onDestroy(() => this.cleanup?.());
@@ -69,11 +72,16 @@ export class ListUiComponent {
       const page = this.page();
       const query = this.tag();
       const params = { size: this.size(), sort: this.sort(), filter: this.filter(), search: this.search() };
-      untracked(() => this.render(template, ext, page, query, params));
+      const args = this.args() ?? getArgs(query, params.sort, params.filter, params.search);
+      untracked(() => this.render(template, ext, page, query, params, args));
     });
   }
 
-  private render(template: Template, ext: Ext, page: Page<Ref> | undefined, query: string, params: ListUiParams) {
+  saveChanges() {
+    return ![...this.mounted].find(c => (c.instance as any).saveChanges?.() === false);
+  }
+
+  private render(template: Template, ext: Ext, page: Page<Ref> | undefined, query: string, params: ListUiParams, args: RefPageArgs) {
     this.cleanup?.();
     let alive = true;
     const cleanups: (() => void)[] = [];
@@ -88,26 +96,29 @@ export class ListUiComponent {
         fn();
       }
     };
-    const mount = (el: Element, c: ComponentRef<unknown>) => {
+    const mount = (el: Element, c: ComponentRef<unknown>): ListUiMount => {
       el.append(c.location.nativeElement);
+      this.mounted.add(c);
       let destroyed = false;
       const destroy = () => {
         if (destroyed) return;
         destroyed = true;
+        const i = cleanups.indexOf(destroy);
+        if (i >= 0) cleanups.splice(i, 1);
+        this.mounted.delete(c);
         c.destroy();
       };
       onDestroy(destroy);
-      return destroy;
+      return Object.assign(destroy, {
+        hasChanges: () => !destroyed && (c.instance as any).saveChanges?.() === false,
+      });
     };
     const api: ListUiApi = {
-      fetch: (pageNumber = 0, size = params.size) => firstValueFrom(this.refs.page(getArgs(
-        query,
-        params.sort,
-        [...params.filter, 'query/!internal', 'query/!plugin/delete', 'user/!plugin/user/hide'],
-        params.search,
-        pageNumber,
+      fetch: (pageNumber = 0, size = params.size) => firstValueFrom(this.refs.page(withStableDateSort({
+        ...args,
+        page: pageNumber,
         size,
-      ))),
+      }))),
       graph: urls => firstValueFrom(this.graphs.list(urls)),
       embed: (el, ref) => mount(el, createEmbed(this.vc, ref)),
       ref: (el, ref) => mount(el, createRef(this.vc, ref, true)),
@@ -116,7 +127,9 @@ export class ListUiComponent {
         c.setInput('page', Page.of(refs));
         c.setInput('pageControls', false);
         if (emptyMessage) c.setInput('emptyMessage', emptyMessage);
-        return mount(el, c);
+        return Object.assign(mount(el, c), {
+          update: (refs: Ref[]) => c.setInput('page', Page.of(refs)),
+        });
       },
       icon: ref => sortOrder(this.admin.getIcons(ref.tags, ref.plugins, getScheme(ref.url))).filter(i => active(ref, i)).shift()?.label || '',
       title: ref => getTitle(ref),

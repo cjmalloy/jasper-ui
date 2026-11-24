@@ -96,7 +96,13 @@ export const graphConfig: Template = {
       }
       .graph-lens .load-more {
         display: block;
-        text-align: center;
+        margin: auto;
+        padding: 0;
+        border: none;
+        background: none;
+        color: var(--link);
+        font: inherit;
+        cursor: pointer;
         user-select: none;
       }
       .graph-lens .graph-loading {
@@ -115,6 +121,9 @@ export const graphConfig: Template = {
       .graph-context-menu {
         position: fixed;
         z-index: 1000;
+        max-height: 100vh;
+        box-sizing: border-box;
+        overflow: auto;
       }
     `,
     // language=HTML
@@ -147,7 +156,7 @@ export const graphConfig: Template = {
         let width = 0;
         let height = 0;
         let menu;
-        let destroyList;
+        let list;
         let listKey;
         let restartId = 0;
         let destroyed = false;
@@ -472,8 +481,11 @@ export const graphConfig: Template = {
           const key = refs.map(r => r.url + ' ' + (r.modifiedString || '')).join(' ');
           if (key === listKey) return;
           listKey = key;
-          destroyList?.();
-          destroyList = actions.list(selectionEl, refs, labels.emptySelection);
+          if (list) {
+            list.update(refs);
+          } else {
+            list = actions.list(selectionEl, refs, labels.emptySelection);
+          }
         }
 
         function closeMenu() {
@@ -580,6 +592,9 @@ export const graphConfig: Template = {
             }
           });
           (document.fullscreenElement || document.body).append(menu);
+          const rect = menu.getBoundingClientRect();
+          menu.style.left = Math.max(0, Math.min(event.clientX, innerWidth - rect.width)) + 'px';
+          menu.style.top = Math.max(0, Math.min(event.clientY, innerHeight - rect.height)) + 'px';
         }
 
         figure.addEventListener('click', () => {
@@ -614,7 +629,7 @@ export const graphConfig: Template = {
     listUi: `
       <div class="graph-lens">
         <figure class="force-directed-graph"></figure>
-        <a class="load-more fake-link no-select"></a>
+        <button type="button" class="load-more no-select"></button>
         <div class="graph-loading"></div>
         <label class="graph-selected no-select"></label>
         <div class="graph-selection"></div>

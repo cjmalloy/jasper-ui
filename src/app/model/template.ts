@@ -102,17 +102,25 @@ export function writeTemplate(template: Template): Template {
  * Functions that mount Angular components into an element return a function
  * to destroy them. Anything still mounted is destroyed when the view is.
  */
+/**
+ * Call to destroy a mounted component early. Otherwise it is destroyed with the view.
+ */
+export type ListUiMount = (() => void) & {
+  /** Does the component have an unsaved draft. */
+  hasChanges: () => boolean;
+};
+
 export interface ListUiApi {
-  /** Fetch a page of the current query, with the same sort, filter and search as the view. */
+  /** Fetch a page of the current query, with the same query, sort, filter and search as the view. */
   fetch: (page?: number, size?: number) => Promise<Page<Ref>>;
   /** Fetch graph nodes (Refs with sources and responses) by URL. Missing Refs are null. */
   graph: (urls: string[]) => Promise<(RefNode | null)[]>;
   /** Render a Ref's media and content with the built-in viewer. */
-  embed: (el: Element, ref: Ref) => () => void;
+  embed: (el: Element, ref: Ref) => ListUiMount;
   /** Render a Ref row. */
-  ref: (el: Element, ref: Ref) => () => void;
-  /** Render a list of Ref rows. */
-  list: (el: Element, refs: Ref[], emptyMessage?: string) => () => void;
+  ref: (el: Element, ref: Ref) => ListUiMount;
+  /** Render a list of Ref rows. Call update to change the Refs without losing drafts. */
+  list: (el: Element, refs: Ref[], emptyMessage?: string) => ListUiMount & { update: (refs: Ref[]) => void };
   /** Label of the first active icon for a Ref. */
   icon: (ref: Ref) => string;
   /** Display title for a Ref. */

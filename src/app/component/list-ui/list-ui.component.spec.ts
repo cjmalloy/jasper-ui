@@ -79,10 +79,25 @@ describe('ListUiComponent', () => {
     await fixture.whenStable();
     await actions!.fetch(2, 10);
     expect(refs.page).toHaveBeenCalledWith(expect.objectContaining({
-      query: 'science:plugin/image:!internal:!plugin/delete',
+      query: 'science:plugin/image',
       search: 'cats',
       page: 2,
       size: 10,
     }));
+  });
+
+  it('fetches more pages with the args of the first page and a stable sort', async () => {
+    refs.page.mockReturnValue(of(Page.of<Ref>([])));
+    fixture.componentRef.setInput('tag', 'config/home');
+    fixture.componentRef.setInput('args', { query: '(science|math):!internal', sort: ['published,DESC'], page: 0, size: 24 });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await actions!.fetch(1);
+    expect(refs.page).toHaveBeenCalledWith({
+      query: '(science|math):!internal',
+      sort: ['published,DESC', 'modified,ASC', 'origin,ASC'],
+      page: 1,
+      size: 24,
+    });
   });
 });

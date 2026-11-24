@@ -27,7 +27,8 @@
                 [cols]="lensCols()"
                 [sort]="lensSort()"
                 [filter]="lensFilter()"
-                [search]="lensSearch()" />
+                [search]="lensSearch()"
+                [args]="lensResult()?.args" />
     } @else {
       <app-loading />
     }

@@ -76,6 +76,23 @@ test.describe.serial('Graph Plugin', () => {
     await expect(page.locator('.ref-list .link a', { hasText: 'Title' }).first()).toContainText('Title');
   });
 
+  test('context menu stays on screen', async () => {
+    const figure = page.locator('.force-directed-graph');
+    await figure.scrollIntoViewIfNeeded();
+    const box = (await figure.boundingBox())!;
+    const viewport = page.viewportSize()!;
+    await figure.click({
+      button: 'right',
+      position: { x: box.width - 2, y: Math.min(box.height - 40, viewport.height - box.y - 2) },
+    });
+    const menu = (await page.locator('.graph-context-menu').boundingBox())!;
+    expect(menu.x + menu.width).toBeLessThanOrEqual(viewport.width);
+    expect(menu.y + menu.height).toBeLessThanOrEqual(viewport.height);
+    await page.keyboard.press('Escape');
+    await page.mouse.click(1, 1);
+    await expect(page.locator('.graph-context-menu')).toHaveCount(0);
+  });
+
   test('context menu in fullscreen', async () => {
     const figure = page.locator('.force-directed-graph');
     await figure.click({ button: 'right' });

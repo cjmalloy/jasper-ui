@@ -143,7 +143,7 @@ export class ViewerComponent {
   private readonly queryUrl = computed(() => hasTag('plugin/lens', this.ref())
     ? this.ref()?.plugins?.['plugin/lens']?.url || (hasTag('plugin/repost', this.ref()) ? this.ref()?.sources?.[0] : this.ref()?.url)
     : undefined);
-  private readonly lensResult = toSignal(toObservable(this.queryUrl).pipe(
+  readonly lensResult = toSignal(toObservable(this.queryUrl).pipe(
     switchMap(url => url ? this.embeds.loadQuery$(url).pipe(
       catchError(() => of(undefined)),
       startWith(undefined),

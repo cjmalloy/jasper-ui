@@ -102,6 +102,8 @@ export const carouselTemplate: Template = {
         visibility: hidden;
       }
       .carousel-slide.active:hover .carousel-caption,
+      .carousel-frame:focus-visible .carousel-slide.active .carousel-caption,
+      .carousel-slide.active:has(:focus-visible) .carousel-caption,
       .carousel-slide.active.show-info .carousel-caption {
         visibility: visible;
       }
@@ -205,8 +207,10 @@ export const carouselTemplate: Template = {
             destroyMedia();
             destroyCaption();
           };
+          slide.hasChanges = () => destroyMedia.hasChanges() || destroyCaption.hasChanges();
         }
         function unmount(slide) {
+          if (slide.hasChanges?.()) return;
           slide.destroy?.();
           slide.destroy = undefined;
         }
