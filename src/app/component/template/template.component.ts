@@ -237,7 +237,7 @@ export class TemplateComponent implements HasChanges {
   }
 
   delete$ = () => {
-    const deleteNotice = !isDeletorTag(this.template().tag) && this.admin.getPlugin('plugin/delete')
+    const deleteNotice = this.template().origin === this.store.account.origin() && !isDeletorTag(this.template().tag) && this.admin.getPlugin('plugin/delete')
       ? this.templates.create(tagDeleteNotice(this.template()))
       : of(null);
     return this.templates.delete(this.qualifiedTag()).pipe(

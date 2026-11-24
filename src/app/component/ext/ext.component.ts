@@ -296,7 +296,7 @@ export class ExtComponent implements HasChanges {
       this.deleted.set(true);
       return of(null);
     } else {
-      const deleteNotice = !isDeletorTag(this.ext().tag) && this.admin.getPlugin('plugin/delete')
+      const deleteNotice = this.ext().origin === this.store.account.origin() && !isDeletorTag(this.ext().tag) && this.admin.getPlugin('plugin/delete')
         ? this.exts.create(tagDeleteNotice(this.ext()))
         : of(null);
       return this.exts.delete(this.qualifiedTag()).pipe(

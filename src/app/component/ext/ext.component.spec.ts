@@ -154,4 +154,21 @@ describe('ExtComponent', () => {
     expect(component.draft()).toBe(false);
     expect(component.ext().name).toBe('Saved');
   });
+
+  it.each([
+    ['local', '', true],
+    ['sub-origin', '@remote', false],
+  ])('only creates a delete notice for %s Exts', (_, origin, notice) => {
+    const extService = TestBed.inject(ExtService);
+    vi.spyOn(component.admin, 'getPlugin').mockReturnValue({ tag: 'plugin/delete' });
+    vi.spyOn(extService, 'delete').mockReturnValue(of(undefined));
+    const create = vi.spyOn(extService, 'create').mockReturnValue(of('cursor'));
+    fixture.componentRef.setInput('ext', { tag: 'ext', origin });
+    fixture.detectChanges();
+
+    component.delete$().subscribe();
+
+    expect(extService.delete).toHaveBeenCalledWith('ext' + origin);
+    expect(create).toHaveBeenCalledTimes(notice ? 1 : 0);
+  });
 });

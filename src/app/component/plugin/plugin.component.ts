@@ -239,7 +239,7 @@ export class PluginComponent implements HasChanges {
   }
 
   delete$ = () => {
-    const deleteNotice = !isDeletorTag(this.plugin().tag) && this.admin.getPlugin('plugin/delete')
+    const deleteNotice = this.plugin().origin === this.store.account.origin() && !isDeletorTag(this.plugin().tag) && this.admin.getPlugin('plugin/delete')
       ? this.plugins.create(tagDeleteNotice(this.plugin()))
       : of(null);
     return this.plugins.delete(this.qualifiedTag()).pipe(
