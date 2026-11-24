@@ -9,6 +9,7 @@ import { ResizeStart, resizeStart, resizeToPointer } from '../util/resize';
     '[style.cursor]': 'cursor()',
     '[class.resize-dragging]': 'dragging()',
     '[class.resize-handle]': "enabled()",
+    '[class.resized]': 'resized()',
     '(pointerdown)': 'onPointerDown($event)',
     '(window:pointermove)': 'onPointerMove($event)',
     '(window:pointerup)': 'onPointerUp($event)',
@@ -20,6 +21,7 @@ export class ResizeHandleDirective {
 
   readonly cursor = signal('auto');
   readonly dragging = signal(false);
+  readonly resized = signal(false);
 
   readonly hitArea = input(24);
   readonly appResizeHandle = input<boolean | string | undefined>(true);
@@ -92,6 +94,7 @@ export class ResizeHandleDirective {
   onPointerMove(event: PointerEvent) {
     if (!this.enabled()) return;
     if (this.dragging() && this.start) {
+      this.resized.set(true);
       resizeToPointer(this.el.nativeElement, this.start, event,
         width => this.setWidth(width + 'px'),
         height => this.setHeight(height + 'px'));

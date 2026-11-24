@@ -40,5 +40,30 @@ describe('ImageDirective', () => {
     expect(el.style.height).toBe('250px');
     expect(el.style.aspectRatio).toBe('500 / 250');
     expect(el.style.getPropertyValue('--image-ratio')).toBe('2');
+    expect(el.classList).toContain('keep-ratio');
+  });
+
+  it('should only keep the ratio of grid images without a fixed height', async () => {
+    const el = document.createElement('div');
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ConfigService, useValue: { mobile: () => false } },
+        { provide: Store, useValue: { eventBus: new EventBus() } },
+        { provide: ElementRef, useValue: { nativeElement: el } },
+        { provide: ImageService, useValue: { getImage: () => Promise.resolve({ width: 400, height: 800 }) } },
+      ],
+    });
+    const directive = TestBed.runInInjectionContext(() => new ImageDirective());
+    (directive as any).grid = () => true;
+    (directive as any).loadUrl('cache:image');
+    await Promise.resolve();
+    expect(el.style.getPropertyValue('--image-ratio')).toBe('0.5');
+    expect(el.classList).toContain('keep-ratio');
+
+    (directive as any).defaultHeightPx = () => '300px';
+    (directive as any).onResize();
+    expect(el.style.height).toBe('300px');
+    expect(el.style.aspectRatio).toBe('');
+    expect(el.classList).not.toContain('keep-ratio');
   });
 });

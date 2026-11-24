@@ -382,6 +382,8 @@ export class ViewerComponent {
             this.embedReady.set(true);
               });
       } else {
+        i.style.aspectRatio = '';
+        i.classList.remove('keep-ratio');
         setIframeSrc(i, embedUrl(this.embed()?.url || this.ref()?.url));
         if (!i.style.width) i.style.width = this.embedWidth();
         if (!i.style.height) i.style.height = this.embedHeight();

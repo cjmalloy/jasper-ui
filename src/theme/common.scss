@@ -2539,7 +2539,7 @@ footer {
       max-width: 100%;
       max-height: 45vh;
     }
-    .image-expand:not(.loading):not(.resized) {
+    .image-expand.keep-ratio:not(.loading):not(.resized) {
       max-width: min(100%, 45vh * var(--image-ratio, 1000));
       height: auto !important;
     }
@@ -2548,10 +2548,14 @@ footer {
       width: min(100%, 240px * var(--video-ratio, 16 / 9)) !important;
       height: auto !important;
       aspect-ratio: var(--video-ratio, 16 / 9);
-      // Undo the zoom on narrow screens, or Chrome hides the controls in the overflow menu
+      @media (max-width: 740px) {
+        width: min(100%, 480px * var(--video-ratio, 16 / 9)) !important;
+      }
+    }
+    // Undo the zoom on narrow screens, or Chrome hides the controls in the overflow menu
+    .video-expand {
       @media (max-width: 740px) {
         zoom: 50%;
-        width: min(100%, 480px * var(--video-ratio, 16 / 9)) !important;
       }
     }
     .embed-container:not(.loading),
@@ -2565,10 +2569,10 @@ footer {
       min-width: 0;
       max-width: 100%;
     }
-    .embed-container:has(> iframe.keep-ratio) {
+    .embed-container:not(.resized):has(> iframe.keep-ratio) {
       height: auto !important;
     }
-    .embed-container > iframe.keep-ratio {
+    .embed-container:not(.resized) > iframe.keep-ratio {
       height: auto !important;
       transform: none !important;
       margin: 0 !important;
