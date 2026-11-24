@@ -1,6 +1,6 @@
 import { Component, computed, inject, input, linkedSignal } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { delay } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, defaultIfEmpty, defer, EMPTY, Observable, of, switchMap } from 'rxjs';
@@ -55,7 +55,6 @@ function isDateSortField(value: string | undefined): value is DateSortField {
   },
   imports: [
     RouterLink,
-    RouterLinkActive,
     ReactiveFormsModule,
     FormsModule,
   ]

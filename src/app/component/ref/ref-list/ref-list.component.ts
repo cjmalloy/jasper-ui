@@ -155,7 +155,7 @@ export class RefListComponent implements HasChanges {
   readonly loadingMore = computed(() => this.morePages().loading);
 
   readonly moreRefs = computed(() => {
-    const seen = new Set(this.page()?.content.map(refKey));
+    const seen = new Set([...this.page()?.content || [], ...this.newRefs()].map(refKey));
     return this.morePages().pages
       .flatMap(p => p.content)
       .filter(ref => {
@@ -171,10 +171,26 @@ export class RefListComponent implements HasChanges {
   readonly hasMore = computed(() => {
     const page = this.page();
     const last = this.lastPage();
-    if (!this.infiniteScroll() || !page || !last || this.morePages().error) return false;
+    if (!this.infiniteScroll() || !this.query.args() || !page || !last || this.morePages().error) return false;
     if (page !== this.query.page() || !last.content.length) return false;
     return last.page.number < last.page.totalPages - 1;
   });
+
+  /**
+   * Keep the loading slot mounted once infinite scroll has started on this page,
+   * so the page controls don't jump when the last request completes or fails.
+   */
+  readonly moreSpacer = computed(() => this.hasMore() || !!this.morePages().base);
+
+  /**
+   * Explicit pagination to the current URL won't change the page, so clear appended pages.
+   */
+  resetMore(event: MouseEvent) {
+    const href = (event.target as Element | null)?.closest('a')?.getAttribute('href');
+    if (!href || href !== this.router.url || !this.morePages().base) return;
+    this.more.set(NO_MORE);
+    window.scrollTo(0, 0);
+  }
 
   loadMore() {
     const base = this.page();
@@ -241,7 +257,7 @@ export class RefListComponent implements HasChanges {
   addNewRef(ref: Ref) {
     // TODO: verify read before clearing?
     this.accounts.clearNotificationsIfNone(ref.modified, ref.origin);
-    if (ref.url !== this.store.view.url() && !this.page()?.content.find(r => r.url === ref.url)) {
+    if (ref.url !== this.store.view.url() && !this.page()?.content.find(r => r.url === ref.url) && !this.moreRefs().find(r => r.url === ref.url)) {
       const index = this.newRefs().findIndex(r => r.url === ref.url);
       if (index !== -1) {
         this.newRefs.update(newRefs => newRefs.map((r, i) => i === index ? ref : r));

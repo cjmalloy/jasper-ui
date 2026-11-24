@@ -72,11 +72,12 @@ test.describe.serial('Infinite scroll', () => {
     await page.goto(`/tag/plugin/image?debug=ADMIN&pageSize=${pageSize}`, { waitUntil: 'networkidle' });
     const refs = page.locator('.list-container > .ref');
     await expect(refs).toHaveCount(pageSize);
-    await expect(page.locator('.infinite-scroll')).toBeAttached();
+    await expect(page.locator('.infinite-scroll-sentinel')).toBeAttached();
 
     await page.locator('.infinite-scroll').scrollIntoViewIfNeeded();
     await expect(refs).toHaveCount(total);
-    await expect(page.locator('.infinite-scroll')).toHaveCount(0);
+    await expect(page.locator('.infinite-scroll-sentinel')).toHaveCount(0);
+    await expect(page.locator('.infinite-scroll')).toBeAttached();
     await expect(page.locator('.page-controls .next-page')).toHaveClass(/disabled/);
   });
 
@@ -95,7 +96,18 @@ test.describe.serial('Infinite scroll', () => {
     await expect(refs.first()).toBeVisible();
     await page.locator('.page-controls').scrollIntoViewIfNeeded();
     await expect(refs).toHaveCount(total);
-    await expect(page.locator('.infinite-scroll')).toHaveCount(0);
+    await expect(page.locator('.infinite-scroll-sentinel')).toHaveCount(0);
     await expect(page.locator('.page-controls .next-page')).toHaveClass(/disabled/);
+  });
+
+  test('first page link clears appended pages', async ({ page }) => {
+    await page.goto(`/tag/plugin/image?debug=ADMIN&pageSize=${pageSize}&pageNumber=0`, { waitUntil: 'networkidle' });
+    const refs = page.locator('.list-container > .ref');
+    await expect(refs).toHaveCount(pageSize);
+    await page.locator('.infinite-scroll').scrollIntoViewIfNeeded();
+    await expect(refs).toHaveCount(total);
+    await expect(page.locator('.page-controls .prev-page')).not.toHaveClass(/disabled/);
+    await page.locator('.page-controls .first-page').click();
+    await expect(refs).toHaveCount(pageSize);
   });
 });

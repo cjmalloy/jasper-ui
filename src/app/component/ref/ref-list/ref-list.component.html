@@ -71,8 +71,11 @@
     }
   }
 </div>
-@if (hasMore()) {
-  <div #more class="infinite-scroll">
+@if (moreSpacer()) {
+  <div class="infinite-scroll">
+    @if (hasMore()) {
+      <div #more class="infinite-scroll-sentinel"></div>
+    }
     @if (loadingMore()) {
       <app-loading />
     }
@@ -84,7 +87,8 @@
       <p class="no-results">{{ emptyMessage() }}</p>
     }
   } @else if (pageControls()) {
-    <app-page-controls [showPageLast]="showPageLast()"
+    <app-page-controls (click)="resetMore($event)"
+                       [showPageLast]="showPageLast()"
                        [page]="lastPage()"
                        [defaultCols]="cols()"
                        [showPrev]="showPrev()" />

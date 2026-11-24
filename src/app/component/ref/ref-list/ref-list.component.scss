@@ -5,6 +5,12 @@
 }
 
 .infinite-scroll {
+  position: relative;
   height: 100px;
   overflow: hidden;
+}
+
+.infinite-scroll-sentinel {
+  position: absolute;
+  inset: 0;
 }

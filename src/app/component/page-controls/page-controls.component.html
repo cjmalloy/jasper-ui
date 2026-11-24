@@ -11,7 +11,7 @@
       @if (showPrev()) {
         <a class="prev-page"
            routerLink="./"
-           routerLinkActive="disabled"
+           [class.disabled]="page()!.page.number === 0"
            [queryParams]="{ pageNumber: prev() }"
            (click)="cursorPage(prev(), $event)"
            queryParamsHandling="merge" i18n>prev</a>
