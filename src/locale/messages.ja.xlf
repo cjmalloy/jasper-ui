@@ -9229,6 +9229,18 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Admin</source>
         <target>管理者</target>
       </trans-unit>
+      <trans-unit id="2800991393842503460" datatype="html">
+        <source>Please fix the errors in the form.</source>
+        <target>フォームのエラーを修正してください。</target>
+      </trans-unit>
+      <trans-unit id="6869538831078711075" datatype="html">
+        <source>⚙️ config</source>
+        <target>⚙️ 設定</target>
+      </trans-unit>
+      <trans-unit id="7238203762025871521" datatype="html">
+        <source>Saved <x id="PH" equiv-text="state.mod"/> config.</source>
+        <target><x id="PH" equiv-text="state.mod"/> の設定を保存しました。</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -52,6 +52,11 @@
               @if (c.config?.experimental) {
                 <span>🧪️</span>
               }
+              @if (installed(c) && hasAdminForm(c)) {
+                <span class="config">
+                  <span class="fake-link no-select mod-config-link" (click)="configMod(c)" i18n>⚙️ config</span>
+                </span>
+              }
               @if (modChangesLoaded() && (needsModUpdate(c) || canDiffMod(c))) {
                 <span class="update">
                   @if (needsModUpdate(c)) {
@@ -117,6 +122,36 @@
       }
       <button type="button" [disabled]="mergeSaving()" (click)="applyMerge(mergeDiff.getModifiedContent())" i18n>save</button>
       <button type="button" [disabled]="mergeSaving()" (click)="cancelMerge()" i18n>cancel</button>
+    </span>
+  </div>
+</ng-template>
+
+<ng-template #configPopup>
+  <div class="mod-config-popup">
+    <div class="merge-popup-header">
+      <label class="mod-config-title">{{ configState()!.mod }}</label>
+    </div>
+    <div class="mod-config-content">
+      <div class="form mod-config-forms">
+        @for (e of configState()!.entries; track e.type + e.entity.tag) {
+          <span><!-- Entity --></span>
+          <h3 class="mod-config-entity">{{ e.entity.name || e.entity.tag }}</h3>
+          <app-admin-config class="mod-config-form"
+                            [group]="e.group"
+                            [fields]="e.fields" />
+        }
+      </div>
+      @for (err of configErrors(); track $index) {
+        <div class="error mod-config-error">{{ err }}</div>
+      }
+    </div>
+    <span><!-- Buttons --></span>
+    <span class="buttons right mod-config-buttons">
+      @if (configSaving()) {
+        <app-loading [inline]="true" />
+      }
+      <button type="button" class="mod-config-save" [disabled]="configSaving()" (click)="saveConfig()" i18n>save</button>
+      <button type="button" class="mod-config-cancel" [disabled]="configSaving()" (click)="cancelConfig()" i18n>cancel</button>
     </span>
   </div>
 </ng-template>

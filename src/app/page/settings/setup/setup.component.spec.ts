@@ -6,9 +6,12 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
 import { NEVER, of, ReplaySubject, throwError } from 'rxjs';
+import { provideJasperFormly } from '../../../formly/formly.config';
 import { Mod } from '../../../model/tag';
 import { Template } from '../../../model/template';
 import { AdminService } from '../../../service/admin.service';
+import { PluginService } from '../../../service/api/plugin.service';
+import { TemplateService } from '../../../service/api/template.service';
 import { Store } from '../../../store/store';
 
 import { SettingsSetupPage } from './setup.component';
@@ -41,6 +44,7 @@ describe('SettingsSetupPage', () => {
                 getTemplate() { },
                 getMod() { },
                 getInstalledMod() { },
+                getTemplateAdminForm: vi.fn((tag: string) => status.templates[tag]?.config?.adminForm || []),
                 updateMod$: vi.fn(() => of(null)),
                 noMods: vi.fn(() => false),
                 installingDefaults: signal(false),
@@ -54,6 +58,7 @@ describe('SettingsSetupPage', () => {
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
+        provideJasperFormly(),
       ],
     }).compileComponents();
 
@@ -254,6 +259,65 @@ describe('SettingsSetupPage', () => {
       expect(admin.updateMod$).toHaveBeenCalledTimes(1);
       expectMerged(admin.updateMod$.mock.calls[0][1]);
       expect(component.installMessages()).not.toContainEqual(expect.stringContaining('Skipped'));
+    });
+  });
+
+  describe('configMod', () => {
+    const adminForm = [{ key: 'title', type: 'string' }];
+    const plugin = { tag: 'plugin/a', name: 'A', origin: '', config: { mod: 'Combo', title: 'a', adminForm } };
+    const other = { tag: 'plugin/b', name: 'B', origin: '', config: { mod: 'Combo' } };
+    const template = { tag: 'combo', name: 'Combo', origin: '', config: { mod: 'Combo', title: 't', adminForm } };
+
+    beforeEach(() => {
+      status.plugins = { 'plugin/a': plugin, 'plugin/b': other };
+      status.templates = { combo: template };
+      admin.getInstalledMod = () => ({ plugin: [plugin, other], template: [template] });
+    });
+
+    afterEach(() => component.cancelConfig());
+
+    it('should show a config link only for installed mods with admin forms', () => {
+      expect(component.hasAdminForm(plugin)).toBe(true);
+      admin.getInstalledMod = () => ({ plugin: [other], template: [] });
+      expect(component.hasAdminForm(other)).toBe(false);
+      admin.getInstalledMod = () => undefined;
+      expect(component.hasAdminForm(plugin)).toBe(false);
+    });
+
+    it('should combine every admin form in the mod', () => {
+      component.configMod(plugin);
+      fixture.detectChanges();
+      expect(component.configState()!.entries.map(e => e.entity.tag)).toEqual(['plugin/a', 'combo']);
+      expect(document.querySelectorAll('.mod-config-popup .mod-config-form').length).toBe(2);
+    });
+
+    it('should only save changed configs', () => {
+      const plugins = TestBed.inject(PluginService);
+      const templates = TestBed.inject(TemplateService);
+      const updatePlugin = vi.spyOn(plugins, 'update').mockReturnValue(of(undefined));
+      const updateTemplate = vi.spyOn(templates, 'update').mockReturnValue(of(undefined));
+      component.configMod(plugin);
+      const entry = component.configState()!.entries[1];
+      entry.group.controls.config.setValue(JSON.stringify({ ...template.config, title: 'changed' }));
+      entry.group.markAsDirty();
+      component.saveConfig();
+      expect(updatePlugin).not.toHaveBeenCalled();
+      expect(updateTemplate).toHaveBeenCalledWith(expect.objectContaining({ tag: 'combo', config: expect.objectContaining({ title: 'changed' }) }));
+      expect(component.configState()).toBeUndefined();
+      expect(admin.reload$).toHaveBeenCalled();
+      expect(component.installMessages()).toContainEqual('Saved Combo config.');
+    });
+
+    it('should keep the popup open on server errors', () => {
+      const templates = TestBed.inject(TemplateService);
+      vi.spyOn(templates, 'update').mockReturnValue(throwError(() => ({ status: 500, message: 'boom' })));
+      component.configMod(plugin);
+      const entry = component.configState()!.entries[1];
+      entry.group.markAsDirty();
+      component.saveConfig();
+      expect(component.configState()).toBeTruthy();
+      expect(component.configErrors().length).toBeGreaterThan(0);
+      expect(component.configSaving()).toBe(false);
     });
   });
 });

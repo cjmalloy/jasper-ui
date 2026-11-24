@@ -3,15 +3,21 @@ import { TemplatePortal } from '@angular/cdk/portal';
 import { KeyValuePipe, NgTemplateOutlet } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, DestroyRef, inject, signal, TemplateRef, viewChild, ViewContainerRef } from '@angular/core';
-import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { forOwn, sortBy, uniq } from 'lodash-es';
+import { FormlyFieldConfig } from '@ngx-formly/core';
+import { cloneDeep, forOwn, omit, sortBy, uniq } from 'lodash-es';
 import { catchError, concat, EMPTY, last, Observable, of, Subscription, switchMap, tap, throwError } from 'rxjs';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
+import { AdminConfigComponent } from '../../../form/admin-config/admin-config.component';
 import { DiffComponent } from '../../../form/diff/diff.component';
+import { Plugin } from '../../../model/plugin';
 import { Config, Mod, ModType } from '../../../model/tag';
+import { Template } from '../../../model/template';
 import { AdminService } from '../../../service/admin.service';
+import { PluginService } from '../../../service/api/plugin.service';
+import { TemplateService } from '../../../service/api/template.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { equalBundle, mergeBundle } from '../../../util/diff';
@@ -24,6 +30,18 @@ interface ModUpdatePreview {
   proposed: Mod;
   diffBase: Mod;
   conflict: boolean;
+}
+
+interface ModConfigEntry {
+  type: 'plugin' | 'template';
+  entity: Plugin | Template;
+  fields: FormlyFieldConfig[];
+  group: FormGroup<{ config: FormControl<string> }>;
+}
+
+interface ModConfigState {
+  mod: string;
+  entries: ModConfigEntry[];
 }
 
 @Component({
@@ -39,11 +57,14 @@ interface ModUpdatePreview {
     DiffComponent,
     OverlayModule,
     LoadingComponent,
+    AdminConfigComponent,
   ],
 })
 export class SettingsSetupPage {
   admin = inject(AdminService);
   private mod = inject(ModService);
+  private plugins = inject(PluginService);
+  private templates = inject(TemplateService);
   store = inject(Store);
   private fb = inject(UntypedFormBuilder);
   private overlay = inject(Overlay);
@@ -55,6 +76,9 @@ export class SettingsSetupPage {
   readonly installMessages = signal<string[]>([]);
   readonly mergeState = signal<ModUpdatePreview | undefined>(undefined);
   readonly mergeSaving = signal(false);
+  readonly configState = signal<ModConfigState | undefined>(undefined);
+  readonly configSaving = signal(false);
+  readonly configErrors = signal<string[]>([]);
   readonly modChangesLoaded = signal(false);
   readonly modChangesError = signal<string[]>([]);
   readonly installingDefaults = computed(() => this.admin.installingDefaults());
@@ -62,8 +86,10 @@ export class SettingsSetupPage {
   readonly hasLog = computed(() => !!(this.modChangesError().length || this.serverError().length || this.installMessages().length));
   private mergeSavingSubscription?: Subscription;
   private modChangesSubscription?: Subscription;
+  private configSavingSubscription?: Subscription;
 
   readonly mergePopup = viewChild<TemplateRef<any>>('mergePopup');
+  readonly configPopup = viewChild<TemplateRef<any>>('configPopup');
 
   experiments = !!this.admin.getTemplate('config/experiments');
   readonly selectAllToggle = signal<boolean>(false);
@@ -76,6 +102,8 @@ export class SettingsSetupPage {
     ...this.admin.def.plugins, ...this.admin.def.templates });
 
   private mergePopupRef?: OverlayRef;
+  private configPopupRef?: OverlayRef;
+  private configPopupSub = new Subscription();
 
   constructor() {
     const mod = this.mod;
@@ -91,6 +119,7 @@ export class SettingsSetupPage {
 
   private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.cancelMerge();
+    this.cancelConfig();
     this.modChangesSubscription?.unsubscribe();
   });
 
@@ -344,7 +373,16 @@ export class SettingsSetupPage {
   private openMergePopup() {
     const mergePopup = this.mergePopup();
     if (!mergePopup || this.mergePopupRef?.hasAttached()) return;
-    this.mergePopupRef = this.overlay.create({
+    this.mergePopupRef = this.createPopup();
+    this.mergePopupRef.attach(new TemplatePortal(mergePopup, this.vc));
+    this.mergePopupSub.add(this.mergePopupRef.backdropClick().subscribe(() => this.cancelMerge()));
+    this.mergePopupSub.add(this.mergePopupRef.keydownEvents().subscribe(event => {
+      if (event.key === 'Escape') this.cancelMerge();
+    }));
+  }
+
+  private createPopup() {
+    return this.overlay.create({
       height: window.visualViewport?.height ? window.visualViewport.height + 'px' : '100vh',
       width: '100vw',
       hasBackdrop: true,
@@ -354,11 +392,105 @@ export class SettingsSetupPage {
         .top('0'),
       scrollStrategy: this.overlay.scrollStrategies.block(),
     });
-    this.mergePopupRef.attach(new TemplatePortal(mergePopup, this.vc));
-    this.mergePopupSub.add(this.mergePopupRef.backdropClick().subscribe(() => this.cancelMerge()));
-    this.mergePopupSub.add(this.mergePopupRef.keydownEvents().subscribe(event => {
-      if (event.key === 'Escape') this.cancelMerge();
+  }
+
+  private modConfigEntries(mod: string): ModConfigEntry[] {
+    const installed = this.admin.getInstalledMod(mod);
+    if (!installed) return [];
+    const entry = (type: 'plugin' | 'template', entity: Plugin | Template, fields: FormlyFieldConfig[]): ModConfigEntry => ({
+      type,
+      entity,
+      fields: cloneDeep(fields),
+      group: new FormGroup({
+        config: new FormControl(JSON.stringify(omit(entity.config || {}, '_cache'), null, 2), { nonNullable: true }),
+      }),
+    });
+    return [
+      ...(installed.plugin || [])
+        .filter(p => p.config?.adminForm?.length)
+        .map(p => entry('plugin', p, p.config!.adminForm!)),
+      ...(installed.template || [])
+        .map(t => ({ t, fields: this.admin.getTemplateAdminForm(t.tag) }))
+        .filter(({ fields }) => fields.length)
+        .map(({ t, fields }) => entry('template', t, fields)),
+    ];
+  }
+
+  hasAdminForm(config: Config) {
+    const installed = this.admin.getInstalledMod(modId(config));
+    if (!installed) return false;
+    return installed.plugin?.some(p => p.config?.adminForm?.length) ||
+      installed.template?.some(t => this.admin.getTemplateAdminForm(t.tag).length);
+  }
+
+  configMod(config: Config) {
+    const configPopup = this.configPopup();
+    if (!configPopup || this.configPopupRef?.hasAttached()) return;
+    const mod = modId(config);
+    this.configErrors.set([]);
+    this.configState.set({ mod, entries: this.modConfigEntries(mod) });
+    this.configPopupRef = this.createPopup();
+    this.configPopupRef.attach(new TemplatePortal(configPopup, this.vc));
+    this.configPopupSub.add(this.configPopupRef.backdropClick().subscribe(() => this.cancelConfig()));
+    this.configPopupSub.add(this.configPopupRef.keydownEvents().subscribe(event => {
+      if (event.key === 'Escape') this.cancelConfig();
     }));
+  }
+
+  saveConfig() {
+    const state = this.configState();
+    if (!state || this.configSaving()) return;
+    this.configErrors.set([]);
+    for (const e of state.entries) e.group.markAllAsTouched();
+    if (state.entries.some(e => e.group.invalid)) {
+      this.configErrors.set([$localize`Please fix the errors in the form.`]);
+      return;
+    }
+    const updates: Observable<void>[] = [];
+    for (const e of state.entries) {
+      if (!e.group.dirty) continue;
+      let config: any;
+      try {
+        config = JSON.parse(e.group.controls.config.value);
+      } catch (err: any) {
+        this.configErrors.update(errors => [...errors, err.message]);
+        continue;
+      }
+      updates.push(e.type === 'plugin'
+        ? this.plugins.update({ ...e.entity as Plugin, config })
+        : this.templates.update({ ...e.entity as Template, config }));
+    }
+    if (this.configErrors().length) return;
+    const _ = (msg?: string) => this.installMessages.update(messages => msg ? [...messages, msg] : messages);
+    if (!updates.length) {
+      this.cancelConfig();
+      return;
+    }
+    this.configSaving.set(true);
+    this.configSavingSubscription = concat(...updates).pipe(
+      last(null, null),
+      catchError((res: HttpErrorResponse) => {
+        this.configSaving.set(false);
+        this.configErrors.set(printError(res));
+        return EMPTY;
+      }),
+    ).subscribe(() => {
+      this.cancelConfig();
+      this.reset();
+      _($localize`Saved ${state.mod} config.`);
+    });
+    this.configSavingSubscription.add(() => this.configSaving.set(false));
+  }
+
+  cancelConfig() {
+    this.configState.set(undefined);
+    this.configErrors.set([]);
+    this.configSavingSubscription?.unsubscribe();
+    this.configSaving.set(false);
+    this.configPopupSub.unsubscribe();
+    this.configPopupSub = new Subscription();
+    this.configPopupRef?.dispose();
+    this.configPopupRef = undefined;
   }
 
   installed(config: Config) {
