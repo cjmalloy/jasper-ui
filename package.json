@@ -39,7 +39,7 @@
     "chess.js": "^1.4.0",
     "css-flatten": "^2.0.1",
     "d3": "^7.9.2",
-    "dompurify": "^3.4.18",
+    "dompurify": "^3.5.0",
     "europa": "^6.0.0",
     "europa-core": "^6.0.0",
     "file-saver": "^2.0.5",
@@ -56,7 +56,7 @@
     "maplibre-gl": "^6.19.0",
     "marked": "^18.2.1",
     "marked-katex-extension": "^5.1.13",
-    "monaco-editor": "^0.57.0",
+    "monaco-editor": "^0.58.0",
     "ngx-monaco-editor": "^12.0.0",
     "node-diff3": "4.0.0",
     "pele": "^1.13.0",
@@ -87,7 +87,7 @@
     "jsdom": "^31.0.1",
     "patch-package": "^8.0.1",
     "typescript": "~6.0.3",
-    "typescript-eslint": "^8.73.0",
+    "typescript-eslint": "^8.74.0",
     "vitest": "^5.0.1"
   },
   "overrides": {
