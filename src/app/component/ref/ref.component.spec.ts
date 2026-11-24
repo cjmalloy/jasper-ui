@@ -80,6 +80,26 @@ describe('RefComponent', () => {
       expect(open).not.toHaveBeenCalled();
     });
 
+    it('does not open fullscreen while editing or viewing source', () => {
+      const event = { preventDefault: vi.fn(), stopPropagation: vi.fn() } as any;
+      component.editing.set(true);
+      component.pip(event);
+      component.editing.set(false);
+      component.viewSource.set(true);
+      component.pip(event);
+      expect(component.fullscreen()).toBe(false);
+      expect(component.expanded()).toBe(false);
+      expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+
+    it('does not open fullscreen if editing starts before the finger lifts', () => {
+      Object.defineProperty(navigator, 'userActivation', { configurable: true, value: { isActive: false } });
+      component.pip({ preventDefault: vi.fn(), stopPropagation: vi.fn() } as any);
+      component.editing.set(true);
+      window.dispatchEvent(new Event('pointerup'));
+      expect(component.fullscreen()).toBe(false);
+    });
+
     it('does not open fullscreen if the long-press is cancelled', () => {
       Object.defineProperty(navigator, 'userActivation', { configurable: true, value: { isActive: false } });
       component.pip({ preventDefault: vi.fn(), stopPropagation: vi.fn() } as any);

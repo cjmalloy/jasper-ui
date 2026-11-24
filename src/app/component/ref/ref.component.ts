@@ -1117,6 +1117,12 @@ export class RefComponent implements HasChanges {
     this.expanded.set(true);
   }
 
+  /** Editing and source modes have no viewer to make fullscreen. */
+  private canFallbackFullscreen() {
+    return !this.fullscreen() && !this.editing() && !this.viewSource()
+      && !!this.admin.getPlugin('plugin/fullscreen') && document.fullscreenEnabled;
+  }
+
   /**
    * Right click or long-press on the toggle. Opens Picture-in-Picture where supported (desktop),
    * otherwise fullscreen (ex. Android, which has no Document Picture-in-Picture).
@@ -1125,7 +1131,7 @@ export class RefComponent implements HasChanges {
     if (this.admin.pip()) {
       this.store.eventBus.fire('pip', this.ref());
       this.markRead();
-    } else if (!this.fullscreen() && this.admin.getPlugin('plugin/fullscreen') && document.fullscreenEnabled) {
+    } else if (this.canFallbackFullscreen()) {
       if (navigator.userActivation?.isActive ?? true) {
         this.openFullscreen();
         this.markRead();
@@ -1139,6 +1145,7 @@ export class RefComponent implements HasChanges {
         const removeOnDestroy = this.destroyRef.onDestroy(off);
         const up = () => {
           off();
+          if (!this.canFallbackFullscreen()) return;
           this.openFullscreen();
           this.markRead();
         };
