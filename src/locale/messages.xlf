@@ -3369,7 +3369,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/ref/ref-list/ref-list.component.ts</context>
-          <context context-type="linenumber">77</context>
+          <context context-type="linenumber">78</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/template/template-list/template-list.component.html</context>
@@ -11324,11 +11324,18 @@ Private tags start with an underscore.
           <context context-type="linenumber">8</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1741171109054813269" datatype="html">
-        <source>Load more results as you scroll down lists, instead of paging. Override per tag with the Infinite Scroll template setting, or per page with the infinite=true or infinite=false query param.</source>
+      <trans-unit id="2629613620067001108" datatype="html">
+        <source>Load more results as you scroll down lists, instead of paging. Override per tag with the Infinite Scroll template setting or defaultInfinite in a sub tag template default (such as plugin/image/masonry), or per page with the infinite=true or infinite=false query param.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/infinite.ts</context>
           <context context-type="linenumber">12</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="216517783329747159" datatype="html">
+        <source>Enable by Default:</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/infinite.ts</context>
+          <context context-type="linenumber">18</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9046637295343535793" datatype="html">

@@ -31,6 +31,7 @@ import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { cursorPage } from '../../../util/cursor-page';
 import { withStableDateSort } from '../../../util/query';
+import { hasPrefix } from '../../../util/tag';
 import { LoadingComponent } from '../../loading/loading.component';
 import { PageControlsComponent } from '../../page-controls/page-controls.component';
 import { RefComponent } from '../ref.component';
@@ -159,10 +160,27 @@ export class RefListComponent implements HasChanges {
     if (!this.pageControls()) return false;
     const template = this.admin.getTemplate('config/infinite');
     if (!template) return false;
+    const ext = this.ext();
     return this.store.view.infinite()
-      ?? this.ext()?.config?.defaultInfinite
+      ?? (ext?.modifiedString ? ext.config?.defaultInfinite : undefined)
+      ?? this.subTemplateInfinite()
+      ?? ext?.config?.defaultInfinite
       ?? template.config?.defaultInfinite
       ?? true;
+  });
+
+  /**
+   * Templates for sub tags, such as plugin/image/masonry, restyle the parent tag's list,
+   * so let them set its infinite scroll default. The deepest template wins.
+   */
+  private readonly subTemplateInfinite = computed<boolean | undefined>(() => {
+    const tag = this.ext()?.tag;
+    if (!tag) return undefined;
+    return Object.values(this.admin.status().templates)
+      .filter(t => t && t.tag !== tag && hasPrefix(t.tag, tag))
+      .sort((a, b) => b!.tag.split('/').length - a!.tag.split('/').length)
+      .map(t => t!.defaults?.defaultInfinite ?? t!.config?.defaultInfinite)
+      .find(v => v !== undefined);
   });
 
   /**

@@ -106,6 +106,25 @@ describe('RefListComponent', () => {
         fixture.componentRef.setInput('ext', { tag: 'test', config: { defaultInfinite: false } });
         expect(component.infiniteScroll()).toBe(true);
       });
+
+      it('should let sub tag templates override the default ext config', () => {
+        const admin = TestBed.inject(AdminService);
+        vi.spyOn(admin, 'status').mockReturnValue({ templates: {
+          'plugin/image': { tag: 'plugin/image', defaults: { defaultInfinite: true } },
+          'plugin/image/masonry': { tag: 'plugin/image/masonry', defaults: { defaultInfinite: false } },
+        } } as any);
+        fixture.componentRef.setInput('ext', { tag: 'plugin/image', config: { defaultInfinite: true } });
+        expect(component.infiniteScroll()).toBe(false);
+      });
+
+      it('should prefer a saved ext over sub tag templates', () => {
+        const admin = TestBed.inject(AdminService);
+        vi.spyOn(admin, 'status').mockReturnValue({ templates: {
+          'plugin/image/masonry': { tag: 'plugin/image/masonry', defaults: { defaultInfinite: false } },
+        } } as any);
+        fixture.componentRef.setInput('ext', { tag: 'plugin/image', modifiedString: '1', config: { defaultInfinite: true } });
+        expect(component.infiniteScroll()).toBe(true);
+      });
     });
   });
 });

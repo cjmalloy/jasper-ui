@@ -6,10 +6,18 @@ export const infiniteConfig: Template = {
   name: $localize`♾️ Infinite Scroll`,
   config: {
     mod: $localize`♾️ Infinite Scroll`,
-    version: 1,
+    version: 2,
     type: 'config',
     default: false,
-    description: $localize`Load more results as you scroll down lists, instead of paging. Override per tag with the Infinite Scroll template setting, or per page with the infinite=true or infinite=false query param.`,
+    description: $localize`Load more results as you scroll down lists, instead of paging. Override per tag with the Infinite Scroll template setting or defaultInfinite in a sub tag template default (such as plugin/image/masonry), or per page with the infinite=true or infinite=false query param.`,
+    adminForm: [{
+      key: 'defaultInfinite',
+      type: 'boolean',
+      defaultValue: true,
+      props: {
+        label: $localize`Enable by Default:`,
+      },
+    }],
     /**
      * Enable infinite scroll on lists that do not override it.
      */
