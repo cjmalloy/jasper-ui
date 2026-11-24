@@ -175,6 +175,7 @@ describe('SettingsSetupPage', () => {
       admin.installingDefaults.set(true);
       recreate();
       expect(el().querySelector('.install-defaults')).toBeNull();
+      expect(el().querySelectorAll('app-loading').length).toBe(1);
       expect(el().querySelector('.install-defaults-loading')).toBeTruthy();
       expect((el().querySelector('.buttons button:last-child') as HTMLButtonElement).disabled).toBe(true);
       component.install();

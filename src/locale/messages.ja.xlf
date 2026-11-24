@@ -8989,9 +8989,9 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Installing default mods...</source>
         <target>デフォルトのMODをインストールしています...</target>
       </trans-unit>
-      <trans-unit id="6971496217366946567" datatype="html">
-        <source>📦️ Install Defaults</source>
-        <target>📦️ デフォルトをインストール</target>
+      <trans-unit id="4284313975835119577" datatype="html">
+        <source>🔁️ Install Defaults</source>
+        <target>🔁️ デフォルトをインストール</target>
       </trans-unit>
       <trans-unit id="2025109606151788060" datatype="html">
         <source>📴️ Offline</source>

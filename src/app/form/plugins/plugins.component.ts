@@ -1,5 +1,6 @@
 import {
   afterNextRender,
+  afterRenderEffect,
   Component,
   computed,
   DestroyRef,
@@ -47,6 +48,13 @@ export class PluginsFormComponent {
    * Plugin data by tag that the plugin forms are built from.
    */
   readonly values = linkedSignal(() => this.valuesInput());
+  /**
+   * The values the plugin forms were last rendered from.
+   */
+  private renderedValues?: Record<string, any>;
+  private readonly trackRenderedValues = afterRenderEffect(() => {
+    this.renderedValues = this.values();
+  });
 
   readonly forms = computed(() => this.admin.getPluginForms(this.allTags()));
   readonly icons = computed(() => {
@@ -118,6 +126,18 @@ export class PluginsFormComponent {
     this.init();
     this.values.set(value);
     this.plugins().patchValue(value || {});
+  }
+
+  /**
+   * Current plugin data. Until the plugin forms render new values, the form
+   * is missing anything patchValue could not add, such as array items, so
+   * the new values are merged over it.
+   */
+  getValue(): Record<string, any> {
+    const value = this.plugins()?.value || {};
+    const values = this.values();
+    if (!values || values === this.renderedValues) return value;
+    return { ...value, ...values };
   }
 
   usePending(tag: string) {

@@ -390,9 +390,10 @@ export class RefFormComponent {
 
   /**
    * Scrapes plugins from the URL. Defaults are merged under the scraped
-   * value of each plugin that was found.
+   * value of each plugin that was found. The derive callback may return
+   * additional plugin values computed from the scraped plugins.
    */
-  scrapePlugins(url?: string, defaults: Record<string, any> = {}) {
+  scrapePlugins(url?: string, defaults: Record<string, any> = {}, derive?: (scraped: Record<string, any>) => Record<string, any>) {
     if (this.oembed()) {
       // TODO: oEmbed
     } else {
@@ -407,8 +408,9 @@ export class RefFormComponent {
         this.ref.update(ref => ({
           ...ref,
           plugins: {
-            ...this.group().value.plugins || {},
+            ...this.pluginsFormComponent().getValue(),
             ...scraped,
+            ...derive?.(scraped) || {},
           },
         } as Ref));
       });
