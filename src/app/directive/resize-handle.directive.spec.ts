@@ -63,6 +63,22 @@ describe('ResizeHandleDirective hit test', () => {
     expect(el.style.height).toBe('400px');
   });
 
+  it('should mark the host resized before measuring the first move', () => {
+    // Stand in for a 2x zoom and the fullscreen `:not(.resized) { height: auto }` rule
+    const el = document.createElement('div');
+    Object.defineProperty(el, 'offsetWidth', { value: 200 });
+    Object.defineProperty(el, 'offsetHeight', { value: 150 });
+    el.getBoundingClientRect = () => {
+      const height = el.classList.contains('resized') && el.style.height ? parseFloat(el.style.height) : 150;
+      return { left: 100, top: 400, right: 500, bottom: 400 + height * 2, width: 400, height: height * 2 } as DOMRect;
+    };
+    const directive = create(el);
+    const event = (x: number, y: number) => ({ button: 0, clientX: x, clientY: y, preventDefault: vi.fn(), stopPropagation: vi.fn(), stopImmediatePropagation: vi.fn() } as any);
+    directive.onPointerDown(event(495, 695));
+    directive.onPointerMove(event(495, 795));
+    expect(el.style.height).toBe('200px');
+  });
+
   it('should ignore pointer down away from the corner', () => {
     const el = document.createElement('div');
     el.getBoundingClientRect = () => ({ left: 100, top: 400, right: 500, bottom: 700, width: 400, height: 300 } as DOMRect);

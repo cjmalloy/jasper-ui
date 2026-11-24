@@ -2579,6 +2579,12 @@ footer {
         zoom: 50%;
       }
     }
+    // Mobile forces videos to full width, so let the manual height set the width through the video's ratio
+    .video-expand.resized {
+      @media (max-width: 740px) {
+        width: auto !important;
+      }
+    }
     .embed-container:not(.loading),
     .embed-container > iframe,
     .list-item {

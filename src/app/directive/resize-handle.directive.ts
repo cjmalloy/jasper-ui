@@ -95,6 +95,8 @@ export class ResizeHandleDirective {
     if (!this.enabled()) return;
     if (this.dragging() && this.start) {
       this.resized.set(true);
+      // The host binding applies later, but styles gated on .resized must be gone before measuring
+      this.el.nativeElement.classList.add('resized');
       // Mobile embeds take the full width, so only the height can change (see resizeCursor)
       resizeToPointer(this.el.nativeElement, this.start, event,
         this.config.mobile() ? undefined : width => this.setWidth(width + 'px'),

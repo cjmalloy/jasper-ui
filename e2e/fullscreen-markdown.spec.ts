@@ -113,6 +113,13 @@ test.describe.serial('Fullscreen Markdown', () => {
       expect(await video.evaluate(v => getComputedStyle(v).zoom)).toBe(zoom);
       const after = await box(video);
       expect(Math.abs(after.width - before.width)).toBeLessThan(before.width * 0.25);
+      expect(after.width / after.height).toBeCloseTo(16 / 9, 1);
+
+      // The manual size wins over the mobile full width video rule
+      await drag(page, video, -120, -60);
+      const shrunk = await box(video);
+      expect(shrunk.width).toBeLessThan(after.width * 0.9);
+      expect(shrunk.width / shrunk.height).toBeCloseTo(16 / 9, 1);
     });
   }
 });
