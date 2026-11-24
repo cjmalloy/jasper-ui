@@ -335,7 +335,7 @@ export class UserComponent implements HasChanges {
     this.serverError.set([]);
     const os = [];
     if (this.user()) {
-      const deleteNotice = !isDeletorTag(this.user()!.tag) && this.admin.getPlugin('plugin/delete')
+      const deleteNotice = this.user()!.origin === this.store.account.origin() && !isDeletorTag(this.user()!.tag) && this.admin.getPlugin('plugin/delete')
         ? this.users.create(tagDeleteNotice(this.user()!))
         : of(null);
       os.push(this.users.delete(this.qualifiedTag()).pipe(
