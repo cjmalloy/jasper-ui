@@ -14,6 +14,7 @@ describe('SubscriptionBarComponent', () => {
 
   beforeEach(async () => {
     navigationDescriptor = Object.getOwnPropertyDescriptor(window, 'navigation');
+    sessionStorage.clear();
     await TestBed.configureTestingModule({
       imports: [SubscriptionBarComponent],
       providers: [
@@ -36,6 +37,7 @@ describe('SubscriptionBarComponent', () => {
     } else {
       delete (window as any).navigation;
     }
+    sessionStorage.clear();
   });
 
   it('should create', () => {
@@ -58,6 +60,31 @@ describe('SubscriptionBarComponent', () => {
     expect(back).not.toHaveBeenCalled();
 
     navigation.currentEntry.index = 4;
+    component.back();
+    expect(back).toHaveBeenCalledOnce();
+  });
+
+  it('keeps the back boundary after a reload', () => {
+    const navigation = { currentEntry: { index: 1 } };
+    Object.defineProperty(window, 'navigation', {
+      configurable: true,
+      value: navigation,
+    });
+    const router = TestBed.inject(Router);
+    (router.events as Subject<NavigationEnd>).next(new NavigationEnd(1, '/home', '/home'));
+
+    navigation.currentEntry.index = 3;
+    fixture.destroy();
+    fixture = TestBed.createComponent(SubscriptionBarComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    (router.events as Subject<NavigationEnd>).next(new NavigationEnd(2, '/home', '/home'));
+
+    const back = vi.spyOn(component.location, 'back');
+    component.back();
+    expect(back).toHaveBeenCalledOnce();
+
+    navigation.currentEntry.index = 1;
     component.back();
     expect(back).toHaveBeenCalledOnce();
   });

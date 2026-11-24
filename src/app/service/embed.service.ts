@@ -170,7 +170,7 @@ export class EmbedService {
           }
           out += '>' + text + '</a>';
           if (admin.getEmbedPluginsForUrl(href).length || ['ref', 'tag'].includes(editor.getUrlType(href))) {
-            return out + `<span class="toggle embed" title="${href}"><span class="toggle-plus">＋</span></span>`;
+            return out + `<span class="toggle toggle-embed" title="${href}"><span class="toggle-plus">＋</span></span>`;
           }
           return out;
         }
@@ -430,7 +430,7 @@ export class EmbedService {
         if (token.text?.trim() === '=') {
           return `<div class="loading inline-ref" title="${escapeHtml(token.title || '')}">${escapeHtml(token.href)}</div>`;
         } else if (token.text?.trim() === '+') {
-          return `<span class="toggle embed" title="${escapeHtml(token.href)}"><span class="toggle-plus">＋</span></span>`;
+          return `<span class="toggle toggle-embed" title="${escapeHtml(token.href)}"><span class="toggle-plus">＋</span></span>`;
         } else {
           return `<div class="loading inline-embed" title="${escapeHtml(token.title || '')}">${escapeHtml(token.href)}</div>`;
         }
@@ -698,7 +698,7 @@ export class EmbedService {
         return done();
       }));
     });
-    host.querySelectorAll<HTMLElement>('.toggle.embed').forEach(t => {
+    host.querySelectorAll<HTMLElement>('.toggle.toggle-embed').forEach(t => {
       // TODO: Don't use title to store url
       const url = t.title;
       cleanup.push(this.toggle(t, done => {
@@ -769,7 +769,7 @@ export class EmbedService {
         const tags = this.admin.getEmbeds(ref);
         if (!ref || !tags.length) return;
         const t = document.createElement('span');
-        t.className = 'toggle embed';
+        t.className = 'toggle toggle-embed';
         t.title = url;
         this.insert(link, t, true);
         toggleCleanup = this.toggle(t, done => done(createEmbed(vc, { ...ref, tags }).location.nativeElement));

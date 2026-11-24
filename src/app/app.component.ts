@@ -15,6 +15,7 @@ import { ProxyService } from './service/api/proxy.service';
 import { ConfigService } from './service/config.service';
 import { Store } from './store/store';
 import { createPip } from './util/embed';
+import { isApple } from './util/keyboard';
 import { trackTextareaResize } from './util/resize';
 import { isModelsJson } from './util/zip';
 
@@ -128,7 +129,7 @@ export class AppComponent {
     });
   }
 
-  readonly macos = /Macintosh/i.test(navigator.userAgent);
+  readonly macos = isApple();
 
   hotkey(key: string) {
     return this.macos ? key === 'Meta' : key === 'Control';
