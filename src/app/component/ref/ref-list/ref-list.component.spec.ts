@@ -45,11 +45,19 @@ describe('RefListComponent', () => {
     const first = refPage(0, ['a', 'b']);
 
     beforeEach(() => {
-      vi.spyOn(TestBed.inject(AdminService), 'getTemplate').mockReturnValue({ tag: 'config/infinite' } as any);
       TestBed.runInInjectionContext(() => TestBed.inject(QueryStore).show(() => first));
       fixture = TestBed.createComponent(RefListComponent);
       component = fixture.componentInstance;
       fixture.componentRef.setInput('page', first);
+      fixture.componentRef.setInput('ext', { tag: 'test', config: { defaultInfinite: true } });
+    });
+
+    it('should be off unless a template enables it', () => {
+      fixture.componentRef.setInput('ext', { tag: 'test', config: {} });
+      expect(component.infiniteScroll()).toBe(false);
+      vi.spyOn(TestBed.inject(AdminService), 'getDefaults').mockReturnValue({ defaultInfinite: true });
+      fixture.componentRef.setInput('ext', { tag: 'test', modifiedString: '1', config: {} });
+      expect(component.infiniteScroll()).toBe(true);
     });
 
     it('should not offer more pages without query args', () => {

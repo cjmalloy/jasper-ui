@@ -30,7 +30,6 @@ import { backgammonMod } from '../mods/games/backgammon';
 import { chessMod } from '../mods/games/chess';
 import { jezzballMod } from '../mods/games/jezzball';
 import { helpMod } from '../mods/help';
-import { infiniteMod } from '../mods/infinite';
 import { homeMod } from '../mods/home';
 import { lensMod } from '../mods/lens';
 import { mailboxMod } from '../mods/mailbox';
@@ -167,7 +166,6 @@ export class AdminService {
     // Configs
     experimentsMod,
     helpMod,
-    infiniteMod,
     indexHelperMod,
     wikiMod,
     graphMod,

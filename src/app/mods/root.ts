@@ -379,7 +379,8 @@ export interface RootConfig {
   disableResize?: boolean;
   defaultCols?: number;
   /**
-   * Override the global config/infinite default for this tag.
+   * Load more results as you scroll down instead of paging. Defaults to off.
+   * Override per page with the infinite=true or infinite=false query param.
    */
   defaultInfinite?: boolean;
   childTags?: number;

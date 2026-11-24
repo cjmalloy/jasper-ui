@@ -46,7 +46,7 @@ test.describe.serial('Infinite scroll', () => {
   }
 
   test('enable mods', async ({ page }) => {
-    await mod(page, '#mod-cache', '#mod-images', '#mod-infinitescroll');
+    await mod(page, '#mod-cache', '#mod-images');
   });
 
   test('upload images', async ({ request }) => {
@@ -82,7 +82,7 @@ test.describe.serial('Infinite scroll', () => {
     await expect(page.locator('.infinite-controls select')).toBeVisible();
   });
 
-  test('loads every page of a plain tag', async ({ page, request }) => {
+  test('pages a plain tag unless infinite=true', async ({ page, request }) => {
     const origin = localOrigin();
     const tag = 'infinitetest';
     for (let i = 0; i < total; i++) {
@@ -94,6 +94,11 @@ test.describe.serial('Infinite scroll', () => {
     }
     await page.goto(`/tag/${tag}?debug=ADMIN&pageSize=${pageSize}`, { waitUntil: 'networkidle' });
     const refs = page.locator('.list-container > .ref');
+    await expect(refs).toHaveCount(pageSize);
+    await expect(page.locator('.page-controls .next-page')).not.toHaveClass(/disabled/);
+    await expect(page.locator('.infinite-scroll-sentinel')).toHaveCount(0);
+
+    await page.goto(`/tag/${tag}?debug=ADMIN&pageSize=${pageSize}&infinite=true`, { waitUntil: 'networkidle' });
     await expect(refs.first()).toBeVisible();
     await page.locator('.infinite-scroll').scrollIntoViewIfNeeded();
     await expect(refs).toHaveCount(total);

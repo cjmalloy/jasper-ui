@@ -154,19 +154,18 @@ export class RefListComponent implements HasChanges {
   });
 
   /**
-   * Infinite scroll is enabled by the infinite query param, then the ext config, then the config/infinite template.
+   * Infinite scroll is enabled by the infinite query param, then a saved ext, then sub tag templates,
+   * then the template defaults. Off by default.
    */
   readonly infiniteScroll = computed(() => {
     if (!this.pageControls()) return false;
-    const template = this.admin.getTemplate('config/infinite');
-    if (!template) return false;
     const ext = this.ext();
     return this.store.view.infinite()
       ?? (ext?.modifiedString ? ext.config?.defaultInfinite : undefined)
       ?? this.subTemplateInfinite()
       ?? ext?.config?.defaultInfinite
-      ?? template.config?.defaultInfinite
-      ?? true;
+      ?? (ext?.tag ? this.admin.getDefaults(ext.tag)?.defaultInfinite : undefined)
+      ?? false;
   });
 
   /**
