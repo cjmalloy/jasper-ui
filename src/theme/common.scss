@@ -1343,6 +1343,24 @@ details.mini:not([open]) {
   }
 }
 
+// The nowrap label leaves no room for the lens target card in a narrow column, so stack them
+.lens-targets {
+  container: lens-targets / inline-size;
+}
+@container lens-targets (max-width: 600px) {
+  .list-container.responses-of,
+  .list-container.sources-of {
+    grid-template-columns: minmax(0, 1fr);
+    & > .label {
+      text-align: left;
+    }
+    & > app-ref {
+      min-width: 0;
+      max-width: 100%;
+    }
+  }
+}
+
 .backup {
   .list-container .list-number {
     max-height: 48px;
@@ -2568,20 +2586,6 @@ footer {
     .ref.list-item > .viewer-below {
       min-width: 0;
       max-width: 100%;
-    }
-    // The nowrap label leaves no room for the lens target card on phones, so stack them
-    @media (max-width: 740px) {
-      .list-container.responses-of,
-      .list-container.sources-of {
-        grid-template-columns: minmax(0, 1fr);
-        & > .label {
-          text-align: left;
-        }
-        & > app-ref {
-          min-width: 0;
-          max-width: 100%;
-        }
-      }
     }
     .embed-container:not(.resized):has(> iframe.keep-ratio) {
       height: auto !important;
