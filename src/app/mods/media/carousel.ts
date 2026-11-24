@@ -342,7 +342,7 @@ export const carouselTemplate: Template = {
     </script>
     `,
     // language=Handlebars
-    listUi: `
+    ui: `
       <div class="carousel-frame" tabindex="0">
         <button class="carousel-prev" type="button">‹</button>
         <div class="carousel-track"></div>

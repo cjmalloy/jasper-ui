@@ -626,7 +626,7 @@ export const graphConfig: Template = {
     </script>
     `,
     // language=Handlebars
-    listUi: `
+    ui: `
       <div class="graph-lens">
         <figure class="force-directed-graph"></figure>
         <button type="button" class="load-more no-select"></button>

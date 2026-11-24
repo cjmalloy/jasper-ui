@@ -87,7 +87,7 @@ export const debugTemplate: Template = {
       },
     }],
     // language=Handlebars
-    ui: `
+    sidebarUi: `
      Input: {{ input }} <br>
      Number: {{ number }} <br>
      Url: {{ url }} <br>

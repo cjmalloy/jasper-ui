@@ -19,18 +19,12 @@
                (copied)="query.refresh()" />
     </div>
   }
-@if (listUi(); as template) {
-  <app-list-ui #lens
-               [class]="cssClass(ext()?.tag)"
-               [template]="template"
-               [ext]="ext()!"
-               [tag]="tag()"
-               [page]="page()"
-               [size]="size()"
-               [sort]="sort()"
-               [filter]="filter()"
-               [search]="search()"
-               [args]="args()" />
+@if (uiTemplate()) {
+  <app-md class="ui"
+          [class]="'ui ' + cssClass(ext()?.tag)"
+          [disableSanitizer]="true"
+          [origin]="ext()?.origin || ''"
+          [text]="uiMarkdown()" />
 } @else if (isTemplate('grid')) {
   @defer {
     <app-grid #lens

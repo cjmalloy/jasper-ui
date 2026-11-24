@@ -22,9 +22,18 @@ export interface Template extends Config {
      * Optional handlebars template to render instead of the default
      * Ref list when this view is active. The scope contains `ext`,
      * `template`, `account`, `el`, the first `page` of results, the
-     * `query` and its `params`, and a {@link ListUiApi} as `actions`.
+     * `query` and its `params`, and a {@link LensUiApi} as `actions`.
      */
-    listUi?: string,
+    ui?: string,
+    /**
+     * Optional handlebars template to render in the sidebar.
+     */
+    sidebarUi?: string,
+    /**
+     * Do not render sidebar UIs from inherited Templates. If unset
+     * sidebar UIs will stack from abstract to specific inheritance.
+     */
+    overrideSidebarUi?: boolean,
     /**
      * Override the view text used in a tab.
      */
@@ -98,29 +107,29 @@ export function writeTemplate(template: Template): Template {
 }
 
 /**
- * Actions available to a Template {@link Template.config.listUi}.
+ * Actions available to a Template {@link Template.config.ui}.
  * Functions that mount Angular components into an element return a function
  * to destroy them. Anything still mounted is destroyed when the view is.
  */
 /**
  * Call to destroy a mounted component early. Otherwise it is destroyed with the view.
  */
-export type ListUiMount = (() => void) & {
+export type LensUiMount = (() => void) & {
   /** Does the component have an unsaved draft. */
   hasChanges: () => boolean;
 };
 
-export interface ListUiApi {
+export interface LensUiApi {
   /** Fetch a page of the current query, with the same query, sort, filter and search as the view. */
   fetch: (page?: number, size?: number) => Promise<Page<Ref>>;
   /** Fetch graph nodes (Refs with sources and responses) by URL. Missing Refs are null. */
   graph: (urls: string[]) => Promise<(RefNode | null)[]>;
   /** Render a Ref's media and content with the built-in viewer. */
-  embed: (el: Element, ref: Ref) => ListUiMount;
+  embed: (el: Element, ref: Ref) => LensUiMount;
   /** Render a Ref row. */
-  ref: (el: Element, ref: Ref) => ListUiMount;
+  ref: (el: Element, ref: Ref) => LensUiMount;
   /** Render a list of Ref rows. Call update to change the Refs without losing drafts. */
-  list: (el: Element, refs: Ref[], emptyMessage?: string) => ListUiMount & { update: (refs: Ref[]) => void };
+  list: (el: Element, refs: Ref[], emptyMessage?: string) => LensUiMount & { update: (refs: Ref[]) => void };
   /** Label of the first active icon for a Ref. */
   icon: (ref: Ref) => string;
   /** Display title for a Ref. */
