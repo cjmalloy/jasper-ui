@@ -20,7 +20,8 @@
     visibility: hidden;
   }
   .saving-placeholder {
-    animation-delay: -1s;
+    // Skip the default delay, but still start from the beginning of the fade in
+    animation-delay: 0s;
     position: absolute;
     inset: 0;
     top: 0;
