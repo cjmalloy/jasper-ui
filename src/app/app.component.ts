@@ -16,7 +16,7 @@ import { ConfigService } from './service/config.service';
 import { Store } from './store/store';
 import { createPip } from './util/embed';
 import { trackTextareaResize } from './util/resize';
-import { isJsonObject, isModelsJson, notModelsError } from './util/zip';
+import { isInvalidModelsJson, isModelsJson, notModelsError } from './util/zip';
 
 @Component({
   selector: 'app-root',
@@ -196,7 +196,7 @@ export class AppComponent {
     } else if (text) {
       text.getAsString(value => {
         if (!isModelsJson(value)) {
-          if (isJsonObject(value)) alert(notModelsError());
+          if (isInvalidModelsJson(value)) alert(notModelsError());
           return;
         }
         this.uploadFiles([new File([value], 'upload.json', { type: 'application/json' })]);

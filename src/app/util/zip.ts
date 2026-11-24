@@ -76,9 +76,9 @@ export function isModelsJson(text?: string) {
   return json !== undefined && !!toModels(json)?.length;
 }
 
-export function isJsonObject(text?: string) {
+export function isInvalidModelsJson(text?: string) {
   const json = parseJson(text);
-  return !!json && typeof json === 'object';
+  return !!json && typeof json === 'object' && !toModels(json);
 }
 
 function parseJson(text?: string) {

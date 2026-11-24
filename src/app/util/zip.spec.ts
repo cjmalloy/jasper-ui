@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import { Ext } from '../model/ext';
 import { Ref } from '../model/ref';
-import { filterModels, getModels, isJsonObject, isModelsJson } from './zip';
+import { filterModels, getModels, isInvalidModelsJson, isModelsJson } from './zip';
 
 describe('getModels', () => {
   it('generates a comment URL for a ref without a URL', () => {
@@ -44,13 +44,20 @@ describe('getModels', () => {
   });
 });
 
-describe('isJsonObject', () => {
-  it('only accepts JSON objects and arrays', () => {
-    expect(isJsonObject('{"settings":true}')).toBe(true);
-    expect(isJsonObject('[1]')).toBe(true);
-    expect(isJsonObject('https://example.com')).toBe(false);
-    expect(isJsonObject('123')).toBe(false);
-    expect(isJsonObject('null')).toBe(false);
+describe('isInvalidModelsJson', () => {
+  it('accepts JSON objects and arrays that are not models', () => {
+    expect(isInvalidModelsJson('{"settings":true}')).toBe(true);
+    expect(isInvalidModelsJson('[1]')).toBe(true);
+  });
+
+  it('rejects plain text, models and empty collections', () => {
+    expect(isInvalidModelsJson('https://example.com')).toBe(false);
+    expect(isInvalidModelsJson('123')).toBe(false);
+    expect(isInvalidModelsJson('null')).toBe(false);
+    expect(isInvalidModelsJson('{"url":"https://example.com"}')).toBe(false);
+    expect(isInvalidModelsJson('[]')).toBe(false);
+    expect(isInvalidModelsJson('{"ref":[]}')).toBe(false);
+    expect(isInvalidModelsJson('{"ref":[],"ext":[]}')).toBe(false);
   });
 });
 
