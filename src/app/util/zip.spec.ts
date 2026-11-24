@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import { Ext } from '../model/ext';
 import { Ref } from '../model/ref';
-import { getModels, isModelsJson } from './zip';
+import { filterModels, getModels, isInvalidModelsJson, isModelsJson } from './zip';
 
 describe('getModels', () => {
   it('generates a comment URL for a ref without a URL', () => {
@@ -25,9 +25,54 @@ describe('getModels', () => {
 
     expect(ext).not.toHaveProperty('url');
   });
+
+  it('unpacks a ref and ext bundle', () => {
+    const models = filterModels(getModels('{"ref":[{"url":"https://example.com","title":"A"}],"ext":[{"tag":"grid/cols","name":"Grid"}]}'));
+
+    expect(models.ref).toEqual([expect.objectContaining({ url: 'https://example.com', title: 'A', upload: true })]);
+    expect(models.ext).toEqual([expect.objectContaining({ tag: 'grid/cols', name: 'Grid', upload: true })]);
+  });
+
+  it('rejects JSON that is not a model and does not invent a comment URL', () => {
+    expect(() => getModels('{"settings":true}')).toThrow(/bundle/);
+    expect(() => getModels('[{"url":"https://example.com"},{"foo":1}]')).toThrow(/bundle/);
+    expect(() => getModels('{"ref":[{"foo":1}]}')).toThrow(/bundle/);
+  });
+
+  it('accepts an empty model list', () => {
+    expect(getModels('[]')).toEqual([]);
+  });
+});
+
+describe('isInvalidModelsJson', () => {
+  it('accepts JSON objects and arrays that are not models', () => {
+    expect(isInvalidModelsJson('{"settings":true}')).toBe(true);
+    expect(isInvalidModelsJson('[1]')).toBe(true);
+  });
+
+  it('rejects plain text, models and empty collections', () => {
+    expect(isInvalidModelsJson('https://example.com')).toBe(false);
+    expect(isInvalidModelsJson('123')).toBe(false);
+    expect(isInvalidModelsJson('null')).toBe(false);
+    expect(isInvalidModelsJson('{"url":"https://example.com"}')).toBe(false);
+    expect(isInvalidModelsJson('[]')).toBe(false);
+    expect(isInvalidModelsJson('{"ref":[]}')).toBe(false);
+    expect(isInvalidModelsJson('{"ref":[],"ext":[]}')).toBe(false);
+  });
 });
 
 describe('isModelsJson', () => {
+  it('accepts a ref and ext bundle', () => {
+    expect(isModelsJson('{"ref":[{"url":"https://example.com"}],"ext":[{"tag":"example"}]}')).toBe(true);
+    expect(isModelsJson('{"ext":[{"tag":"example"}]}')).toBe(true);
+  });
+
+  it('rejects empty or invalid bundles', () => {
+    expect(isModelsJson('{"ref":[]}')).toBe(false);
+    expect(isModelsJson('{"ref":[{}]}')).toBe(false);
+    expect(isModelsJson('{"ref":[{"url":"https://example.com"}],"settings":true}')).toBe(false);
+  });
+
   it('accepts a single ref or ext', () => {
     expect(isModelsJson('{"url":"https://example.com"}')).toBe(true);
     expect(isModelsJson('{"tag":"example"}')).toBe(true);
