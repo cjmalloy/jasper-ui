@@ -39,6 +39,47 @@ describe('RefComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('long-press without Picture-in-Picture', () => {
+    let markRead: any;
+    beforeEach(() => {
+      const admin = TestBed.inject(AdminService) as any;
+      vi.spyOn(admin, 'pip').mockReturnValue(false);
+      const getPlugin = admin.getPlugin.bind(admin);
+      vi.spyOn(admin, 'getPlugin').mockImplementation((tag: any) => tag === 'plugin/fullscreen' ? {} : getPlugin(tag));
+      Object.defineProperty(document, 'fullscreenEnabled', { configurable: true, value: true });
+      markRead = vi.spyOn(component, 'markRead').mockImplementation(() => {});
+    });
+    afterEach(() => {
+      delete (document as any).fullscreenEnabled;
+      delete (navigator as any).userActivation;
+    });
+
+    it('opens fullscreen', () => {
+      const event = { preventDefault: vi.fn(), stopPropagation: vi.fn() } as any;
+      component.pip(event);
+      expect(component.fullscreen()).toBe(true);
+      expect(component.expanded()).toBe(true);
+      expect(event.preventDefault).toHaveBeenCalled();
+    });
+
+    it('waits for the finger to lift before opening fullscreen', () => {
+      Object.defineProperty(navigator, 'userActivation', { configurable: true, value: { isActive: false } });
+      component.pip({ preventDefault: vi.fn(), stopPropagation: vi.fn() } as any);
+      expect(component.fullscreen()).toBe(false);
+      window.dispatchEvent(new Event('pointerup'));
+      expect(component.fullscreen()).toBe(true);
+      expect(markRead).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not open fullscreen if the long-press is cancelled', () => {
+      Object.defineProperty(navigator, 'userActivation', { configurable: true, value: { isActive: false } });
+      component.pip({ preventDefault: vi.fn(), stopPropagation: vi.fn() } as any);
+      window.dispatchEvent(new Event('pointercancel'));
+      window.dispatchEvent(new Event('pointerup'));
+      expect(component.fullscreen()).toBe(false);
+    });
+  });
+
   it('lists recipients sharing a Template signature once', () => {
     (TestBed.inject(AdminService) as any).updateStatus((status: any) => {
       status.templates['support'] = { tag: 'support', config: { signature: '+support' } };

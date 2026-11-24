@@ -1088,17 +1088,7 @@ export class RefComponent implements HasChanges {
       this.setViewSource(false);
     } else if (!this.fullscreen()) {
       if (this.store.hotkey() && this.admin.getPlugin('plugin/fullscreen')) {
-        this.fullscreen.set(true);
-        this.closeOffFullscreen = !this.expanded();
-        const viewer = this.viewer();
-        if (viewer) {
-          viewer.el.nativeElement.requestFullscreen().then(() => {
-            viewer.el.nativeElement.focus({ preventScroll: true });
-          }).catch(() => {
-            console.warn('Could not make fullscreen.');
-          });
-        }
-        this.expanded.set(true);
+        this.openFullscreen();
       } else if (this.pipRequired()) {
         this.store.eventBus.fire('pip', this.ref());
         read = true;
@@ -1113,10 +1103,49 @@ export class RefComponent implements HasChanges {
     }
   }
 
+  private openFullscreen() {
+    this.fullscreen.set(true);
+    this.closeOffFullscreen = !this.expanded();
+    const viewer = this.viewer();
+    if (viewer) {
+      viewer.el.nativeElement.requestFullscreen().then(() => {
+        viewer.el.nativeElement.focus({ preventScroll: true });
+      }).catch(() => {
+        console.warn('Could not make fullscreen.');
+      });
+    }
+    this.expanded.set(true);
+  }
+
+  /**
+   * Right click or long-press on the toggle. Opens Picture-in-Picture where supported (desktop),
+   * otherwise fullscreen (ex. Android, which has no Document Picture-in-Picture).
+   */
   pip(event?: MouseEvent) {
-    if (!this.admin.pip()) return;
-    this.store.eventBus.fire('pip', this.ref());
-    this.markRead();
+    if (this.admin.pip()) {
+      this.store.eventBus.fire('pip', this.ref());
+      this.markRead();
+    } else if (!this.fullscreen() && this.admin.getPlugin('plugin/fullscreen') && document.fullscreenEnabled) {
+      if (navigator.userActivation?.isActive ?? true) {
+        this.openFullscreen();
+        this.markRead();
+      } else {
+        // Long-press fires before the finger lifts, which is when touch grants the activation fullscreen needs
+        const off = () => {
+          window.removeEventListener('pointerup', up, { capture: true });
+          window.removeEventListener('pointercancel', off, { capture: true });
+        };
+        const up = () => {
+          off();
+          this.openFullscreen();
+          this.markRead();
+        };
+        window.addEventListener('pointerup', up, { capture: true });
+        window.addEventListener('pointercancel', off, { capture: true });
+      }
+    } else {
+      return;
+    }
     if ('vibrate' in navigator) navigator.vibrate([2, 32, 4]);
     event?.preventDefault();
     event?.stopPropagation();
