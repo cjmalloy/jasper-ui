@@ -42,8 +42,10 @@ describe('NavComponent', () => {
     expect(component.nav()).toEqual(['/tag', 'second']);
   });
 
-  it('should link protocol-relative urls externally', () => {
-    fixture.componentRef.setInput('url', '//localhost:8081/api/v1/proxy/file.png?url=cache:1');
+  it('should link api urls externally', () => {
+    // Electron serves the UI and API from the same origin
+    TestBed.inject(ConfigService).api = location.origin;
+    fixture.componentRef.setInput('url', location.origin + '/api/v1/proxy/file.png?url=cache:1');
     fixture.componentRef.setInput('external', true);
     expect(component.localUrl()).toBe(false);
     expect(component.nav()).toBeUndefined();
