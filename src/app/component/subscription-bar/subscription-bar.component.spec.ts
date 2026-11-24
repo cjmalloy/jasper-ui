@@ -65,14 +65,20 @@ describe('SubscriptionBarComponent', () => {
   });
 
   it('keeps the back boundary after a reload', () => {
-    sessionStorage.setItem('jasper.backStartIndex', '1');
-    const navigation = { currentEntry: { index: 3 } };
+    const navigation = { currentEntry: { index: 1 } };
     Object.defineProperty(window, 'navigation', {
       configurable: true,
       value: navigation,
     });
     const router = TestBed.inject(Router);
     (router.events as Subject<NavigationEnd>).next(new NavigationEnd(1, '/home', '/home'));
+
+    navigation.currentEntry.index = 3;
+    fixture.destroy();
+    fixture = TestBed.createComponent(SubscriptionBarComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    (router.events as Subject<NavigationEnd>).next(new NavigationEnd(2, '/home', '/home'));
 
     const back = vi.spyOn(component.location, 'back');
     component.back();
