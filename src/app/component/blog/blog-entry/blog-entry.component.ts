@@ -1,3 +1,4 @@
+import { FloatingDirective } from '../../../directive/floating.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
@@ -68,7 +69,7 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   templateUrl: './blog-entry.component.html',
   styleUrls: ['./blog-entry.component.scss'],
   host: { 'class': 'blog-entry', '[attr.tabindex]': '0', '[class.deleted]': 'deleted()' },
-  imports: [
+  imports: [FloatingDirective, 
     RelativePipe,
     FakeLinkDirective,
     forwardRef(() => ViewerComponent),
