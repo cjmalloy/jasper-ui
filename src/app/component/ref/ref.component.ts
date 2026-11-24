@@ -516,6 +516,7 @@ export class RefComponent implements HasChanges {
 
   readonly obsoleteOrigin = computed(() => {
     if (this.ref().metadata?.obsolete) return this.ref().origin;
+    if (this.store.view.current() === 'ref/versions') return this.ref().origin;
     return undefined;
   });
 

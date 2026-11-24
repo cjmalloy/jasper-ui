@@ -75,3 +75,50 @@ test.describe.serial('Ref page origin', () => {
     await expect(page.locator('.full-page.ref')).toContainText('remote version');
   });
 });
+
+test.describe.serial('Ref versions with a remote written under its own origin', () => {
+  const api = (process.env.MAIN_API || 'http://localhost:8081') + '/api/v1';
+  const runId = Date.now().toString(36);
+  let origin = '';
+  let remote = '';
+  const url = `https://versions.test/${runId}`;
+
+  async function headers(request: APIRequestContext, localOrigin: string) {
+    await request.get(`${api}/plugin/page`);
+    const { cookies } = await request.storageState();
+    const xsrf = cookies.find(c => c.name === 'XSRF-TOKEN')?.value || '';
+    return { Authorization: 'Bearer ' + adminHeaders.jwt, 'X-XSRF-TOKEN': xsrf, 'Local-Origin': localOrigin };
+  }
+
+  test.beforeAll(({}, info) => {
+    origin = isolatedOrigin(info);
+    remote = origin + '.versions';
+  });
+
+  test('setup local and remote versions', async ({ request }) => {
+    const local = await request.post(`${api}/ref`, {
+      headers: await headers(request, origin),
+      data: { url, origin, title: 'Local Version', tags: ['public'] },
+    });
+    expect(local.ok(), await local.text()).toBeTruthy();
+    // Written with the remote as its root origin, so the local version is not marked obsolete
+    const res = await request.post(`${api}/ref`, {
+      headers: await headers(request, remote),
+      data: { url, origin: remote, title: 'Remote Version', tags: ['public'] },
+    });
+    expect(res.ok(), await res.text()).toBeTruthy();
+    expect(await (await request.get(`${api}/ref/count`, {
+      headers: await headers(request, origin),
+      params: { url, obsolete: false },
+    })).text()).toBe('2');
+  });
+
+  test('shows every version on the versions page', async ({ page }) => {
+    await page.goto(`/ref/e/${encodeURIComponent(url)}?debug=USER`, { waitUntil: 'networkidle' });
+    await expect(page.locator('.full-page.ref .link')).toContainText('Remote Version');
+    await page.locator('.tabs a', { hasText: 'versions' }).click();
+    const links = page.locator('.ref-list-item .link a');
+    await expect(links.filter({ hasText: 'Local Version' })).toBeVisible();
+    await expect(links.filter({ hasText: 'Remote Version' })).toBeVisible();
+  });
+});

@@ -36,7 +36,8 @@ export class RefVersionsComponent implements HasChanges {
         this.store.view.pageSize(),
       ),
       url: this.store.view.url(),
-      obsolete: this.store.view.ref()?.metadata?.obsolete ? null : true,
+      // Versions written under different root origins may all be marked current
+      obsolete: null,
     }));
     // TODO: set title for bare reposts
     effect(() => this.mod.setTitle($localize`Remotes: ` + getTitle(this.store.view.ref())));

@@ -158,7 +158,7 @@ export class RefPage implements HasChanges {
     }
     this.newResponseUrls.set([]);
     this.store.view.responses.set([]);
-    this.refs.count({ url, obsolete: true }).subscribe(count => this.store.view.versions.set(count));
+    this.refs.count({ url, obsolete: null }).subscribe(count => this.store.view.versions.set(Math.max(0, count - 1)));
     const fetchTop = (ref: Ref) => hasTag('plugin/thread', ref) || hasTag('plugin/comment', ref);
     const cached = this.store.view.ref();
     (url === cached?.url && cached.origin !== undefined && (origin === undefined || cached.origin === origin)
