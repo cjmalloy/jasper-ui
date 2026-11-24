@@ -3428,6 +3428,20 @@ Please Reload.</source>
           <context context-type="linenumber">8,9</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="4149965073949686916" datatype="html">
+        <source>Error loading more results.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/ref/ref-list/ref-list.component.html</context>
+          <context context-type="linenumber">90,91</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7934833136974560675" datatype="html">
+        <source>Retry</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/ref/ref-list/ref-list.component.html</context>
+          <context context-type="linenumber">91,92</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="8739351927658317645" datatype="html">
         <source><x id="START_BLOCK_IF" equiv-text="@if (!config.mobile()) {"/> submitted <x id="CLOSE_BLOCK_IF" equiv-text="}"/> <x id="INTERPOLATION" equiv-text="{{ ref().created | relative }}"/></source>
         <context-group purpose="location">
@@ -4316,92 +4330,92 @@ Please Reload.</source>
         <source>Remove from top bar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/sidebar/sidebar.component.html</context>
-          <context context-type="linenumber">215,216</context>
+          <context context-type="linenumber">216,217</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3900130769860897208" datatype="html">
         <source>– bookmark</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/sidebar/sidebar.component.html</context>
-          <context context-type="linenumber">217</context>
+          <context context-type="linenumber">219</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2035264947320952530" datatype="html">
         <source>Add to top bar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/sidebar/sidebar.component.html</context>
-          <context context-type="linenumber">221,222</context>
+          <context context-type="linenumber">223,224</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4998148133019343621" datatype="html">
         <source>+ bookmark</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/sidebar/sidebar.component.html</context>
-          <context context-type="linenumber">223,224</context>
+          <context context-type="linenumber">226,227</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2495392692672923149" datatype="html">
         <source>Remove from home screen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/sidebar/sidebar.component.html</context>
-          <context context-type="linenumber">230,231</context>
+          <context context-type="linenumber">238,239</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/sidebar/sidebar.component.html</context>
-          <context context-type="linenumber">244,245</context>
+          <context context-type="linenumber">254,255</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2729032920454198883" datatype="html">
         <source>– unfollow</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/sidebar/sidebar.component.html</context>
-          <context context-type="linenumber">232</context>
+          <context context-type="linenumber">241</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3519804488055464836" datatype="html">
         <source>Add to home screen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/sidebar/sidebar.component.html</context>
-          <context context-type="linenumber">236,237</context>
+          <context context-type="linenumber">245,246</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/sidebar/sidebar.component.html</context>
-          <context context-type="linenumber">250,251</context>
+          <context context-type="linenumber">261,262</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5153208066225829834" datatype="html">
         <source>+ follow</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/sidebar/sidebar.component.html</context>
-          <context context-type="linenumber">238,239</context>
+          <context context-type="linenumber">248,249</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5045429871662788935" datatype="html">
         <source>– unsubscribe</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/sidebar/sidebar.component.html</context>
-          <context context-type="linenumber">246</context>
+          <context context-type="linenumber">257</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4524644643048598199" datatype="html">
         <source>+ subscribe</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/sidebar/sidebar.component.html</context>
-          <context context-type="linenumber">252,253</context>
+          <context context-type="linenumber">264,265</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3144107725600505810" datatype="html">
         <source>Remove alarm</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/sidebar/sidebar.component.html</context>
-          <context context-type="linenumber">259,260</context>
+          <context context-type="linenumber">276,277</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9155850067479728377" datatype="html">
         <source>🔇</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/sidebar/sidebar.component.html</context>
-          <context context-type="linenumber">261,262</context>
+          <context context-type="linenumber">279,280</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
@@ -4412,14 +4426,14 @@ Please Reload.</source>
         <source>Add alarm</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/sidebar/sidebar.component.html</context>
-          <context context-type="linenumber">265,266</context>
+          <context context-type="linenumber">283,284</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6672867898548372662" datatype="html">
         <source>🔔</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/sidebar/sidebar.component.html</context>
-          <context context-type="linenumber">267,268</context>
+          <context context-type="linenumber">286,287</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/user.ts</context>
@@ -4430,14 +4444,14 @@ Please Reload.</source>
         <source><x id="INTERPOLATION" equiv-text="{{ res.x.name || res.x.tag }}"/> Tags:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/sidebar/sidebar.component.html</context>
-          <context context-type="linenumber">288,289</context>
+          <context context-type="linenumber">311,312</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4539123669580447532" datatype="html">
         <source> load more </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/sidebar/sidebar.component.html</context>
-          <context context-type="linenumber">296,297</context>
+          <context context-type="linenumber">319,320</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/ref/summary/summary.component.html</context>
@@ -4448,7 +4462,7 @@ Please Reload.</source>
         <source>chat</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/sidebar/sidebar.component.html</context>
-          <context context-type="linenumber">304,305</context>
+          <context context-type="linenumber">327,328</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/backgammon.ts</context>
@@ -4625,7 +4639,7 @@ Please Reload.</source>
         <source>The top bar holds bookmarks and subscriptions.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/subscription-bar/subscription-bar.component.ts</context>
-          <context context-type="linenumber">53</context>
+          <context context-type="linenumber">69</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2577400226107203328" datatype="html">

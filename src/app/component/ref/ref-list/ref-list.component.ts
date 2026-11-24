@@ -150,14 +150,20 @@ export class RefListComponent implements HasChanges {
    */
   private readonly morePages = computed(() => {
     const more = this.more();
-    return more.base && more.base === this.page() ? more : NO_MORE;
+    return this.infiniteScroll() && more.base && more.base === this.page() ? more : NO_MORE;
   });
+
+  /**
+   * Infinite scroll only works for lists loaded from query args. Specialized loaders, such as the
+   * unread inbox, keep their page controls.
+   */
+  readonly infiniteScroll = computed(() => this.infiniteEnabled() && !!this.query.args());
 
   /**
    * Infinite scroll is enabled by the infinite query param, then a saved ext, then sub tag templates,
    * then the template defaults. Off by default.
    */
-  readonly infiniteScroll = computed(() => {
+  private readonly infiniteEnabled = computed(() => {
     if (!this.pageControls()) return false;
     const ext = this.ext();
     return this.store.view.infinite()
@@ -190,6 +196,8 @@ export class RefListComponent implements HasChanges {
 
   readonly loadingMore = computed(() => this.morePages().loading);
 
+  readonly loadMoreError = computed(() => this.morePages().error);
+
   readonly moreRefs = computed(() => {
     const seen = new Set([...this.page()?.content || [], ...this.newRefs()].map(refKey));
     return this.morePages().pages
@@ -208,8 +216,7 @@ export class RefListComponent implements HasChanges {
     const page = this.page();
     const last = this.lastPage();
     if (!this.infiniteScroll() || !page || !last || this.morePages().error) return false;
-    const args = this.query.args();
-    if (!args || !isEqual(args, this.query.pageArgs())) return false;
+    if (!isEqual(this.query.args(), this.query.pageArgs())) return false;
     if (page !== this.query.page() || !last.content.length) return false;
     return last.page.number < last.page.totalPages - 1;
   });
@@ -242,6 +249,11 @@ export class RefListComponent implements HasChanges {
         error,
       });
     });
+  }
+
+  retryMore() {
+    this.more.update(more => ({ ...more, error: false }));
+    this.loadMore();
   }
 
   moreNumber(ref: Ref, i: number) {

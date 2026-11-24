@@ -85,6 +85,12 @@
     @if (loadingMore()) {
       <app-loading />
     }
+    @if (loadMoreError()) {
+      <div class="infinite-scroll-error">
+        <span i18n>Error loading more results.</span>
+        <button type="button" (click)="retryMore()" i18n>Retry</button>
+      </div>
+    }
   </div>
 }
 @if (page()) {

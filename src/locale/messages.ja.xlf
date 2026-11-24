@@ -9241,6 +9241,14 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Admin</source>
         <target>管理者</target>
       </trans-unit>
+      <trans-unit id="4149965073949686916" datatype="html">
+        <source>Error loading more results.</source>
+        <target>さらに結果を読み込めませんでした。</target>
+      </trans-unit>
+      <trans-unit id="7934833136974560675" datatype="html">
+        <source>Retry</source>
+        <target>再試行</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

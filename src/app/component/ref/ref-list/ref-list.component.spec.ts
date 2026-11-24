@@ -52,16 +52,13 @@ describe('RefListComponent', () => {
       fixture.componentRef.setInput('ext', { tag: 'test', config: { defaultInfinite: true } });
     });
 
-    it('should be off unless a template enables it', () => {
-      fixture.componentRef.setInput('ext', { tag: 'test', config: {} });
+    it('should keep page controls for lists without query args', () => {
+      vi.spyOn(TestBed.inject(Store).view, 'infinite').mockReturnValue(true);
+      fixture.componentRef.setInput('ext', { tag: 'test', config: { defaultInfinite: true } });
+      fixture.detectChanges();
       expect(component.infiniteScroll()).toBe(false);
-      vi.spyOn(TestBed.inject(AdminService), 'getDefaults').mockReturnValue({ defaultInfinite: true });
-      fixture.componentRef.setInput('ext', { tag: 'test', modifiedString: '1', config: {} });
-      expect(component.infiniteScroll()).toBe(true);
-    });
-
-    it('should not offer more pages without query args', () => {
       expect(component.hasMore()).toBe(false);
+      expect(fixture.nativeElement.querySelector('app-page-controls:not(.infinite-controls)')).toBeTruthy();
     });
 
     it('should not duplicate live replies in appended pages', () => {
@@ -88,6 +85,35 @@ describe('RefListComponent', () => {
           requests.push(request);
           return request;
         });
+      });
+
+      it('should be off unless a template enables it', () => {
+        fixture.componentRef.setInput('ext', { tag: 'test', config: {} });
+        expect(component.infiniteScroll()).toBe(false);
+        vi.spyOn(TestBed.inject(AdminService), 'getDefaults').mockReturnValue({ defaultInfinite: true });
+        fixture.componentRef.setInput('ext', { tag: 'test', modifiedString: '1', config: {} });
+        expect(component.infiniteScroll()).toBe(true);
+      });
+
+      it('should drop appended pages when infinite scroll is disabled', () => {
+        component.loadMore();
+        requests[0].next(refPage(1, ['c', 'd']));
+        expect(component.moreRefs().map(r => r.url)).toEqual(['c', 'd']);
+        vi.spyOn(TestBed.inject(Store).view, 'infinite').mockReturnValue(false);
+        fixture.componentRef.setInput('ext', { tag: 'test', config: { defaultInfinite: true } });
+        expect(component.moreRefs()).toEqual([]);
+      });
+
+      it('should retry after a failed request', () => {
+        component.loadMore();
+        requests[0].error(new Error());
+        expect(component.loadMoreError()).toBe(true);
+        expect(component.hasMore()).toBe(false);
+        component.retryMore();
+        expect(requests.length).toBe(2);
+        requests[1].next(refPage(1, ['c', 'd']));
+        expect(component.loadMoreError()).toBe(false);
+        expect(component.moreRefs().map(r => r.url)).toEqual(['c', 'd']);
       });
 
       it('should not offer more pages while a search reloads', () => {
