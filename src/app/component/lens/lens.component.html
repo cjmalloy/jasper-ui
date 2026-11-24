@@ -19,14 +19,16 @@
                (copied)="query.refresh()" />
     </div>
   }
-@if (isTemplate('graph')) {
-  @defer {
-    <app-force-directed #lens
-                        [tag]="tag()"
-                        [content]="page()?.content || []" />
-  } @placeholder {
-    <app-loading />
-  }
+@if (listUi(); as template) {
+  <app-list-ui [class]="cssClass(ext()?.tag)"
+               [template]="template"
+               [ext]="ext()!"
+               [tag]="tag()"
+               [page]="page()"
+               [size]="size()"
+               [sort]="sort()"
+               [filter]="filter()"
+               [search]="search()" />
 } @else if (isTemplate('grid')) {
   @defer {
     <app-grid #lens

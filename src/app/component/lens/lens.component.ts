@@ -11,9 +11,9 @@ import { hasPrefix } from '../../util/tag';
 import { BlogComponent } from '../blog/blog.component';
 import { ChatComponent } from '../chat/chat.component';
 import { FolderComponent } from '../folder/folder.component';
-import { ForceDirectedComponent } from '../graph/force-directed/force-directed.component';
 import { GridComponent } from '../grid/grid.component';
 import { KanbanComponent } from '../kanban/kanban.component';
+import { ListUiComponent } from '../list-ui/list-ui.component';
 import { LoadingComponent } from '../loading/loading.component';
 import { MapComponent } from '../map/map.component';
 import { NotebookComponent } from '../notebook/notebook.component';
@@ -28,7 +28,7 @@ import { ViewerComponent } from '../viewer/viewer.component';
   imports: [
     LoadingComponent,
     forwardRef(() => RefComponent),
-    forwardRef(() => ForceDirectedComponent),
+    forwardRef(() => ListUiComponent),
     forwardRef(() => BlogComponent),
     forwardRef(() => ChatComponent),
     forwardRef(() => FolderComponent),
@@ -61,6 +61,10 @@ export class LensComponent implements HasChanges {
 
   readonly plugins = computed(() => hasPrefix(this.ext()?.tag, 'plugin') ? [this.ext()!.tag] : undefined);
   readonly header = computed(() => this.ext()?.config?.header);
+  readonly listUi = computed(() => {
+    if (!this.ext()) return undefined;
+    return [...this.admin.getTemplates(this.ext()!.tag)].reverse().find(t => t.config?.listUi);
+  });
 
   readonly list = viewChildren<HasChanges>('lens');
 

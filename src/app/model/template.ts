@@ -2,6 +2,8 @@ import { Schema } from 'jtd';
 import { cloneDeep } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { Ext } from './ext';
+import { Page } from './page';
+import { Ref, RefNode } from './ref';
 import { Config, TagSort } from './tag';
 import { Roles } from './user';
 
@@ -16,6 +18,13 @@ export interface Template extends Config {
      * Show built-in custom view.
      */
     view?: string,
+    /**
+     * Optional handlebars template to render instead of the default
+     * Ref list when this view is active. The scope contains `ext`,
+     * `template`, `account`, `el`, the first `page` of results, the
+     * `query` and its `params`, and a {@link ListUiApi} as `actions`.
+     */
+    listUi?: string,
     /**
      * Override the view text used in a tab.
      */
@@ -86,6 +95,32 @@ export function writeTemplate(template: Template): Template {
   delete result.modifiedString;
   delete result.config?._cache;
   return result;
+}
+
+/**
+ * Actions available to a Template {@link Template.config.listUi}.
+ * Functions that mount Angular components into an element return a function
+ * to destroy them. Anything still mounted is destroyed when the view is.
+ */
+export interface ListUiApi {
+  /** Fetch a page of the current query, with the same sort, filter and search as the view. */
+  fetch: (page?: number, size?: number) => Promise<Page<Ref>>;
+  /** Fetch graph nodes (Refs with sources and responses) by URL. Missing Refs are null. */
+  graph: (urls: string[]) => Promise<(RefNode | null)[]>;
+  /** Render a Ref's media and content with the built-in viewer. */
+  embed: (el: Element, ref: Ref) => () => void;
+  /** Render a Ref row. */
+  ref: (el: Element, ref: Ref) => () => void;
+  /** Render a list of Ref rows. */
+  list: (el: Element, refs: Ref[], emptyMessage?: string) => () => void;
+  /** Label of the first active icon for a Ref. */
+  icon: (ref: Ref) => string;
+  /** Display title for a Ref. */
+  title: (ref: Ref) => string;
+  /** Does the Ref have a tag in the current query. */
+  matches: (ref: Ref) => boolean;
+  /** Run when the view is re-rendered or destroyed. */
+  onDestroy: (fn: () => void) => void;
 }
 
 export interface TemplateScope {
