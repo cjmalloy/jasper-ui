@@ -12,6 +12,8 @@ import { HelpService } from '../../service/help.service';
 import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
 
+const START_INDEX_KEY = 'jasper.backStartIndex';
+
 @Component({
   selector: 'app-subscription-bar',
   templateUrl: './subscription-bar.component.html',
@@ -46,7 +48,21 @@ export class SubscriptionBarComponent {
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
       take(1),
-    ).subscribe(() => this.startIndex = this.currentIndex());
+    ).subscribe(() => this.startIndex = this.loadStartIndex());
+  }
+
+  /**
+   * Remember the first app page in session storage so reloading keeps the earlier
+   * pages reachable, while Back still can't leave the app.
+   */
+  private loadStartIndex() {
+    const current = this.currentIndex();
+    try {
+      const stored = sessionStorage.getItem(START_INDEX_KEY);
+      if (stored !== null && +stored >= 0 && +stored <= current) return +stored;
+      sessionStorage.setItem(START_INDEX_KEY, '' + current);
+    } catch { }
+    return current;
   }
 
   private readonly initializeView = afterNextRender(() => {
