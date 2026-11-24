@@ -2588,6 +2588,9 @@ footer {
     }
     .embed-container:not(.resized) > iframe.keep-ratio {
       height: auto !important;
+    }
+    // The normal view scales wide players down, which fullscreen undoes even after a manual resize
+    .embed-container > iframe.keep-ratio {
       transform: none !important;
       margin: 0 !important;
     }

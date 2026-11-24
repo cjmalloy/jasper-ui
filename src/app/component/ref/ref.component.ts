@@ -1134,7 +1134,9 @@ export class RefComponent implements HasChanges {
         const off = () => {
           window.removeEventListener('pointerup', up, { capture: true });
           window.removeEventListener('pointercancel', off, { capture: true });
+          removeOnDestroy();
         };
+        const removeOnDestroy = this.destroyRef.onDestroy(off);
         const up = () => {
           off();
           this.openFullscreen();

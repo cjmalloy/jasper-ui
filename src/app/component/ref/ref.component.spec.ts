@@ -71,6 +71,15 @@ describe('RefComponent', () => {
       expect(markRead).toHaveBeenCalledTimes(1);
     });
 
+    it('does not open fullscreen if the row is destroyed before the finger lifts', () => {
+      Object.defineProperty(navigator, 'userActivation', { configurable: true, value: { isActive: false } });
+      const open = vi.spyOn(component as any, 'openFullscreen');
+      component.pip({ preventDefault: vi.fn(), stopPropagation: vi.fn() } as any);
+      fixture.destroy();
+      window.dispatchEvent(new Event('pointerup'));
+      expect(open).not.toHaveBeenCalled();
+    });
+
     it('does not open fullscreen if the long-press is cancelled', () => {
       Object.defineProperty(navigator, 'userActivation', { configurable: true, value: { isActive: false } });
       component.pip({ preventDefault: vi.fn(), stopPropagation: vi.fn() } as any);
