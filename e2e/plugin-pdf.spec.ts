@@ -52,7 +52,7 @@ test.describe.serial('PDF Plugin', () => {
     await page.goto(`${app}/ref/e/${encodeURIComponent(url)}?debug=USER`, { waitUntil: 'networkidle' });
     const md = page.locator('.full-page.ref .md');
     await expect(md.locator('a', { hasText: 'paper' })).toBeVisible();
-    const toggle = md.locator('.toggle.embed');
+    const toggle = md.locator('.toggle.toggle-embed');
     await expect(toggle).toHaveCount(1);
     await expect(toggle).toHaveAttribute('title', paper);
     await toggle.click();
@@ -72,14 +72,14 @@ test.describe.serial('PDF Plugin', () => {
     }
     const md = page.locator('.full-page.ref .md');
     await page.goto(`/ref/e/${encodeURIComponent(proxyUrl)}?debug=USER`, { waitUntil: 'networkidle' });
-    await expect(md.locator('.toggle.embed')).toHaveCount(3);
+    await expect(md.locator('.toggle.toggle-embed')).toHaveCount(3);
 
     const res = await request.put(`${api}/plugin`, { headers: await headers(request), data: { ...plugin, config: { ...plugin.config, proxy: false } } });
     expect(res.ok(), await res.text()).toBeTruthy();
     await page.goto(`/ref/e/${encodeURIComponent(proxyUrl)}?debug=USER`, { waitUntil: 'networkidle' });
     await expect(md.locator('a', { hasText: 'web' })).toBeVisible();
     // Only the cached PDF can still be embedded
-    await expect(md.locator('.toggle.embed')).toHaveCount(1);
-    await expect(md.locator('.toggle.embed')).toHaveAttribute('title', paper);
+    await expect(md.locator('.toggle.toggle-embed')).toHaveCount(1);
+    await expect(md.locator('.toggle.toggle-embed')).toHaveAttribute('title', paper);
   });
 });

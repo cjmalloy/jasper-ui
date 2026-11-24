@@ -262,7 +262,7 @@ describe('EmbedService', () => {
       const loadQuery = vi.spyOn(service, 'loadQuery$').mockReturnValue(throwError(() => new Error('fail')));
       const fixture = TestBed.createComponent(HostComponent);
       const el = fixture.nativeElement as HTMLElement;
-      service.render(el, '<span class="toggle embed" title="/tag/science">x</span>', { vc: fixture.componentInstance.vc, origin: '', mermaid: false, clipboard: false });
+      service.render(el, '<span class="toggle toggle-embed" title="/tag/science">x</span>', { vc: fixture.componentInstance.vc, origin: '', mermaid: false, clipboard: false });
       const toggle = el.querySelector<HTMLElement>('.toggle')!;
       const plus = toggle.querySelector<HTMLElement>('.toggle-plus')!;
       const x = toggle.querySelector<HTMLElement>('.toggle-x')!;
@@ -285,7 +285,7 @@ describe('EmbedService', () => {
       service.render(el, '[paper](https://example.com/paper) [tag](/tag/science)', { vc: fixture.componentInstance.vc, origin: '', mermaid: false, clipboard: false });
       expect(getCurrent).toHaveBeenCalledTimes(1);
       expect(getCurrent).toHaveBeenCalledWith('https://example.com/paper');
-      const toggles = el.querySelectorAll<HTMLElement>('.toggle.embed');
+      const toggles = el.querySelectorAll<HTMLElement>('.toggle.toggle-embed');
       expect(toggles.length).toBe(2);
       expect(toggles[0].title).toBe('https://example.com/paper');
       expect(toggles[0].querySelector('.toggle-plus')).not.toBeNull();

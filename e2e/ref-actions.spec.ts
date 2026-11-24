@@ -221,7 +221,7 @@ test.describe.serial('Ref Actions', () => {
       const left = (e: Element) => e.getBoundingClientRect().left;
 
       await ref.locator(':scope > button.toggle').click();
-      const toggle = ref.locator('.md .toggle.embed');
+      const toggle = ref.locator('.md .toggle.toggle-embed');
       await expect(toggle).toBeVisible();
       const link = ref.locator('.md a', { hasText: 'an internal link' });
       expect(await toggle.evaluate(left)).toBeGreaterThanOrEqual(await link.evaluate(right));

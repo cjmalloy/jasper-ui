@@ -580,7 +580,7 @@ export function trackViews(vc: ViewContainerRef): { vc: ViewContainerRef, destro
  * Hydrated content in progressive markdown: the elements replaced or decorated by hydrators.
  * Each is bounded by a pair of comments so it can be kept, destroyed or hydrated on its own.
  */
-export const MD_ISLANDS = 'pre, a[href], .md-embed, .inline-embed, .inline-ref, .toggle.inline, .toggle.embed';
+export const MD_ISLANDS = 'pre, a[href], .md-embed, .inline-embed, .inline-ref, .toggle.inline, .toggle.toggle-embed';
 
 export interface MdIsland {
   /** Identity of the unhydrated element, or empty if it must not be reused. */
@@ -625,7 +625,7 @@ export function markIslands(root: HTMLElement): MdIslands {
  * Remove the "toggle" link text in front of embed toggles.
  */
 export function removeToggleLabels(doc: Document) {
-  doc.body.querySelectorAll('.toggle.embed').forEach(t => {
+  doc.body.querySelectorAll('.toggle.toggle-embed').forEach(t => {
     if (t.previousSibling?.textContent === 'toggle') t.previousSibling.remove();
   });
 }
@@ -635,7 +635,7 @@ export function removeToggleLabels(doc: Document) {
  * that association after islands are hydrated separately.
  */
 export function markLinkToggles(doc: Document) {
-  doc.body.querySelectorAll<HTMLElement>('.toggle.embed').forEach(t => {
+  doc.body.querySelectorAll<HTMLElement>('.toggle.toggle-embed').forEach(t => {
     let prev = t.previousSibling;
     while (prev?.nodeType === Node.TEXT_NODE && !prev.textContent?.trim()) prev = prev.previousSibling;
     if (prev instanceof HTMLAnchorElement && prev.getAttribute('href') === t.title) prev.dataset.embedToggle = '';
