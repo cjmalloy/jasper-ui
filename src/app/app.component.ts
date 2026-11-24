@@ -16,7 +16,7 @@ import { ConfigService } from './service/config.service';
 import { Store } from './store/store';
 import { createPip } from './util/embed';
 import { trackTextareaResize } from './util/resize';
-import { isModelsJson } from './util/zip';
+import { isJsonObject, isModelsJson, notModelsError } from './util/zip';
 
 @Component({
   selector: 'app-root',
@@ -168,6 +168,7 @@ export class AppComponent {
         return;
       }
     }
+    this.upload(event, items);
   }
 
   dragOver(event: DragEvent) {
@@ -178,6 +179,7 @@ export class AppComponent {
     if (!items) return;
     if ((event.target as HTMLElement)?.tagName === 'INPUT') return;
     if ((event.target as HTMLElement)?.tagName === 'TEXTAREA') return;
+    if ((event.target as HTMLElement)?.isContentEditable) return;
     event.preventDefault();
     const files = [] as any;
     let text: DataTransferItem | undefined;
@@ -193,7 +195,10 @@ export class AppComponent {
       this.uploadFiles(files);
     } else if (text) {
       text.getAsString(value => {
-        if (!isModelsJson(value)) return;
+        if (!isModelsJson(value)) {
+          if (isJsonObject(value)) alert(notModelsError());
+          return;
+        }
         this.uploadFiles([new File([value], 'upload.json', { type: 'application/json' })]);
       });
     }
