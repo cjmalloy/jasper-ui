@@ -44,11 +44,20 @@ describe('NavComponent', () => {
 
   it('should link api urls externally', () => {
     // Electron serves the UI and API from the same origin
-    TestBed.inject(ConfigService).api = location.origin;
-    fixture.componentRef.setInput('url', location.origin + '/api/v1/proxy/file.png?url=cache:1');
+    const config = TestBed.inject(ConfigService);
     fixture.componentRef.setInput('external', true);
-    expect(component.localUrl()).toBe(false);
-    expect(component.nav()).toBeUndefined();
+    for (const api of [location.origin, location.origin + '/', '']) {
+      config.api = api;
+      fixture.componentRef.setInput('url', api.replace(/\/$/, '') + '/api/v1/proxy/file.png?url=cache:1');
+      expect(component.localUrl()).toBe(false);
+      expect(component.nav()).toBeUndefined();
+    }
+  });
+
+  it('should still route local urls', () => {
+    TestBed.inject(ConfigService).api = location.origin;
+    fixture.componentRef.setInput('url', location.origin + '/tag/api');
+    expect(component.nav()).toEqual(['/tag', 'api']);
   });
 
   it('should not treat plain hashtag as custom text', () => {
