@@ -196,7 +196,8 @@ export class RefListComponent implements HasChanges {
    * Infinite scroll only works for lists loaded from query args. Specialized loaders, such as the
    * unread inbox, keep their page controls.
    */
-  readonly infiniteScroll = computed(() => this.infiniteEnabled() && !!this.query.args());
+  readonly infiniteScroll = computed(() =>
+    this.infiniteEnabled() && !!this.query.args() && this.page() === this.query.page());
 
   /**
    * Infinite scroll is enabled by the infinite query param, then a saved ext, then sub tag templates,
