@@ -93,9 +93,14 @@ export class TabsComponent {
   }
 
   private updateTabs() {
+    const host = this.el.nativeElement;
+    const floating = host.classList.contains('floating-tabs');
+    // Floating tabs stretch the current tab to full width, so measure without it
+    if (floating) host.classList.remove('floating-tabs');
     const tabs = this.tabs;
     for (const el of tabs) el.style.display = '';
     this.tabWidths = tabs.map(el => el.offsetWidth + 8.5);
+    if (floating) host.classList.add('floating-tabs');
     this.measureVisible();
   }
 
@@ -119,9 +124,8 @@ export class TabsComponent {
     }
   }
 
-  private get currentTabWidth() {
-    const current = this.tabs.find(el => el.classList.contains('current-tab'));
-    return current ? current.offsetWidth + 8.5 : 0;
+  private get currentTabIndex() {
+    return this.tabs.findIndex(el => el.classList.contains('current-tab'));
   }
 
   /**
@@ -147,20 +151,17 @@ export class TabsComponent {
    * Number of visible tabs, including the current tab.
    */
   private visible(count: number) {
-    const current = this.currentTabWidth;
+    const currentIndex = this.currentTabIndex;
+    const current = this.tabWidths[currentIndex];
     if (!current) return count;
     if (this.config.mini()) return 0;
     const width = this.el.nativeElement.offsetWidth - 2;
     let result = 1;
     let childWidth = current + this.childWidths.reduce((a, b) => a + b);
     if (childWidth > width) return 0;
-    let skipped = false;
-    for (const w of this.tabWidths) {
-      if (!skipped && w === current) {
-        skipped = true;
-        continue;
-      }
-      childWidth += w;
+    for (let i = 0; i < this.tabWidths.length; i++) {
+      if (i === currentIndex) continue;
+      childWidth += this.tabWidths[i];
       if (childWidth + current < width) {
         result++;
       } else {
