@@ -52,8 +52,13 @@ body.darwin.safari {
       min-width: 32px !important;
     }
   }
-  .sidebar .controls select {
-    min-height: 28px;
+  .sidebar.floating {
+    top: auto;
+  }
+  .sidebar .controls {
+    select, button {
+      height: 28px;
+    }
   }
   .form,
   formly-list-section .form-array > formly-field > formly-group {
