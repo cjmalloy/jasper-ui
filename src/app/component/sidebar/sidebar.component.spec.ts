@@ -5,6 +5,7 @@ import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { AuthzService } from '../../service/authz.service';
+import { Store } from '../../store/store';
 
 import { SidebarComponent } from './sidebar.component';
 
@@ -82,6 +83,19 @@ describe('SidebarComponent', () => {
     expect(params.inputTag).toBeUndefined();
     expect(params.tag).toContain('public');
     expect(params.tag).not.toContain('car');
+  });
+
+  it('should hold the subscribe state until saving finishes', () => {
+    const store = TestBed.inject(Store);
+    fixture.componentRef.setInput('tag', 'cooking');
+    expect(component.inSubs()).toBe(false);
+
+    component.savingSub.set(true);
+    store.account.ext.set({ tag: '+user', config: { subscriptions: ['cooking'] } } as any);
+    expect(component.inSubs()).toBe(false);
+
+    component.savingSub.set(false);
+    expect(component.inSubs()).toBe(true);
   });
 
   it('should not split the submit button for a single plugin', () => {
