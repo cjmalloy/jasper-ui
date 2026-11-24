@@ -95,8 +95,9 @@ export class ResizeHandleDirective {
     if (!this.enabled()) return;
     if (this.dragging() && this.start) {
       this.resized.set(true);
+      // Mobile embeds take the full width, so only the height can change (see resizeCursor)
       resizeToPointer(this.el.nativeElement, this.start, event,
-        width => this.setWidth(width + 'px'),
+        this.config.mobile() ? undefined : width => this.setWidth(width + 'px'),
         height => this.setHeight(height + 'px'));
       event.preventDefault();
       event.stopPropagation();
