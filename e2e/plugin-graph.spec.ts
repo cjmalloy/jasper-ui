@@ -75,4 +75,15 @@ test.describe.serial('Graph Plugin', () => {
     await page.getByText('Select all').click();
     await expect(page.locator('.ref-list .link a', { hasText: 'Title' }).first()).toContainText('Title');
   });
+
+  test('context menu in fullscreen', async () => {
+    const figure = page.locator('.force-directed-graph');
+    await figure.click({ button: 'right' });
+    await page.locator('.graph-context-menu div', { hasText: 'Fullscreen' }).click();
+    await expect.poll(() => page.evaluate(() => document.fullscreenElement?.classList.contains('force-directed-graph'))).toBe(true);
+    await figure.click({ button: 'right' });
+    await expect(figure.locator('.graph-context-menu')).toBeVisible();
+    await page.locator('.graph-context-menu div', { hasText: 'Fullscreen' }).click();
+    await expect.poll(() => page.evaluate(() => !!document.fullscreenElement)).toBe(false);
+  });
 });

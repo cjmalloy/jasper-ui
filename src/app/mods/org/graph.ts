@@ -52,7 +52,11 @@ export const graphConfig: Template = {
         height: 70vh;
         user-select: none;
       }
+      .graph-lens .force-directed-graph:fullscreen {
+        background: var(--bg);
+      }
       .graph-lens .force-directed-graph svg {
+        display: block;
         max-width: 100%;
       }
       .graph-lens .force-directed-graph line {
@@ -84,7 +88,7 @@ export const graphConfig: Template = {
         fill: transparent;
         stroke-width: 1.5;
       }
-      .graph-lens .force-directed-graph text {
+      .graph-lens .force-directed-graph .graph-nodes text {
         font-size: 14px;
         pointer-events: none;
         text-anchor: middle;
@@ -253,6 +257,7 @@ export const graphConfig: Template = {
           const id = ++restartId;
           actions.graph(refs.map(r => r.url)).then(result => {
             if (destroyed || id !== restartId) return;
+            ramp = 0;
             set(result.filter(n => !!n));
             update();
           });
@@ -270,7 +275,7 @@ export const graphConfig: Template = {
           .append('path')
           .attr('d', 'M0,-5L10,0L0,5');
         const linkGroup = svg.append('g');
-        const nodeGroup = svg.append('g');
+        const nodeGroup = svg.append('g').attr('class', 'graph-nodes');
         let axis;
         let timelineScale;
         const dragRect = svg.append('g').append('rect')
@@ -287,14 +292,7 @@ export const graphConfig: Template = {
         const simulation = d3.forceSimulation()
           .force('link', forceLink)
           .force('charge', d3.forceManyBody().distanceMax(300))
-          .force('x', d3.forceX(d => {
-            if (!timeline || !isGraphable(d)) return 0;
-            return timelineScale(d.published.valueOf());
-          }).strength(d => {
-            if (!timeline) return 0.1;
-            if (!isGraphable(d)) return 0;
-            return 0.5;
-          }))
+          .force('x', timelineForce())
           .force('y', d3.forceY())
           .on('tick', () => {
             linkGroup.selectAll('line')
@@ -309,6 +307,25 @@ export const graphConfig: Template = {
               .attr('x', d => d.x)
               .attr('y', d => d.y);
           });
+
+        // Ease in the timeline pull so nodes flow out of the centre cluster instead of jumping
+        let ramp = 0;
+        const rampTicks = 60;
+        function timelineForce() {
+          let list = [];
+          const force = alpha => {
+            const ease = Math.min(1, ++ramp / rampTicks);
+            for (const d of list) {
+              if (!timeline) {
+                d.vx += -d.x * 0.1 * alpha;
+              } else if (isGraphable(d)) {
+                d.vx += (timelineScale(d.published.valueOf()) - d.x) * 0.5 * ease * alpha;
+              }
+            }
+          };
+          force.initialize = n => list = n;
+          return force;
+        }
 
         function dragSelection() {
           let rect;
@@ -475,7 +492,10 @@ export const graphConfig: Template = {
           menu.style.left = event.clientX + 'px';
           menu.style.top = event.clientY + 'px';
           menu.addEventListener('click', e => e.stopPropagation());
-          menu.addEventListener('contextmenu', e => e.preventDefault());
+          menu.addEventListener('contextmenu', e => {
+            e.stopPropagation();
+            e.preventDefault();
+          });
           const item = (text, fn, checked) => {
             if (menu.children.length) menu.append(document.createElement('hr'));
             const div = document.createElement('div');
@@ -544,6 +564,7 @@ export const graphConfig: Template = {
           }, showUnloaded);
           item(labels.timeline, () => {
             timeline = !timeline;
+            ramp = 0;
             simulation.alpha(0.5);
             update();
           }, timeline);
@@ -558,7 +579,7 @@ export const graphConfig: Template = {
               figure.requestFullscreen();
             }
           });
-          document.body.append(menu);
+          (document.fullscreenElement || document.body).append(menu);
         }
 
         figure.addEventListener('click', () => {
@@ -573,12 +594,14 @@ export const graphConfig: Template = {
         };
         window.addEventListener('resize', onResize);
         window.addEventListener('click', closeMenu);
+        document.addEventListener('fullscreenchange', closeMenu);
         actions.onDestroy(() => {
           destroyed = true;
           simulation.stop();
           closeMenu();
           window.removeEventListener('resize', onResize);
           window.removeEventListener('click', closeMenu);
+          document.removeEventListener('fullscreenchange', closeMenu);
         });
 
         set(content);

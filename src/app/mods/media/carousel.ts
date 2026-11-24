@@ -43,6 +43,7 @@ export const carouselTemplate: Template = {
       }
       .carousel-track {
         position: relative;
+        z-index: 0;
         display: flex;
         overflow-x: auto;
         scroll-snap-type: x mandatory;
@@ -54,6 +55,9 @@ export const carouselTemplate: Template = {
         display: none;
       }
       .carousel-slide {
+        --tilt: 0;
+        --distance: 0;
+        position: relative;
         flex: 0 0 var(--slide);
         box-sizing: border-box;
         height: 60vh;
@@ -62,14 +66,14 @@ export const carouselTemplate: Template = {
         scroll-snap-stop: always;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
-        opacity: 0.5;
-        transform: scale(0.85);
-        transition: transform 0.3s ease, opacity 0.3s ease;
+        transform: perspective(1200px) translateZ(calc(var(--distance) * -120px)) rotateY(calc(var(--tilt) * 40deg));
+        cursor: pointer;
       }
       .carousel-slide.active {
-        opacity: 1;
-        transform: none;
+        cursor: auto;
+      }
+      .carousel-slide:not(.active) .carousel-media {
+        pointer-events: none;
       }
       .carousel-media {
         flex: 1 1 auto;
@@ -77,6 +81,7 @@ export const carouselTemplate: Template = {
         overflow: auto;
         border-radius: 8px;
         background: var(--card);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
       }
       .carousel-media img,
       .carousel-media video {
@@ -85,9 +90,36 @@ export const carouselTemplate: Template = {
         object-fit: contain;
       }
       .carousel-caption {
-        flex: 0 0 auto;
-        max-height: 30%;
-        overflow: hidden;
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        right: 14px;
+        z-index: 1;
+        max-height: 50%;
+        overflow: auto;
+        padding: 4px 8px;
+        border-radius: 8px;
+        visibility: hidden;
+      }
+      .carousel-slide.active:hover .carousel-caption,
+      .carousel-slide.active.show-info .carousel-caption {
+        visibility: visible;
+      }
+      .carousel-slide.active .carousel-media:focus-within {
+        position: relative;
+        z-index: 2;
+      }
+      .carousel-slide.active.show-info .carousel-media {
+        z-index: auto;
+      }
+      body.dark-theme .carousel-caption {
+        -webkit-backdrop-filter: grayscale(1) contrast(0.4) brightness(0.4) blur(8px);
+        backdrop-filter: grayscale(1) contrast(0.4) brightness(0.4) blur(8px);
+        border: 0.5px solid rgba(255, 255, 255, 0.2);
+      }
+      body.light-theme .carousel-caption {
+        -webkit-backdrop-filter: grayscale(1) contrast(0.3) brightness(1.5) blur(8px);
+        backdrop-filter: grayscale(1) contrast(0.3) brightness(1.5) blur(8px);
       }
       .carousel-prev,
       .carousel-next {
@@ -121,11 +153,6 @@ export const carouselTemplate: Template = {
       .carousel-empty {
         padding: 16px;
         text-align: center;
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .carousel-slide {
-          transition: none;
-        }
       }
     `,
     // language=HTML
@@ -203,6 +230,11 @@ export const carouselTemplate: Template = {
               const i = slides.findIndex(s => s.el === el);
               if (i !== active) go(i);
             });
+            el.addEventListener('contextmenu', e => {
+              if (!el.classList.contains('active') || !matchMedia('(hover: none)').matches) return;
+              e.preventDefault();
+              el.classList.toggle('show-info');
+            });
             track.append(el);
             const slide = { el, ref, media, caption };
             slides.push(slide);
@@ -249,14 +281,22 @@ export const carouselTemplate: Template = {
           let best = 0;
           let distance = Infinity;
           for (let i = 0; i < slides.length; i++) {
-            const d = Math.abs(center(i) - track.scrollLeft);
+            const el = slides[i].el;
+            const offset = (center(i) - track.scrollLeft) / (el.offsetWidth || 1);
+            const d = Math.abs(offset);
             if (d < distance) {
               distance = d;
               best = i;
             }
+            const far = Math.min(d, peek + 1);
+            el.style.setProperty('--tilt', String(Math.max(-1, Math.min(1, offset))));
+            el.style.setProperty('--distance', String(Math.min(d, 1) + far / 4));
+            el.style.opacity = String(Math.max(0, 1 - far / (peek + 1)));
+            el.style.zIndex = String(Math.round(100 - far * 10));
+            el.style.visibility = far > peek + 0.99 ? 'hidden' : '';
           }
           if (best !== active) {
-            slides[active]?.el.classList.remove('active');
+            slides[active]?.el.classList.remove('active', 'show-info');
             slides[best].el.classList.add('active');
             active = best;
           }

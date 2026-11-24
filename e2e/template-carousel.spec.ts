@@ -44,6 +44,12 @@ test.describe.serial('Carousel Template', () => {
     await expect(page.locator('.carousel-prev')).toBeDisabled();
     await expect(page.locator('.page-controls')).toHaveCount(0);
 
+    const caption = page.locator('.carousel-slide.active .carousel-caption');
+    await expect(caption).toBeHidden();
+    await page.locator('.carousel-slide.active .carousel-media').hover();
+    await expect(caption).toBeVisible();
+    await expect(slides.nth(1)).toHaveCSS('opacity', /^0\.[45]/);
+
     await page.locator('.carousel-next').click();
     await expect(page.locator('.carousel-slide.active .carousel-caption .link a')).toHaveText('Slide 1');
     await expect(slides).toHaveCount(10);
