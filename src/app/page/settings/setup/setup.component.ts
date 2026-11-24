@@ -409,9 +409,10 @@ export class SettingsSetupPage {
     });
     return [
       ...(installed.plugin || [])
-        .filter(p => p.config?.adminForm?.length)
+        .filter(p => p.origin === this.store.account.origin() && p.config?.adminForm?.length)
         .map(p => entry('plugin', p, p.config!.adminForm!)),
       ...(installed.template || [])
+        .filter(t => t.origin === this.store.account.origin())
         .map(t => ({ t, fields: this.admin.getTemplateAdminForm(t.tag) }))
         .filter(({ fields }) => fields.length)
         .map(({ t, fields }) => entry('template', t, fields)),
@@ -421,8 +422,8 @@ export class SettingsSetupPage {
   hasAdminForm(config: Config) {
     const installed = this.admin.getInstalledMod(modId(config));
     if (!installed) return false;
-    return installed.plugin?.some(p => p.config?.adminForm?.length) ||
-      installed.template?.some(t => this.admin.getTemplateAdminForm(t.tag).length);
+    return installed.plugin?.some(p => p.origin === this.store.account.origin() && p.config?.adminForm?.length) ||
+      installed.template?.some(t => t.origin === this.store.account.origin() && this.admin.getTemplateAdminForm(t.tag).length);
   }
 
   configMod(config: Config) {
