@@ -82,25 +82,11 @@ export class NavComponent {
   readonly localUrl = computed(() => {
     const url = this.url();
     if (url.toLowerCase().startsWith('tag:/'))return true
-    if (this.apiUrl(url)) return false;
-    if (url.startsWith(this.baseHref)) return true;
+    if (url.startsWith(this.baseHref)) return true
     if (url.startsWith(getPath(this.baseHref)!)) return true;
     if (url.startsWith('/')) return true;
     return false;
   });
-
-  /**
-   * Server API links, such as the file proxy, are not app routes. Electron serves
-   * the UI and API from the same origin, so compare resolved URLs.
-   */
-  private apiUrl(url: string) {
-    try {
-      const api = new URL(this.config.api.replace(/\/+$/, '') + '/api/', this.baseHref).href;
-      return new URL(url, this.baseHref).href.startsWith(api);
-    } catch {
-      return false;
-    }
-  }
 
   readonly hasText = computed(() => this.meaningfulText(this.text()));
 

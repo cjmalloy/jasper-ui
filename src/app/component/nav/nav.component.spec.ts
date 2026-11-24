@@ -42,24 +42,6 @@ describe('NavComponent', () => {
     expect(component.nav()).toEqual(['/tag', 'second']);
   });
 
-  it('should link api urls externally', () => {
-    // Electron serves the UI and API from the same origin
-    const config = TestBed.inject(ConfigService);
-    fixture.componentRef.setInput('external', true);
-    for (const api of [location.origin, location.origin + '/', '']) {
-      config.api = api;
-      fixture.componentRef.setInput('url', api.replace(/\/$/, '') + '/api/v1/proxy/file.png?url=cache:1');
-      expect(component.localUrl()).toBe(false);
-      expect(component.nav()).toBeUndefined();
-    }
-  });
-
-  it('should still route local urls', () => {
-    TestBed.inject(ConfigService).api = location.origin;
-    fixture.componentRef.setInput('url', location.origin + '/tag/api');
-    expect(component.nav()).toEqual(['/tag', 'api']);
-  });
-
   it('should not treat plain hashtag as custom text', () => {
     fixture.componentRef.setInput('url', '/tag/notes');
     fixture.componentRef.setInput('text', '#notes');
