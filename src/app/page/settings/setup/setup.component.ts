@@ -1,3 +1,4 @@
+import { A11yModule } from '@angular/cdk/a11y';
 import { Overlay, OverlayModule, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { KeyValuePipe, NgTemplateOutlet } from '@angular/common';
@@ -58,6 +59,7 @@ interface ModConfigState {
     OverlayModule,
     LoadingComponent,
     AdminConfigComponent,
+    A11yModule,
   ],
 })
 export class SettingsSetupPage {
@@ -431,9 +433,11 @@ export class SettingsSetupPage {
     this.configState.set({ mod, entries: this.modConfigEntries(mod) });
     this.configPopupRef = this.createPopup();
     this.configPopupRef.attach(new TemplatePortal(configPopup, this.vc));
-    this.configPopupSub.add(this.configPopupRef.backdropClick().subscribe(() => this.cancelConfig()));
+    this.configPopupSub.add(this.configPopupRef.backdropClick().subscribe(() => {
+      if (!this.configSaving()) this.cancelConfig();
+    }));
     this.configPopupSub.add(this.configPopupRef.keydownEvents().subscribe(event => {
-      if (event.key === 'Escape') this.cancelConfig();
+      if (event.key === 'Escape' && !this.configSaving()) this.cancelConfig();
     }));
   }
 
@@ -447,6 +451,7 @@ export class SettingsSetupPage {
       return;
     }
     const updates: Observable<void>[] = [];
+    let saved = false;
     for (const e of state.entries) {
       if (!e.group.dirty) continue;
       let config: any;
@@ -456,9 +461,13 @@ export class SettingsSetupPage {
         this.configErrors.update(errors => [...errors, err.message]);
         continue;
       }
-      updates.push(e.type === 'plugin'
+      const update$ = e.type === 'plugin'
         ? this.plugins.update({ ...e.entity as Plugin, config })
-        : this.templates.update({ ...e.entity as Template, config }));
+        : this.templates.update({ ...e.entity as Template, config });
+      updates.push(update$.pipe(tap(() => {
+        saved = true;
+        e.group.markAsPristine();
+      })));
     }
     if (this.configErrors().length) return;
     const _ = (msg?: string) => this.installMessages.update(messages => msg ? [...messages, msg] : messages);
@@ -472,6 +481,8 @@ export class SettingsSetupPage {
       catchError((res: HttpErrorResponse) => {
         this.configSaving.set(false);
         this.configErrors.set(printError(res));
+        // Earlier entries were saved, so refresh the installed mods while keeping the remaining edits
+        if (saved) this.reset();
         return EMPTY;
       }),
     ).subscribe(() => {

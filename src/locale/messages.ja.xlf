@@ -9241,6 +9241,10 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Saved <x id="PH" equiv-text="state.mod"/> config.</source>
         <target><x id="PH" equiv-text="state.mod"/> の設定を保存しました。</target>
       </trans-unit>
+      <trans-unit id="1850284514970163613" datatype="html">
+        <source>JSON is not a Ref, an Ext or a { ref, ext } bundle.</source>
+        <target>JSONはRef、Ext、または { ref, ext } バンドルではありません。</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

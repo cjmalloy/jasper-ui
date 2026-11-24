@@ -21580,6 +21580,13 @@ Each response contains the converted Markdown from a specific source format.</so
           <context context-type="linenumber">21</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="1850284514970163613" datatype="html">
+        <source>JSON is not a Ref, an Ext or a { ref, ext } bundle.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/util/zip.ts</context>
+          <context context-type="linenumber">60</context>
+        </context-group>
+      </trans-unit>
     </body>
   </file>
 </xliff>

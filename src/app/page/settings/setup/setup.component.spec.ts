@@ -319,5 +319,30 @@ describe('SettingsSetupPage', () => {
       expect(component.configErrors().length).toBeGreaterThan(0);
       expect(component.configSaving()).toBe(false);
     });
+
+    it('should not dismiss the popup while saving', () => {
+      vi.spyOn(TestBed.inject(TemplateService), 'update').mockReturnValue(NEVER);
+      component.configMod(plugin);
+      component.configState()!.entries[1].group.markAsDirty();
+      component.saveConfig();
+      document.querySelector('.cdk-overlay-backdrop')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      document.querySelector('.mod-config-popup')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      expect(component.configState()).toBeTruthy();
+      expect(component.configSaving()).toBe(true);
+    });
+
+    it('should refresh mods and keep unsaved edits after a partial failure', () => {
+      vi.spyOn(TestBed.inject(PluginService), 'update').mockReturnValue(of(undefined));
+      vi.spyOn(TestBed.inject(TemplateService), 'update').mockReturnValue(throwError(() => ({ status: 500, message: 'boom' })));
+      component.configMod(plugin);
+      const [saved, failed] = component.configState()!.entries;
+      saved.group.markAsDirty();
+      failed.group.markAsDirty();
+      component.saveConfig();
+      expect(admin.reload$).toHaveBeenCalled();
+      expect(saved.group.dirty).toBe(false);
+      expect(failed.group.dirty).toBe(true);
+      expect(component.configState()).toBeTruthy();
+    });
   });
 });
