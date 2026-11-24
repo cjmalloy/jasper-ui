@@ -964,6 +964,8 @@ export class RefComponent implements HasChanges {
   });
 
   readonly clickableLink = computed(() => {
+    // Cached files have no external URL, so link to the Ref like the permalink
+    if (this.url().startsWith('cache:')) return false;
     if (this.file()) return true;
     return clickableLink(this.url());
   });

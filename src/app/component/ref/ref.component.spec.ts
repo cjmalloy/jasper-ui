@@ -48,6 +48,17 @@ describe('RefComponent', () => {
     expect(component.recipients()).toEqual(['+support']);
   });
 
+  it('links cached file titles to the Ref', () => {
+    (TestBed.inject(AdminService) as any).updateStatus((status: any) => {
+      status.plugins['plugin/file'] = { tag: 'plugin/file' };
+    });
+    fixture.componentRef.setInput('ref', { url: 'cache:1', origin: '@city', title: 'Image', tags: ['plugin/file'] });
+    fixture.detectChanges();
+    expect(component.clickableLink()).toBe(false);
+    const link: HTMLAnchorElement = fixture.nativeElement.querySelector('.link a');
+    expect(decodeURIComponent(link.getAttribute('href')!)).toContain('/ref/cache:1');
+  });
+
   it('derives titles from new refs and form edits', () => {
     fixture.componentRef.setInput('ref', { url: 'https://example.com', title: 'First' });
     fixture.detectChanges();
