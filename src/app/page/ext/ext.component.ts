@@ -259,7 +259,7 @@ export class ExtPage implements HasChanges {
     const ext = this.store.view.ext()!;
     // TODO: Better dialogs
     if (confirm($localize`Are you sure you want to delete this tag extension?`)) {
-      const deleteNotice = !isDeletorTag(ext.tag) && this.admin.getPlugin('plugin/delete')
+      const deleteNotice = ext.origin === this.store.account.origin() && !isDeletorTag(ext.tag) && this.admin.getPlugin('plugin/delete')
         ? this.exts.create(tagDeleteNotice(ext))
         : of(null);
       this.deleting.set(true);
