@@ -11,7 +11,8 @@ import {
   viewChildren,
   ViewContainerRef
 } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { catchError, firstValueFrom, of } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -85,6 +86,27 @@ export class LensComponent implements HasChanges {
   readonly pageControls = input(true);
   readonly showAlarm = input(true);
   readonly showVotes = input(false);
+
+  /** Embedded lenses only show targets from their own args, never from the page's {@link QueryStore}. */
+  private readonly embedTargets = computed(() => {
+    if (this.fullPage()) return undefined;
+    const args = this.args() ?? getArgs(this.tag(), undefined, this.filter());
+    return { sources: args.sources, responses: args.responses };
+  }, { equal: (a, b) => a?.sources === b?.sources && a?.responses === b?.responses });
+  private readonly embedSources = rxResource({
+    params: () => this.embedTargets()?.sources,
+    stream: ({ params }) => this.refs.getCurrent(params).pipe(catchError(() => of(undefined))),
+  });
+  private readonly embedResponses = rxResource({
+    params: () => this.embedTargets()?.responses,
+    stream: ({ params }) => this.refs.getCurrent(params).pipe(catchError(() => of(undefined))),
+  });
+  readonly sourcesOf = computed(() => this.fullPage()
+    ? this.query.sourcesOf()
+    : this.embedTargets()?.sources && this.embedSources.hasValue() ? this.embedSources.value() : undefined);
+  readonly responseOf = computed(() => this.fullPage()
+    ? this.query.responseOf()
+    : this.embedTargets()?.responses && this.embedResponses.hasValue() ? this.embedResponses.value() : undefined);
 
   readonly plugins = computed(() => hasPrefix(this.ext()?.tag, 'plugin') ? [this.ext()!.tag] : undefined);
   readonly header = computed(() => this.ext()?.config?.header);
