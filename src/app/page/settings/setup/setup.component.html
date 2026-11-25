@@ -145,9 +145,6 @@
                             [fields]="e.fields" />
         }
       </div>
-      @for (err of configErrors(); track $index) {
-        <div class="error mod-config-error">{{ err }}</div>
-      }
     </div>
     <span class="buttons right floating mod-config-buttons">
       @if (configSaving()) {
@@ -156,5 +153,8 @@
       <button type="button" class="mod-config-save" [disabled]="configSaving()" (click)="saveConfig()" i18n>save</button>
       <button type="button" class="mod-config-cancel" [disabled]="configSaving()" (click)="cancelConfig()" i18n>cancel</button>
     </span>
+    @for (err of configErrors(); track $index) {
+      <div class="error mod-config-error">{{ err }}</div>
+    }
   </div>
 </ng-template>
