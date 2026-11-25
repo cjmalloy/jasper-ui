@@ -12,7 +12,7 @@ export const carouselTemplate: Template = {
   name: $localize`🎠️ Carousel`,
   config: {
     mod: $localize`🎠️ Carousel`,
-    version: 3,
+    version: 4,
     type: 'lens',
     global: true,
     view: $localize`🎠️`,
@@ -35,6 +35,7 @@ export const carouselTemplate: Template = {
       .carousel-frame {
         --peek: 1;
         --slide: calc(100cqw / (1 + 2 * var(--peek)));
+        --height: 60vh;
         container-type: inline-size;
         position: relative;
         isolation: isolate;
@@ -59,7 +60,7 @@ export const carouselTemplate: Template = {
         position: relative;
         flex: 0 0 var(--slide);
         box-sizing: border-box;
-        height: 60vh;
+        height: var(--height);
         padding: 8px;
         scroll-snap-align: center;
         scroll-snap-stop: always;
@@ -67,6 +68,13 @@ export const carouselTemplate: Template = {
         flex-direction: column;
         transform: perspective(1200px) translateZ(calc(var(--distance) * -120px)) rotateY(calc(var(--tilt) * 40deg));
         cursor: pointer;
+      }
+      /* Follow the shape of the media, leaving room to see the neighbours */
+      .carousel-slide.sized {
+        flex-basis: clamp(
+          calc(var(--slide) / 2),
+          calc((var(--height) - 16px) * var(--ratio) + 16px),
+          max(var(--slide), 100cqw - var(--peek) * var(--slide)));
       }
       .carousel-slide.active {
         cursor: auto;
@@ -78,10 +86,7 @@ export const carouselTemplate: Template = {
         flex: 1 1 auto;
         min-height: 0;
         display: flex;
-        overflow: hidden;
-        border-radius: 8px;
-        background: var(--card);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        container-type: size;
       }
       .carousel-media > * {
         flex: 1 1 auto;
@@ -89,27 +94,72 @@ export const carouselTemplate: Template = {
         min-height: 0;
         display: flex;
         flex-direction: column;
+        align-items: center;
         overflow: auto;
       }
-      .carousel-media > * > :is(.image-expand, video, app-qr, .embed-container),
-      .carousel-media > * > .embed-container > iframe {
-        flex: 1 1 auto;
-        width: 100% !important;
-        height: 100% !important;
+      /* Center when there is room, without cutting off the top of tall content */
+      .carousel-media > * > * {
+        flex: none;
+        margin-block: auto !important;
+      }
+      .carousel-media > * > .image-expand {
+        --r: var(--image-ratio, 1);
+      }
+      .carousel-media > * > video {
+        --r: var(--video-ratio, 16 / 9);
+        object-fit: contain;
+      }
+      .carousel-media > * > .embed-container:has(> iframe.keep-ratio) {
+        --r: var(--ratio, 16 / 9);
+      }
+      .carousel-media > * > :is(.image-expand, video, .embed-container:has(> iframe.keep-ratio)) {
+        width: min(100cqw, 100cqh * var(--r)) !important;
+        height: min(100cqh, 100cqw / var(--r)) !important;
         max-width: none !important;
-        min-height: 0;
-        margin: 0 !important;
-        border-radius: 0;
+        max-height: none !important;
+        margin-inline: 0 !important;
       }
       .carousel-media > * > .image-expand {
         background-size: contain !important;
         background-position: center !important;
       }
-      .carousel-media > * > video {
-        object-fit: contain;
+      .carousel-media > * > :is(.embed-container, app-qr),
+      .carousel-media > * > .embed-container > iframe {
+        flex: 1 1 auto;
+        align-self: stretch;
+        width: 100% !important;
+        height: 100% !important;
+        max-width: none !important;
+        min-height: 0;
+        margin: 0 !important;
+        transform: none !important;
+      }
+      .carousel-media > * > .embed-container:has(> iframe.keep-ratio) {
+        flex: none;
+        align-self: center;
       }
       .carousel-media > * > .audio-expand {
-        margin: auto;
+        width: 100%;
+        max-width: none;
+      }
+      .carousel-media > * > .md-container {
+        align-self: stretch;
+        min-width: 0;
+      }
+      .carousel-media > * > .md-container.code,
+      .carousel-media > * > .md-container.code > .md {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        margin: 0 !important;
+      }
+      .carousel-media > * > .md-container.code > .md > pre {
+        flex: 1 1 auto;
+        box-sizing: border-box;
+        max-width: none !important;
+        margin: 0 !important;
+        overflow: auto;
       }
       .carousel-media > * > .md-container,
       .carousel-media > * > .md-container .expand {
@@ -162,8 +212,28 @@ export const carouselTemplate: Template = {
           }
         }, { root: track, rootMargin: '0px 100% 0px 100%' });
 
+        // Size each slide to its media once the media knows its shape
+        const shapes = new MutationObserver(records => {
+          for (const r of records) measure(byEl.get(r.target.closest?.('.carousel-slide')));
+        });
+        function measure(slide) {
+          if (!slide) return;
+          const m = slide.media.querySelector('.image-expand, video, iframe.keep-ratio');
+          if (!m) return;
+          const [w, h] = (m.style.aspectRatio || '').split('/').map(Number);
+          const ratio = parseFloat(m.style.getPropertyValue('--image-ratio'))
+            || parseFloat(m.style.getPropertyValue('--video-ratio'))
+            || w / h;
+          if (!(ratio > 0) || !isFinite(ratio)) return;
+          slide.el.style.setProperty('--ratio', String(ratio));
+          slide.el.classList.add('sized');
+        }
+
         function mount(slide) {
-          slide.destroy ??= actions.embed(slide.media, slide.ref);
+          if (slide.destroy) return;
+          slide.destroy = actions.embed(slide.media, slide.ref);
+          shapes.observe(slide.media, { subtree: true, childList: true, attributes: true, attributeFilter: ['style', 'class'] });
+          measure(slide);
         }
         function unmount(slide) {
           if (slide.destroy?.hasChanges()) return;
@@ -306,19 +376,28 @@ export const carouselTemplate: Template = {
           track.scrollTo({ left: center(i), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
         }
 
+        /** Fractional index of the slide in the center, so slides of any width tilt the same. */
+        function position() {
+          const x = track.scrollLeft;
+          let prev = center(0);
+          if (x <= prev || slides.length < 2) return (x - prev) / (slides[0].el.offsetWidth || 1);
+          for (let i = 1; i < slides.length; i++) {
+            const next = center(i);
+            if (x <= next) return i - 1 + (x - prev) / ((next - prev) || 1);
+            prev = next;
+          }
+          return slides.length - 1 + (x - prev) / (slides[slides.length - 1].el.offsetWidth || 1);
+        }
+
         function updateActive() {
           frame = undefined;
           if (!slides.length) return;
-          let best = 0;
-          let distance = Infinity;
+          const pos = position();
+          const best = Math.max(0, Math.min(slides.length - 1, Math.round(pos)));
           for (let i = 0; i < slides.length; i++) {
             const el = slides[i].el;
-            const offset = (center(i) - track.scrollLeft) / (el.offsetWidth || 1);
+            const offset = i - pos;
             const d = Math.abs(offset);
-            if (d < distance) {
-              distance = d;
-              best = i;
-            }
             const far = Math.min(d, peek + 1);
             el.style.setProperty('--tilt', String(Math.max(-1, Math.min(1, offset))));
             el.style.setProperty('--distance', String(Math.min(d, 1) + far / 4));
@@ -357,6 +436,7 @@ export const carouselTemplate: Template = {
         actions.onDestroy(() => {
           destroyed = true;
           observer.disconnect();
+          shapes.disconnect();
           resize.disconnect();
           if (frame) cancelAnimationFrame(frame);
           clearTimeout(settle);
