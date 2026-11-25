@@ -71,6 +71,9 @@ export class GridComponent implements HasChanges {
     return true;
   }
 
+  // AG Grid's default minWidth is 0, so flex columns would collapse once the other columns fill the grid
+  readonly defaultColDef: ColDef = { minWidth: 120 };
+
   readonly columnDefs = computed<ColDef[]>(() => {
     return this.applyFormatters(this.ext()?.config?.columnDefs || this.defaultCols());
   }, { equal: isEqual });

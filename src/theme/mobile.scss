@@ -44,7 +44,9 @@ $tablet-width: 948px;
   .sidebar {
     position: static !important;
     float: none !important;
-    backdrop-filter: blur(1px) !important;
+    // iOS hides the text caret in inputs inside a backdrop-filter
+    backdrop-filter: none !important;
+    background-color: var(--bg-accent);
     border: none !important;
     margin-left: 0;
 
@@ -330,6 +332,17 @@ $tablet-width: 948px;
   mgl-map {
     width: 100vw !important;
   }
+  .embed mgl-map {
+    width: 100% !important;
+  }
+  // The grip hangs below the map like other embeds, so don't clip it
+  .map-embed mgl-map.resize-handle {
+    overflow: visible;
+    margin-bottom: 26px;
+    & > div {
+      border-radius: inherit;
+    }
+  }
 
   .json-editor ngx-monaco-editor,
   .diff-editor ngx-monaco-diff-editor {
@@ -393,11 +406,36 @@ $tablet-width: 948px;
     display: block !important;
   }
 
+  // Fill the card, the same on the Ref page and in lists. Shifting left would poke out of the card
+  // and be clipped by the markdown around nested embeds.
   .embed:not(.comment-body) {
-    position: relative;
-    left: -8px;
     margin: 0;
-    width: min(100%, 100vw - 16px);
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  // Lists use the full width, like the Ref page
+  .viewer-inline > *,
+  .viewer-below > * {
+    margin-left: 0;
+    margin-right: 0;
+  }
+  app-ref-list.expand {
+    margin: 0;
+    padding: 0;
+    max-width: 100%;
+  }
+
+  // Stack nested Refs and embeds in markdown instead of indenting at each level
+  .md {
+    .md-container.expand {
+      margin: 2px 0;
+      padding: 4px 0;
+    }
+    .ref.list-item:not(.plugin_thread) {
+      margin: 2px 0;
+      padding: 2px 0;
+    }
   }
 
   .audio-expand {
@@ -406,25 +444,11 @@ $tablet-width: 948px;
   }
 
   .video-expand {
-    width: calc(100vw - 16px) !important;
+    width: 100% !important;
   }
 
   .code {
     max-width: calc(100% - 16px);
-  }
-
-  .full-page {
-    .embed {
-      width: calc(100vw - 10px);
-      left: 0;
-    }
-    &.thread .embed {
-      width: unset;
-    }
-  }
-
-  .thread .embed {
-    left: 0 !important;
   }
 
   .info, .actions:not(.bulk, .debug), .advanced-actions * {

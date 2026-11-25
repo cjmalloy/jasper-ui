@@ -55,7 +55,8 @@
             [cols]="store.view.cols()"
             [sort]="store.view.sort()"
             [filter]="store.view.filter()"
-            [search]="store.view.search()" />
+            [search]="store.view.search()"
+            [args]="query.args()" />
 } @else {
   <div class="error-403" i18n>Access Denied</div>
 }

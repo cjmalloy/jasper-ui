@@ -544,7 +544,12 @@ export class RefComponent implements HasChanges {
 
   private handleViewer(value: ViewerComponent | undefined) {
     if (value) {
-      if (this.fullscreen()) {
+      if (this.fullscreen() && !fullscreenSupported(value.el.nativeElement)) {
+        // Mobile is basically fullscreen already (ex. iPhone, which has no element Fullscreen API)
+        this.fullscreen.set(false);
+        this.focusViewer = false;
+        defer(() => value.el.nativeElement.focus({ preventScroll: true }));
+      } else if (this.fullscreen()) {
         this.focusViewer = false;
         value.el.nativeElement.requestFullscreen().then(() => {
           value.el.nativeElement.focus({ preventScroll: true });
@@ -1089,17 +1094,7 @@ export class RefComponent implements HasChanges {
       this.setViewSource(false);
     } else if (!this.fullscreen()) {
       if (this.store.hotkey() && this.admin.getPlugin('plugin/fullscreen')) {
-        this.fullscreen.set(true);
-        this.closeOffFullscreen = !this.expanded();
-        const viewer = this.viewer();
-        if (viewer) {
-          viewer.el.nativeElement.requestFullscreen().then(() => {
-            viewer.el.nativeElement.focus({ preventScroll: true });
-          }).catch(() => {
-            console.warn('Could not make fullscreen.');
-          });
-        }
-        this.expanded.set(true);
+        this.openFullscreen();
       } else if (this.pipRequired()) {
         this.store.eventBus.fire('pip', this.ref());
         read = true;
@@ -1114,10 +1109,62 @@ export class RefComponent implements HasChanges {
     }
   }
 
+  private openFullscreen() {
+    if (!fullscreenSupported(this.viewer()?.el.nativeElement)) {
+      this.expanded.set(true);
+      return;
+    }
+    this.fullscreen.set(true);
+    this.closeOffFullscreen = !this.expanded();
+    const viewer = this.viewer();
+    if (viewer) {
+      viewer.el.nativeElement.requestFullscreen().then(() => {
+        viewer.el.nativeElement.focus({ preventScroll: true });
+      }).catch(() => {
+        console.warn('Could not make fullscreen.');
+      });
+    }
+    this.expanded.set(true);
+  }
+
+  /** Editing and source modes have no viewer to make fullscreen. */
+  private canFallbackFullscreen() {
+    return !this.fullscreen() && !this.editing() && !this.viewSource()
+      && !!this.admin.getPlugin('plugin/fullscreen') && fullscreenSupported();
+  }
+
+  /**
+   * Right click or long-press on the toggle. Opens Picture-in-Picture where supported (desktop),
+   * otherwise fullscreen (ex. Android, which has no Document Picture-in-Picture).
+   */
   pip(event?: MouseEvent) {
-    if (!this.admin.pip()) return;
-    this.store.eventBus.fire('pip', this.ref());
-    this.markRead();
+    if (this.admin.pip()) {
+      this.store.eventBus.fire('pip', this.ref());
+      this.markRead();
+    } else if (this.canFallbackFullscreen()) {
+      if (navigator.userActivation?.isActive ?? true) {
+        this.openFullscreen();
+        this.markRead();
+      } else {
+        // Long-press fires before the finger lifts, which is when touch grants the activation fullscreen needs
+        const off = () => {
+          window.removeEventListener('pointerup', up, { capture: true });
+          window.removeEventListener('pointercancel', off, { capture: true });
+          removeOnDestroy();
+        };
+        const removeOnDestroy = this.destroyRef.onDestroy(off);
+        const up = () => {
+          off();
+          if (!this.canFallbackFullscreen()) return;
+          this.openFullscreen();
+          this.markRead();
+        };
+        window.addEventListener('pointerup', up, { capture: true });
+        window.addEventListener('pointercancel', off, { capture: true });
+      }
+    } else {
+      return;
+    }
     if ('vibrate' in navigator) navigator.vibrate([2, 32, 4]);
     event?.preventDefault();
     event?.stopPropagation();
@@ -1523,4 +1570,9 @@ export class RefComponent implements HasChanges {
 
 function sameRef(a?: Ref, b?: Ref) {
   return !!a && !!b && a.url === b.url && (a.origin || '') === (b.origin || '');
+}
+
+/** iPhone has no element Fullscreen API. */
+function fullscreenSupported(el: HTMLElement = document.documentElement) {
+  return !!document.fullscreenEnabled && typeof el?.requestFullscreen === 'function';
 }

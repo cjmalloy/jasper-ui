@@ -4,6 +4,7 @@ import { computed, Directive, ElementRef, inject, input, output, signal } from '
   selector: '[appResize]',
   host: {
     '[style.z-index]': "zIndex()",
+    '[class.resized]': 'dirty()',
     '[style.width]': 'width()',
     '[style.height]': 'height()',
     '(mousedown)': 'onMousedown($event)',
