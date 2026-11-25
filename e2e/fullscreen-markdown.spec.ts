@@ -7,7 +7,6 @@ test.describe.serial('Fullscreen Markdown', () => {
   const api = (process.env.MAIN_API || 'http://localhost:8081') + '/api/v1';
   const imageRef = `comment:fs-image-${runId}`;
   const videoRef = `comment:fs-video-${runId}`;
-  const tweetRef = `https://x.com/fs-${runId}/status/463440424141459456`;
   const viewports = [
     { name: 'desktop', width: 1280, height: 800 },
     { name: 'narrow', width: 390, height: 844 },
@@ -61,7 +60,7 @@ test.describe.serial('Fullscreen Markdown', () => {
   }
 
   test('enable mods', async ({ page }) => {
-    await mod(page, '#mod-root', '#mod-cache', '#mod-images', '[id="mod-plugin/video"]', '[id="mod-plugin/fullscreen"]', '[id="mod-plugin/embed"]');
+    await mod(page, '#mod-root', '#mod-cache', '#mod-images', '[id="mod-plugin/video"]', '[id="mod-plugin/fullscreen"]'');
   });
 
   test('create refs', async ({ request }) => {
@@ -70,7 +69,6 @@ test.describe.serial('Fullscreen Markdown', () => {
     for (const data of [
       { url: imageRef, title: 'Image', tags: ['public'], comment: `Text\n\n![wide](${image})` },
       { url: videoRef, title: 'Video', tags: ['public'], comment: `Text\n\n<video src="${video}"></video>` },
-      { url: tweetRef, title: 'Tweet', tags: ['public', 'plugin/embed'] },
     ]) {
       const res = await request.post(`${api}/ref`, {
         headers: await headers(request),
@@ -124,51 +122,4 @@ test.describe.serial('Fullscreen Markdown', () => {
       expect(shrunk.width / shrunk.height).toBeCloseTo(16 / 9, 1);
     });
   }
-
-  /** Like widgets.js, the post keeps a minimum width and reports its height once rendered. */
-  async function mockTweet(page: Page, height: number) {
-    const tweet = `<div class="tweet" style="position: relative; box-sizing: border-box; max-width: 550px; min-width: 250px; width: 100%; height: ${height}px; border: 1px solid">`
-      + '<div class="end" style="position: absolute; right: 0; bottom: 0; width: 20px; height: 20px">.</div></div>';
-    await page.route('**/api/v1/oembed?**', route => route.fulfill({
-      contentType: 'application/json',
-      body: JSON.stringify({ type: 'rich', version: '1.0', provider_name: 'X', provider_url: 'https://x.com', html: tweet }),
-    }));
-  }
-
-  for (const vp of [...viewports, { name: 'short', width: 1280, height: 500 }]) {
-    test(`scrolls to the bottom of a tall Tweet (${vp.name})`, async ({ page }) => {
-      await page.setViewportSize(vp);
-      // Narrow screens show the post without the fullscreen zoom
-      await mockTweet(page, vp.width < 740 ? 1000 : 573);
-      const viewer = await hotkeyFullscreen(page, tweetRef);
-      const iframe = viewer.locator('.embed-container.twitter > iframe.ready');
-      await expect.poll(async () => (await box(iframe)).height).toBeGreaterThan(vp.height + 100);
-      const b = await box(viewer);
-      await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
-      for (let i = 0; i < 10; i++) await page.mouse.wheel(0, 400);
-      // Frame locators ignore the fullscreen zoom, so measure in the page
-      await expect.poll(() => iframe.evaluate(i => i.getBoundingClientRect().bottom)).toBeLessThanOrEqual(vp.height + 1);
-      const clip = await viewer.evaluate(v => {
-        const c = v.querySelector('.embed-container')!.getBoundingClientRect();
-        const i = v.querySelector('.embed-container > iframe')!.getBoundingClientRect();
-        return { bottom: c.bottom - i.bottom, right: c.right - i.right };
-      });
-      // The container clips its overflow, so it must hold the whole iframe
-      expect(clip.bottom).toBeGreaterThanOrEqual(-1);
-      expect(clip.right).toBeGreaterThanOrEqual(-1);
-      const frame = await box(iframe);
-      expect(frame.x + frame.width).toBeLessThanOrEqual(vp.width + 1);
-      const inner = page.frameLocator('.embed:fullscreen .embed-container.twitter > iframe').locator('.end');
-      expect(await inner.evaluate(e => e.getBoundingClientRect().right <= innerWidth)).toBe(true);
-    });
-  }
-
-  test('leaves no gap below a short Tweet', async ({ page }) => {
-    await page.setViewportSize(viewports[0]);
-    await mockTweet(page, 150);
-    const viewer = await hotkeyFullscreen(page, tweetRef);
-    const iframe = viewer.locator('.embed-container.twitter > iframe.ready');
-    await expect.poll(async () => (await box(iframe)).height).toBe(300);
-    expect(await viewer.evaluate(v => v.scrollHeight <= v.clientHeight)).toBe(true);
-  });
 });

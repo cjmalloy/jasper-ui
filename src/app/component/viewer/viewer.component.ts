@@ -35,7 +35,7 @@ import { RefService } from '../../service/api/ref.service';
 import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
-import { EmbedService, followHeight } from '../../service/embed.service';
+import { EmbedService } from '../../service/embed.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
 import { CLIPBOARD_COPY_EVENT, copyImage } from '../../util/clipboard';
@@ -68,7 +68,6 @@ import { TodoComponent } from '../todo/todo.component';
     '[attr.title]': "title()",
     '(keydown)': 'onKeydown($event)',
     '(window:resize)': 'measureLayout()',
-    '(document:fullscreenchange)': 'onFullscreenChange()',
 
   },
   imports: [
@@ -361,19 +360,6 @@ export class ViewerComponent {
       hls.loadSource(this.videoUrl());
       hls.attachMedia(video);
     }
-  }
-
-  private wasFullscreen = false;
-  /**
-   * Zoomed oEmbeds (ex. Tweets) get a new width in fullscreen, so follow their height again
-   * even if they stopped reporting it long ago.
-   */
-  onFullscreenChange() {
-    const fullscreen = document.fullscreenElement === this.el.nativeElement;
-    if (fullscreen === this.wasFullscreen) return;
-    this.wasFullscreen = fullscreen;
-    const i = this.iframe()?.nativeElement;
-    if (i && this.zoom()) followHeight(i);
   }
 
   setVideoRatio(video: HTMLVideoElement) {
