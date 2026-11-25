@@ -72,8 +72,31 @@ label {
 }
 
 .mod-config-panel {
+  container-type: inline-size;
   margin-bottom: 16px;
   outline: none;
+}
+
+// The log column can be much narrower than the viewport, so stack the form
+// based on the panel width instead of waiting for the mobile breakpoint
+@container (max-width: 500px) {
+  .mod-config-forms {
+    padding: 0;
+  }
+  .mod-config-forms,
+  .mod-config-forms ::ng-deep :is(.form, .form-group, formly-list-section .form-array > formly-field > formly-group) {
+    display: flex !important;
+    flex-direction: column;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .mod-config-forms ::ng-deep label {
+    text-align: left !important;
+  }
+  .mod-config-forms ::ng-deep :is(select, input:not([type=checkbox], [type=radio]), textarea, .form-array, .cdk-drop-list) {
+    min-width: 0;
+    max-width: 100%;
+  }
 }
 
 .mod-config-title {
