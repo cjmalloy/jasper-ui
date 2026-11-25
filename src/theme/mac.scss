@@ -89,15 +89,11 @@ body.darwin.safari {
   select.big {
     font-size: 21px;
   }
-  .search {
-    input[type=search] {
-      margin-top: 0;
-    }
-  }
   .search.centered {
     position: relative;
     top: 50%;
     input[type=search] {
+      margin-top: 0;
       transform: translateY(-50%);
     }
   }
