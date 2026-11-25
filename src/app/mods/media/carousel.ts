@@ -3,8 +3,6 @@ import { Mod } from '../../model/tag';
 import { Template } from '../../model/template';
 
 const carouselLabels = {
-  previous: $localize`Previous`,
-  next: $localize`Next`,
   empty: $localize`No results found`,
 };
 const carouselLabelsSource = JSON.stringify(carouselLabels).replace(/</g, '\\u003c');
@@ -14,7 +12,7 @@ export const carouselTemplate: Template = {
   name: $localize`🎠️ Carousel`,
   config: {
     mod: $localize`🎠️ Carousel`,
-    version: 2,
+    version: 3,
     type: 'lens',
     global: true,
     view: $localize`🎠️`,
@@ -117,35 +115,6 @@ export const carouselTemplate: Template = {
       .carousel-media > * > .md-container .expand {
         border: none !important;
       }
-      .carousel-prev,
-      .carousel-next {
-        position: absolute;
-        top: 50%;
-        z-index: 1;
-        transform: translateY(-50%);
-        width: 40px;
-        height: 40px;
-        border-radius: 20px;
-        font-size: 24px;
-        line-height: 1;
-        cursor: pointer;
-        opacity: 0.7;
-      }
-      .carousel-prev:hover,
-      .carousel-next:hover {
-        opacity: 1;
-      }
-      .carousel-prev:disabled,
-      .carousel-next:disabled {
-        opacity: 0.2;
-        cursor: default;
-      }
-      .carousel-prev {
-        left: 4px;
-      }
-      .carousel-next {
-        right: 4px;
-      }
       .carousel-empty {
         padding: 16px;
         text-align: center;
@@ -163,28 +132,28 @@ export const carouselTemplate: Template = {
       function carouselApp(root, actions, page, peek) {
         const labels = ${carouselLabelsSource};
         const track = root.querySelector('.carousel-track');
-        const prev = root.querySelector('.carousel-prev');
-        const next = root.querySelector('.carousel-next');
-        prev.title = labels.previous;
-        prev.setAttribute('aria-label', labels.previous);
-        next.title = labels.next;
-        next.setAttribute('aria-label', labels.next);
         peek = Math.max(0, Math.min(3, Math.floor(Number(peek ?? 1)) || 0));
         root.style.setProperty('--peek', peek);
 
+        // Slides in DOM order: pages fetched backwards from the end come before the first page
         const slides = [];
+        const byEl = new Map();
         const urls = new Set();
-        let pageNumber = -1;
         let pageSize;
-        let last = false;
-        let fetching = false;
+        let headPage = -1;
+        let tailPage;
+        let fetchingHead = false;
+        let fetchingTail = false;
+        let failed = false;
+        let first;
         let active = -1;
         let destroyed = false;
         let frame;
+        let settle;
 
         const observer = new IntersectionObserver(entries => {
           for (const e of entries) {
-            const slide = slides[e.target.dataset.index];
+            const slide = byEl.get(e.target);
             if (e.isIntersecting) {
               mount(slide);
             } else {
@@ -202,47 +171,126 @@ export const carouselTemplate: Template = {
           slide.destroy = undefined;
         }
 
-        function add(p) {
-          pageNumber = p.page.number;
+        function complete() {
+          return failed || tailPage !== undefined && headPage >= tailPage - 1;
+        }
+        // Loop once every page is loaded, if there are enough slides to keep one hidden on each side
+        function loops() {
+          return !failed && complete() && slides.length >= 2 * peek + 3;
+        }
+
+        function create(ref) {
+          if (urls.has(ref.url + ' ' + ref.origin)) return;
+          urls.add(ref.url + ' ' + ref.origin);
+          const el = document.createElement('div');
+          el.className = 'carousel-slide';
+          el.setAttribute('aria-label', actions.title(ref));
+          const media = document.createElement('div');
+          media.className = 'carousel-media';
+          el.append(media);
+          el.addEventListener('click', () => {
+            const i = slides.findIndex(s => s.el === el);
+            if (i !== active) go(i);
+          });
+          const slide = { el, ref, media };
+          byEl.set(el, slide);
+          observer.observe(el);
+          return slide;
+        }
+
+        /** Move slides between the ends, keeping the slides in view in place. */
+        function shift(ref, move) {
+          const before = ref?.el.offsetLeft;
+          const scroll = track.scrollLeft;
+          const delta = move();
+          if (ref) track.scrollLeft = scroll + ref.el.offsetLeft - before;
+          if (active >= 0) active += delta;
+          return delta;
+        }
+
+        /** Rotate the ring so there are hidden slides on both sides of pos. */
+        function rotate(pos) {
+          if (!loops()) return 0;
+          return shift(slides[pos], () => {
+            let delta = 0;
+            while (slides.length - 1 - (pos + delta) < peek + 1) {
+              const s = slides.shift();
+              track.append(s.el);
+              slides.push(s);
+              delta--;
+            }
+            while (pos + delta < peek + 1) {
+              const s = slides.pop();
+              track.prepend(s.el);
+              slides.unshift(s);
+              delta++;
+            }
+            return delta;
+          });
+        }
+
+        function addHead(p) {
           pageSize = p.page.size;
-          last = pageNumber >= p.page.totalPages - 1 || !p.content.length;
+          headPage = p.page.number;
+          tailPage ??= Math.max(p.page.totalPages, headPage + 1);
+          if (!p.content.length) tailPage = Math.min(tailPage, headPage + 1);
           for (const ref of p.content) {
-            if (urls.has(ref.url + ' ' + ref.origin)) continue;
-            urls.add(ref.url + ' ' + ref.origin);
-            const el = document.createElement('div');
-            el.className = 'carousel-slide';
-            el.dataset.index = slides.length;
-            el.setAttribute('aria-label', actions.title(ref));
-            const media = document.createElement('div');
-            media.className = 'carousel-media';
-            el.append(media);
-            el.addEventListener('click', () => {
-              const i = slides.findIndex(s => s.el === el);
-              if (i !== active) go(i);
-            });
-            track.append(el);
-            const slide = { el, ref, media };
+            const slide = create(ref);
+            if (!slide) continue;
+            first ??= slide;
+            track.append(slide.el);
             slides.push(slide);
-            observer.observe(el);
           }
-          if (!slides.length) {
+          loaded();
+        }
+
+        function addTail(p) {
+          tailPage = p.page.number;
+          const added = p.content.map(create).filter(s => s);
+          shift(slides[active] || slides[0], () => {
+            if (slides.length) {
+              slides[0].el.before(...added.map(s => s.el));
+            } else {
+              track.append(...added.map(s => s.el));
+            }
+            slides.unshift(...added);
+            return added.length;
+          });
+          loaded();
+        }
+
+        function loaded() {
+          if (!slides.length && complete()) {
             const empty = document.createElement('div');
             empty.className = 'carousel-empty';
             empty.textContent = labels.empty;
             track.replaceChildren(empty);
           }
+          rotate(Math.max(0, active));
           updateActive();
         }
 
-        function more() {
-          if (fetching || last || destroyed) return;
-          fetching = true;
-          actions.fetch(pageNumber + 1, pageSize).then(p => {
-            fetching = false;
-            if (!destroyed) add(p);
+        function fetchHead() {
+          if (fetchingHead || complete() || destroyed) return;
+          fetchingHead = true;
+          actions.fetch(headPage + 1, pageSize).then(p => {
+            fetchingHead = false;
+            if (!destroyed) addHead(p);
           }, () => {
-            fetching = false;
-            last = true;
+            fetchingHead = false;
+            failed = true;
+          });
+        }
+
+        function fetchTail() {
+          if (fetchingTail || complete() || destroyed) return;
+          fetchingTail = true;
+          actions.fetch(tailPage - 1, pageSize).then(p => {
+            fetchingTail = false;
+            if (!destroyed) addTail(p);
+          }, () => {
+            fetchingTail = false;
+            failed = true;
           });
         }
 
@@ -253,16 +301,14 @@ export const carouselTemplate: Template = {
 
         function go(i) {
           if (!slides.length) return;
+          i += rotate(Math.max(0, Math.min(slides.length - 1, i)));
           i = Math.max(0, Math.min(slides.length - 1, i));
           track.scrollTo({ left: center(i), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
         }
 
         function updateActive() {
           frame = undefined;
-          if (!slides.length) {
-            prev.disabled = next.disabled = true;
-            return;
-          }
+          if (!slides.length) return;
           let best = 0;
           let distance = Infinity;
           for (let i = 0; i < slides.length; i++) {
@@ -285,21 +331,23 @@ export const carouselTemplate: Template = {
             slides[best].el.classList.add('active');
             active = best;
           }
-          prev.disabled = active === 0;
-          next.disabled = last && active === slides.length - 1;
-          if (active >= slides.length - 1 - peek - 2) more();
+          if (active >= slides.length - 1 - peek - 2) fetchHead();
+          if (active <= peek + 2) fetchTail();
         }
 
-        const onScroll = () => frame ??= requestAnimationFrame(updateActive);
+        const onScroll = () => {
+          frame ??= requestAnimationFrame(updateActive);
+          // Rotate once scrolling settles, so a drag or fling is not interrupted
+          clearTimeout(settle);
+          settle = setTimeout(() => rotate(active), 150);
+        };
         track.addEventListener('scroll', onScroll, { passive: true });
-        prev.addEventListener('click', () => go(active - 1));
-        next.addEventListener('click', () => go(active + 1));
         root.addEventListener('keydown', e => {
           if (e.target !== root && e.target !== track) return;
           if (e.key === 'ArrowLeft') go(active - 1);
           else if (e.key === 'ArrowRight') go(active + 1);
-          else if (e.key === 'Home') go(0);
-          else if (e.key === 'End') go(slides.length - 1);
+          else if (e.key === 'Home') go(slides.indexOf(first));
+          else if (e.key === 'End') go((slides.indexOf(first) || slides.length) - 1);
           else return;
           e.preventDefault();
         });
@@ -311,13 +359,14 @@ export const carouselTemplate: Template = {
           observer.disconnect();
           resize.disconnect();
           if (frame) cancelAnimationFrame(frame);
+          clearTimeout(settle);
           slides.forEach(unmount);
         });
 
         if (page) {
-          add(page);
+          addHead(page);
         } else {
-          more();
+          fetchHead();
         }
       }
     </script>
@@ -325,9 +374,7 @@ export const carouselTemplate: Template = {
     // language=Handlebars
     ui: `
       <div class="carousel-frame" tabindex="0">
-        <button class="carousel-prev" type="button">‹</button>
         <div class="carousel-track"></div>
-        <button class="carousel-next" type="button">›</button>
       </div>
       {{defer el (carousel page actions el peek)}}
     `,

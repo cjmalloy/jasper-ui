@@ -2835,20 +2835,12 @@ Please Reload.</source>
           <context context-type="sourcefile">src/app/component/help-popup/help-popup.component.html</context>
           <context context-type="linenumber">6,7</context>
         </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/media/carousel.ts</context>
-          <context context-type="linenumber">6</context>
-        </context-group>
       </trans-unit>
       <trans-unit id="3885497195825665706" datatype="html">
         <source>Next</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/help-popup/help-popup.component.html</context>
           <context context-type="linenumber">10,11</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/media/carousel.ts</context>
-          <context context-type="linenumber">7</context>
         </context-group>
       </trans-unit>
       <trans-unit id="397098723873502323" datatype="html">
@@ -3302,7 +3294,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/carousel.ts</context>
-          <context context-type="linenumber">8</context>
+          <context context-type="linenumber">6</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3039827636631763416" datatype="html">
@@ -7870,7 +7862,7 @@ Private tags start with an underscore.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/carousel.ts</context>
-          <context context-type="linenumber">22</context>
+          <context context-type="linenumber">20</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/code.ts</context>
@@ -12205,46 +12197,46 @@ Home / End: Jump to start/end
         <source>🎠️ Carousel</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/carousel.ts</context>
-          <context context-type="linenumber">14</context>
+          <context context-type="linenumber">12</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/carousel.ts</context>
-          <context context-type="linenumber">16</context>
+          <context context-type="linenumber">14</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6968056693974820665" datatype="html">
         <source>🎠️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/carousel.ts</context>
-          <context context-type="linenumber">20</context>
+          <context context-type="linenumber">18</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1830574627828566234" datatype="html">
         <source>carousel</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/carousel.ts</context>
-          <context context-type="linenumber">21</context>
+          <context context-type="linenumber">19</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3247078875099855587" datatype="html">
         <source>Show results in a carousel. More results stream in as you scroll.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/carousel.ts</context>
-          <context context-type="linenumber">23</context>
+          <context context-type="linenumber">21</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1291714472065784119" datatype="html">
         <source>Neighbours:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/carousel.ts</context>
-          <context context-type="linenumber">29</context>
+          <context context-type="linenumber">27</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8469213464471202921" datatype="html">
         <source>Number of slides visible on each side of the current slide (0 to 3).</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/carousel.ts</context>
-          <context context-type="linenumber">30</context>
+          <context context-type="linenumber">28</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1686680781561875361" datatype="html">

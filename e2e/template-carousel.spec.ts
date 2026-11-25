@@ -39,38 +39,44 @@ test.describe.serial('Carousel Template', () => {
     await page.goto(`/tag/${tag}?debug=USER&pageSize=5&sort=published,ASC`, { waitUntil: 'networkidle' });
     await page.locator('.tabs a', { hasText: 'carousel' }).first().click();
     const slides = page.locator('.carousel-slide');
-    await expect(slides.first()).toBeVisible();
+    const slide = (i: number) => page.locator(`.carousel-slide[aria-label="Slide ${i}"]`);
     const active = page.locator('.carousel-slide.active');
     await expect(active).toHaveAttribute('aria-label', 'Slide 0');
     await expect(active.locator('.carousel-media')).toContainText('Slide body 0');
-    await expect(page.locator('.carousel-prev')).toBeDisabled();
     await expect(page.locator('.page-controls')).toHaveCount(0);
-    await expect(slides.nth(1)).toHaveCSS('opacity', /^0\.[45]/);
+    await expect(slides).toHaveCount(count);
+    await expect(slide(1)).toHaveCSS('opacity', /^0\.[45]/);
+    // The last slide wraps around to the left of the first
+    await expect(slide(count - 1)).toHaveCSS('opacity', /^0\.[45]/);
+    expect((await slide(count - 1).boundingBox())!.x).toBeLessThan((await slide(0).boundingBox())!.x);
 
-    await page.locator('.carousel-next').click();
+    await slide(1).click();
     await expect(active).toHaveAttribute('aria-label', 'Slide 1');
-    await expect(slides).toHaveCount(10);
 
     await page.locator('.carousel-frame').focus();
     for (let i = 2; i < count; i++) {
       await page.keyboard.press('ArrowRight');
       await expect(active).toHaveAttribute('aria-label', `Slide ${i}`);
     }
-    await expect(slides).toHaveCount(count);
-    await expect(page.locator('.carousel-next')).toBeDisabled();
-    await expect(slides.first().locator('.carousel-media')).toBeEmpty();
-    await expect(slides.last().locator('.carousel-media')).toContainText(`Slide body ${count - 1}`);
+    await expect(slide(5).locator('.carousel-media')).toBeEmpty();
+    await expect(slide(count - 1).locator('.carousel-media')).toContainText(`Slide body ${count - 1}`);
+    await page.keyboard.press('ArrowRight');
+    await expect(active).toHaveAttribute('aria-label', 'Slide 0');
+    await page.keyboard.press('ArrowLeft');
+    await expect(active).toHaveAttribute('aria-label', `Slide ${count - 1}`);
 
     await page.keyboard.press('Home');
     await expect(active).toHaveAttribute('aria-label', 'Slide 0');
-    await expect(slides.last().locator('.carousel-media')).toBeEmpty();
+    await expect(slide(6).locator('.carousel-media')).toBeEmpty();
+    await page.keyboard.press('End');
+    await expect(active).toHaveAttribute('aria-label', `Slide ${count - 1}`);
   });
 
   test('does not overlap the sidebar', async ({ page }) => {
     await page.goto(`/tag/${tag}?debug=USER&pageSize=5&sort=published,ASC&view=carousel`, { waitUntil: 'networkidle' });
-    const next = await page.locator('.carousel-next').boundingBox();
+    const frame = await page.locator('.carousel-frame').boundingBox();
     const sidebar = await page.locator('.sidebar').boundingBox();
-    expect(next!.x + next!.width).toBeLessThanOrEqual(sidebar!.x);
+    expect(frame!.x + frame!.width).toBeLessThanOrEqual(sidebar!.x);
   });
 
   test('embeds as a lens', async ({ page, request }) => {
@@ -90,7 +96,7 @@ test.describe.serial('Carousel Template', () => {
     const active = carousel.locator('.carousel-slide.active');
     await expect(active).toHaveAttribute('aria-label', 'Slide 0');
     await expect(active.locator('.md-container')).toHaveCSS('border-top-width', '0px');
-    await carousel.locator('.carousel-next').click();
+    await carousel.locator('.carousel-slide[aria-label="Slide 1"]').click();
     await expect(active).toHaveAttribute('aria-label', 'Slide 1');
   });
 });
