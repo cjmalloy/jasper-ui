@@ -1343,6 +1343,24 @@ details.mini:not([open]) {
   }
 }
 
+// The nowrap label leaves no room for the lens target card in a narrow column, so stack them
+.lens-targets {
+  container: lens-targets / inline-size;
+}
+@container lens-targets (max-width: 600px) {
+  .list-container.responses-of,
+  .list-container.sources-of {
+    grid-template-columns: minmax(0, 1fr);
+    & > .label {
+      text-align: left;
+    }
+    & > app-ref {
+      min-width: 0;
+      max-width: 100%;
+    }
+  }
+}
+
 .backup {
   .list-container .list-number {
     max-height: 48px;
@@ -2518,10 +2536,25 @@ footer {
   & > * {
     margin: auto;
   }
+  // The iframe follows the height of its content (ex. a Tweet), so it doesn't leave empty space below,
+  // and the container grows with it in the normal flow so fullscreen can scroll to the bottom
   & > .embed-container.zoom,
   & > .embed-container.zoom > iframe {
+    position: relative;
     width: 50vw !important;
-    height: 50vh !important;
+  }
+  & > .embed-container.zoom {
+    height: auto !important;
+    min-height: 50vh;
+    // Undo the zoom on narrow screens, or posts with a minimum width (ex. a Tweet) are cut off on the right
+    @media (max-width: 740px) {
+      zoom: 50%;
+      min-height: 100vh;
+      &,
+      & > iframe {
+        width: 100vw !important;
+      }
+    }
   }
   & > *:not(.zoom) {
     zoom: 50%;
@@ -2534,6 +2567,70 @@ footer {
   & > .audio-expand {
     width: 100vw !important;
     height: 45vh !important;
+  }
+  // Markdown stays zoomed, so shrink images sized for the normal view to fit the screen
+  // until they are resized by hand
+  & > .md-container {
+    img, .loading {
+      max-width: 100%;
+      max-height: 45vh;
+    }
+    .image-expand.keep-ratio:not(.loading):not(.resized) {
+      max-width: min(100%, 45vh * var(--image-ratio, 1000));
+      height: auto !important;
+    }
+    // Same height as the normal view, narrower when the column is
+    .video-expand:not(.resized) {
+      width: min(100%, 240px * var(--video-ratio, 16 / 9)) !important;
+      height: auto !important;
+      aspect-ratio: var(--video-ratio, 16 / 9);
+      @media (max-width: 740px) {
+        width: min(100%, 480px * var(--video-ratio, 16 / 9)) !important;
+      }
+    }
+    // Undo the zoom on narrow screens, or Chrome hides the controls in the overflow menu
+    .video-expand {
+      @media (max-width: 740px) {
+        zoom: 50%;
+      }
+    }
+    // Mobile forces videos to full width, so let the manual height set the width through the video's ratio
+    .video-expand.resized {
+      @media (max-width: 740px) {
+        width: auto !important;
+      }
+    }
+    .embed-container:not(.loading),
+    .embed-container > iframe,
+    .list-item {
+      max-width: 100%;
+    }
+    // Grid items default to min-width: auto, which lets the image widen the card
+    .ref.list-item > .viewer-inline,
+    .ref.list-item > .viewer-below {
+      min-width: 0;
+      max-width: 100%;
+    }
+    .embed-container:not(.resized):has(> iframe.keep-ratio) {
+      height: auto !important;
+    }
+    .embed-container:not(.resized) > iframe.keep-ratio {
+      height: auto !important;
+    }
+    // The normal view scales wide players down, which fullscreen undoes even after a manual resize
+    .embed-container > iframe.keep-ratio {
+      transform: none !important;
+      margin: 0 !important;
+    }
+    .qr-expand:not(.resized) {
+      max-width: 100%;
+      height: auto;
+      aspect-ratio: 1;
+    }
+    .katex-display {
+      max-width: 100%;
+      overflow: auto hidden;
+    }
   }
   & > .code {
     display: contents;
