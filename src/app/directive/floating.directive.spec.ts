@@ -1,5 +1,7 @@
 /// <reference types="vitest/globals" />
-import { isStuck } from './floating.directive';
+import { Component, signal } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { FloatingDirective, isStuck } from './floating.directive';
 
 describe('isStuck', () => {
   let parent: HTMLElement;
@@ -59,5 +61,47 @@ describe('isStuck', () => {
     island.after(hidden);
     rect(island, 70, 100);
     expect(isStuck(island)).toBe(false);
+  });
+});
+
+@Component({
+  template: `<div><span class="buttons" [floating]="preview()"></span><span></span></div>`,
+  imports: [FloatingDirective],
+})
+class ToggleHostComponent {
+  readonly preview = signal(false);
+}
+
+describe('FloatingDirective', () => {
+  const frame = () => new Promise(r => requestAnimationFrame(r));
+
+  beforeEach(() => vi.stubGlobal('CSS', { supports: () => false }));
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('applies floating and stuck from a runtime [floating] binding', async () => {
+    const fixture = TestBed.createComponent(ToggleHostComponent);
+    document.body.append(fixture.nativeElement);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const island = fixture.nativeElement.querySelector('.buttons') as HTMLElement;
+    const next = island.nextElementSibling as HTMLElement;
+    island.getBoundingClientRect = () => ({ top: 50, bottom: 80 } as DOMRect);
+    next.getBoundingClientRect = () => ({ top: 104, bottom: 120 } as DOMRect);
+    next.getClientRects = () => [{}] as any;
+    expect(island.classList).not.toContain('floating');
+
+    island.style.position = 'sticky';
+    fixture.componentInstance.preview.set(true);
+    fixture.detectChanges();
+    await frame();
+    fixture.detectChanges();
+    expect(island.classList).toContain('floating');
+    expect(island.classList).toContain('stuck');
+
+    fixture.componentInstance.preview.set(false);
+    fixture.detectChanges();
+    expect(island.classList).not.toContain('floating');
+    expect(island.classList).not.toContain('stuck');
+    fixture.destroy();
   });
 });

@@ -18,6 +18,7 @@ import { DateTime } from 'luxon';
 import { catchError, finalize, forkJoin, map, of, Subscription, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
+import { FloatingDirective } from '../../../directive/floating.directive';
 import { EditorComponent } from '../../../form/editor/editor.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
@@ -40,6 +41,7 @@ import { LoadingComponent } from '../../loading/loading.component';
   host: { 'class': 'comment-reply' },
   imports: [
     forwardRef(() => EditorComponent),
+    FloatingDirective,
     ReactiveFormsModule,
     LoadingComponent,
   ]

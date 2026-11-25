@@ -1,4 +1,16 @@
-import { afterNextRender, DestroyRef, Directive, ElementRef, inject, signal } from '@angular/core';
+import {
+  afterNextRender,
+  booleanAttribute,
+  computed,
+  DestroyRef,
+  Directive,
+  effect,
+  ElementRef,
+  inject,
+  input,
+  signal,
+  untracked
+} from '@angular/core';
 
 const px = (value: string) => parseFloat(value) || 0;
 
@@ -49,11 +61,14 @@ export function isStuck(el: HTMLElement): boolean {
 /**
  * Fallback for browsers without `scroll-state` container queries (Safari).
  * Adds the `stuck` class while the sticky `.buttons.floating` island is stuck
- * to the edge of the viewport.
+ * to the edge of the viewport. Use `[floating]="expr"` when the island is
+ * toggled at runtime, since a `[class.floating]` binding cannot instantiate
+ * a directive.
  */
 @Directive({
-  selector: '.buttons.floating',
+  selector: '.buttons.floating, .buttons[floating]',
   host: {
+    '[class.floating]': 'floating()',
     '[class.stuck]': 'stuck()',
   },
 })
@@ -61,18 +76,27 @@ export class FloatingDirective {
   private el = inject<ElementRef<HTMLElement>>(ElementRef);
   private destroyRef = inject(DestroyRef);
 
-  readonly stuck = signal(false);
+  readonly floating = input(true, { transform: booleanAttribute });
+
+  private readonly shifted = signal(false);
+  readonly stuck = computed(() => this.floating() && this.shifted());
+
+  private schedule?: () => void;
 
   constructor() {
+    effect(() => {
+      this.floating();
+      untracked(() => this.schedule?.());
+    });
     afterNextRender(() => {
       if (typeof CSS !== 'undefined' && CSS.supports?.('container-type', 'scroll-state')) return;
       const el = this.el.nativeElement;
       let frame = 0;
       const check = () => {
         frame = 0;
-        this.stuck.set(isStuck(el));
+        this.shifted.set(isStuck(el));
       };
-      const schedule = () => frame ||= requestAnimationFrame(check);
+      const schedule = this.schedule = () => frame ||= requestAnimationFrame(check);
       const options = { capture: true, passive: true };
       document.addEventListener('scroll', schedule, options);
       window.addEventListener('resize', schedule, options);
