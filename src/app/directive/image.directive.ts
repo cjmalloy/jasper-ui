@@ -117,13 +117,14 @@ export class ImageDirective {
       this.el.style.width = defaultWidth + 'px';
       this.el.style.height = defaultHeight + 'px';
       this.el.style.backgroundSize = '100% 100%';
+      this.setRatio(defaultWidth, defaultHeight);
       return;
     }
     if (this.grid()) {
       // Size with CSS so the image follows its grid column as it grows or shrinks
       this.el.style.width = '100%';
       this.el.style.height = this.defaultHeightPx() || 'auto';
-      this.el.style.aspectRatio = this.defaultHeightPx() || !this.dim.width || !this.dim.height ? '' : `${this.dim.width} / ${this.dim.height}`;
+      this.setRatio(this.defaultHeightPx() ? 0 : this.dim.width, this.defaultHeightPx() ? 0 : this.dim.height);
       return;
     }
     const parentWidth = this.parentWidth - this.padding();
@@ -142,6 +143,20 @@ export class ImageDirective {
     } else {
       this.el.style.width = this.dim.width + 'px';
       this.el.style.height = this.dim.height + 'px';
+    }
+    // Keep the shape when CSS limits the size, such as markdown in fullscreen
+    const px = this.el.style.width.endsWith('px') && this.el.style.height.endsWith('px');
+    this.setRatio(px ? parseFloat(this.el.style.width) : 0, px ? parseFloat(this.el.style.height) : 0);
+  }
+
+  private setRatio(width: number, height: number) {
+    const ratio = width && height ? width / height : 0;
+    this.el.style.aspectRatio = ratio ? `${width} / ${height}` : '';
+    this.el.classList.toggle('keep-ratio', !!ratio);
+    if (ratio) {
+      this.el.style.setProperty('--image-ratio', '' + ratio);
+    } else {
+      this.el.style.removeProperty('--image-ratio');
     }
   }
 }

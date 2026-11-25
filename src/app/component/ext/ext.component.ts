@@ -1,3 +1,4 @@
+import { FloatingDirective } from '../../directive/floating.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
@@ -49,7 +50,7 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
     '[class.upload]': "uploadedFile()",
     '[class.exists]': "existsFile()",
   },
-  imports: [
+  imports: [FloatingDirective, 
     RelativePipe,
     FakeLinkDirective,
     forwardRef(() => ExtFormComponent),

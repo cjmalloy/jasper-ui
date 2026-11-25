@@ -8,7 +8,7 @@ import { RefComponent } from '../component/ref/ref.component';
 import { ViewerComponent } from '../component/viewer/viewer.component';
 import { Ext } from '../model/ext';
 import { Page } from '../model/page';
-import { Ref } from '../model/ref';
+import { Ref, RefPageArgs } from '../model/ref';
 import { PipWindowConfig } from '../mods/system/pip';
 import { ConfigService } from '../service/config.service';
 import { handleMediaKeydown } from './keyboard';
@@ -144,9 +144,10 @@ export function createRef(vc: ViewContainerRef, ref: Ref, showToggle?: boolean) 
   }
 }
 
-export function createLens(vc: ViewContainerRef, params: any, page: Page<Ref>, tag: string, ext?: Ext) {
+export function createLens(vc: ViewContainerRef, params: any, page: Page<Ref>, tag: string, ext?: Ext, args?: RefPageArgs) {
   return createNestedComponent(vc, LensComponent, c => {
     c.setInput('page', page);
+    c.setInput('args', args);
     c.setInput('pageControls', false);
     c.setInput('tag', tag);
     c.setInput('ext', ext);

@@ -1060,6 +1060,18 @@ export class AdminService {
     return [];
   }
 
+  getTemplateSidebarUi(tag = ''): Template[] {
+    const template = this.getTemplate(tag);
+    const parent = tag ? tag.substring(0, tag.lastIndexOf('/')) : null;
+    if (template?.config?.sidebarUi) {
+      if (!tag || template.config?.overrideSidebarUi) return [template];
+      return [...this.getTemplateSidebarUi(parent!), template]
+    } else if (tag) {
+      return this.getTemplateSidebarUi(parent!);
+    }
+    return [];
+  }
+
   getTemplateForm(tag = ''): FormlyFieldConfig[] {
     const template = this.getTemplate(tag);
     const form = template?.config?.form;

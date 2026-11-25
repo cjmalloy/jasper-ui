@@ -1,3 +1,4 @@
+import { FloatingDirective } from '../../directive/floating.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
@@ -32,7 +33,7 @@ import { access, hasPrefix, localTag, prefix } from '../../util/tag';
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
   host: { 'class': 'full-page-form' },
-  imports: [
+  imports: [FloatingDirective, 
     RouterLink,
     SettingsComponent,
     ReactiveFormsModule,
