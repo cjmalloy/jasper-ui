@@ -112,11 +112,6 @@ export function writeTemplate(template: Template): Template {
 }
 
 /**
- * Actions available to a Template {@link Template.config.ui}.
- * Functions that mount Angular components into an element return a function
- * to destroy them. Anything still mounted is destroyed when the view is.
- */
-/**
  * Call to destroy a mounted component early. Otherwise it is destroyed with the view.
  */
 export type LensUiMount = (() => void) & {
@@ -124,6 +119,10 @@ export type LensUiMount = (() => void) & {
   hasChanges: () => boolean;
 };
 
+/**
+ * Actions available to a Template {@link Template.config.ui}.
+ * Functions that mount Angular components into an element return a {@link LensUiMount}.
+ */
 export interface LensUiApi {
   /** Fetch a page of the current query, with the same query, sort, filter and search as the view. */
   fetch: (page?: number, size?: number) => Promise<Page<Ref>>;

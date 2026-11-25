@@ -20,11 +20,13 @@
     </div>
   }
 @if (uiTemplates().length) {
-  <app-md class="ui"
-          [class]="'ui ' + cssClass(ext()?.tag)"
-          [disableSanitizer]="true"
-          [origin]="ext()?.origin || ''"
-          [text]="uiMarkdown()" />
+  @for (ui of uiHosts(); track ui) {
+    <app-md class="ui"
+            [class]="'ui ' + cssClass(ext()?.tag)"
+            [disableSanitizer]="true"
+            [origin]="ext()?.origin || ''"
+            [text]="ui.text" />
+  }
 } @else if (isTemplate('grid')) {
   @defer {
     <app-grid #lens

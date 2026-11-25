@@ -90,7 +90,7 @@ export class LensComponent implements HasChanges {
   readonly header = computed(() => this.ext()?.config?.header);
   readonly uiTemplates = computed(() => this.ext() ? this.admin.getTemplateUi(this.ext()!.tag) : []);
 
-  /** Hydrated template UI. Hydrating runs the template's deferred scripts, so only redo it when the inputs change. */
+  /** Hydrating runs the template's deferred scripts, so only redo it when the inputs change. */
   private readonly ui = computed(() => {
     const templates = this.uiTemplates();
     if (!templates.length) return undefined;
@@ -101,7 +101,8 @@ export class LensComponent implements HasChanges {
     const args = this.args() ?? getArgs(query, params.sort, params.filter, params.search);
     return untracked(() => this.hydrateUi(templates, ext, page, query, params, args));
   });
-  readonly uiMarkdown = computed(() => this.ui()?.text);
+  /** One entry per hydration, so the markdown host is recreated even if the HTML is unchanged. */
+  readonly uiHosts = computed(() => this.ui() ? [this.ui()!] : []);
 
   readonly list = viewChildren<HasChanges>('lens');
   private mounted = new Set<ComponentRef<unknown>>();

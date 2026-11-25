@@ -105,6 +105,15 @@ describe('LensComponent', () => {
       expect(stale).toHaveBeenCalledTimes(1);
     });
 
+    it('recreates the ui host when a re-render produces the same html', async () => {
+      const host = fixture.nativeElement.querySelector('.ui');
+      fixture.componentRef.setInput('size', 12);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(fixture.nativeElement.querySelector('.ui')).not.toBe(host);
+      expect(fixture.nativeElement.querySelectorAll('.ui').length).toBe(1);
+    });
+
     it('fetches more pages of the same query', async () => {
       refs.page.mockReturnValue(of(Page.of<Ref>([])));
       fixture.componentRef.setInput('filter', ['query/plugin/image']);

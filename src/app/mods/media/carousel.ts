@@ -212,7 +212,7 @@ export const carouselTemplate: Template = {
         function unmount(slide) {
           if (slide.hasChanges?.()) return;
           slide.destroy?.();
-          slide.destroy = undefined;
+          slide.destroy = slide.hasChanges = undefined;
         }
 
         function add(p) {
