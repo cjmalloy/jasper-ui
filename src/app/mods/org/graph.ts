@@ -501,6 +501,7 @@ export const graphConfig: Template = {
           update();
           menu = document.createElement('div');
           menu.className = 'context-menu graph-context-menu';
+          menu.setAttribute('role', 'menu');
           menu.style.left = event.clientX + 'px';
           menu.style.top = event.clientY + 'px';
           menu.addEventListener('click', e => e.stopPropagation());
@@ -511,11 +512,15 @@ export const graphConfig: Template = {
           const item = (text, fn, checked) => {
             if (menu.children.length) menu.append(document.createElement('hr'));
             const div = document.createElement('div');
+            div.tabIndex = 0;
+            div.setAttribute('role', checked === undefined ? 'menuitem' : 'menuitemcheckbox');
             if (checked !== undefined) {
+              div.setAttribute('aria-checked', String(checked));
               const input = document.createElement('input');
               input.type = 'checkbox';
               input.checked = checked;
               input.tabIndex = -1;
+              input.setAttribute('aria-hidden', 'true');
               div.append(input);
               const label = document.createElement('label');
               label.textContent = text;
@@ -527,6 +532,11 @@ export const graphConfig: Template = {
               e.preventDefault();
               closeMenu();
               fn();
+            });
+            div.addEventListener('keydown', e => {
+              if (e.key !== 'Enter' && e.key !== ' ') return;
+              e.preventDefault();
+              div.click();
             });
             menu.append(div);
           };
@@ -595,6 +605,12 @@ export const graphConfig: Template = {
           const rect = menu.getBoundingClientRect();
           menu.style.left = Math.max(0, Math.min(event.clientX, innerWidth - rect.width)) + 'px';
           menu.style.top = Math.max(0, Math.min(event.clientY, innerHeight - rect.height)) + 'px';
+          menu.addEventListener('keydown', e => {
+            if (e.key !== 'Escape') return;
+            e.stopPropagation();
+            closeMenu();
+          });
+          menu.querySelector('[role^=menuitem]').focus({ preventScroll: true });
         }
 
         figure.addEventListener('click', () => {

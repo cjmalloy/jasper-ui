@@ -93,6 +93,21 @@ test.describe.serial('Graph Plugin', () => {
     await expect(page.locator('.graph-context-menu')).toHaveCount(0);
   });
 
+  test('context menu works with the keyboard', async () => {
+    const figure = page.locator('.force-directed-graph');
+    const arrows = page.locator('.graph-context-menu [role=menuitemcheckbox]', { hasText: 'arrow' });
+    await figure.click({ button: 'right' });
+    await expect(page.locator('.graph-context-menu [role^=menuitem]').first()).toBeFocused();
+    const checked = await arrows.getAttribute('aria-checked');
+    await arrows.focus();
+    await page.keyboard.press(' ');
+    await expect(page.locator('.graph-context-menu')).toHaveCount(0);
+    await figure.click({ button: 'right' });
+    await expect(arrows).toHaveAttribute('aria-checked', checked === 'true' ? 'false' : 'true');
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.graph-context-menu')).toHaveCount(0);
+  });
+
   test('context menu in fullscreen', async () => {
     const figure = page.locator('.force-directed-graph');
     await figure.click({ button: 'right' });
