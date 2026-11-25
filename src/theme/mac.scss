@@ -36,6 +36,10 @@ body.darwin.safari {
   input:not([type=checkbox]):not([type=radio]) {
     height: 28px;
   }
+  .form-array > input.big:not([type=checkbox]):not([type=radio]) {
+    height: auto;
+    min-height: 28px;
+  }
   .actions, .advanced-actions {
     .action > span {
       & > input, & > button {
@@ -47,20 +51,25 @@ body.darwin.safari {
     }
   }
   .form-array, .buttons {
-    button {
+    button:not(.toggle) {
       min-height: 28px !important;
       min-width: 32px !important;
     }
   }
-  .sidebar .controls select {
-    min-height: 28px;
+  .sidebar.floating {
+    top: auto;
+  }
+  .sidebar .controls {
+    select, button {
+      height: 28px;
+    }
   }
   .form,
   formly-list-section .form-array > formly-field > formly-group {
     select {
       font-size: 21px;
     }
-    button {
+    button:not(.toggle) {
       min-height: 28px !important;
       padding: 1px 6px;
     }
@@ -84,15 +93,11 @@ body.darwin.safari {
   select.big {
     font-size: 21px;
   }
-  .search {
-    input[type=search] {
-      margin-top: 0;
-    }
-  }
   .search.centered {
     position: relative;
     top: 50%;
     input[type=search] {
+      margin-top: 0;
       transform: translateY(-50%);
     }
   }
