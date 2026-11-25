@@ -1,22 +1,22 @@
 @if (header()) {
   <app-viewer class="lens-header" [text]="header()" />
 }
-@if (query.responseOf() || query.sourcesOf()) {
+@if (responseOf() || sourcesOf()) {
   <div class="lens-targets">
-    @if (query.responseOf()) {
+    @if (responseOf()) {
       <div class="list-container responses-of">
         <div class="label" i18n>Responses Of:</div>
         <app-ref class="full-page"
-                 [ref]="query.responseOf()"
+                 [ref]="responseOf()"
                  [showToggle]="true"
                  (copied)="query.refresh()" />
       </div>
     }
-    @if (query.sourcesOf()) {
+    @if (sourcesOf()) {
       <div class="list-container sources-of">
         <div class="label" i18n>Sources Of:</div>
         <app-ref class="full-page"
-                 [ref]="query.sourcesOf()"
+                 [ref]="sourcesOf()"
                  [showToggle]="true"
                  (copied)="query.refresh()" />
       </div>
