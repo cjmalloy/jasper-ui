@@ -1,4 +1,3 @@
-import { FloatingDirective } from '../../../directive/floating.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
@@ -34,7 +33,6 @@ import { LoadingComponent } from '../../loading/loading.component';
   styleUrls: ['./comment-edit.component.scss'],
   host: { 'class': 'comment-edit' },
   imports: [
-    FloatingDirective,
     forwardRef(() => EditorComponent),
     LoadingComponent,
   ]

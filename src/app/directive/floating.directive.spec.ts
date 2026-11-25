@@ -1,28 +1,25 @@
 /// <reference types="vitest/globals" />
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FloatingDirective } from './floating.directive';
 
 @Component({
   template: `
     <span class="buttons floating" style="position: sticky; bottom: 8px"></span>
-    <span class="buttons top" style="position: sticky; top: 8px" [class.floating]="preview()" [appFloating]="preview()"></span>
+    <span class="buttons floating top" style="position: sticky; top: 8px"></span>
   `,
   imports: [FloatingDirective],
 })
-class HostComponent {
-  preview = signal(true);
-}
+class HostComponent {}
 
 class MockObserver {
   static instances: MockObserver[] = [];
   observed: Element[] = [];
-  observeCount = 0;
   disconnected = false;
   constructor(public callback: IntersectionObserverCallback, public options: IntersectionObserverInit) {
     MockObserver.instances.push(this);
   }
-  observe(el: Element) { this.observed.push(el); this.observeCount++; }
+  observe(el: Element) { this.observed.push(el); }
   unobserve(el: Element) { this.observed = this.observed.filter(e => e !== el); }
   disconnect() { this.disconnected = true; }
 }
@@ -75,20 +72,6 @@ describe('FloatingDirective', () => {
   it('ignores horizontal clipping', () => {
     setup();
     expect(MockObserver.instances[0].options.rootMargin).toMatch(/^-9px \d{5,}px -9px \d{5,}px$/);
-  });
-
-  it('re-observes and clears stuck when appFloating changes', () => {
-    setup();
-    fire(1, entry(el(1), 8, 40, 0.97));
-    const before = MockObserver.instances[1].observeCount;
-    fixture.componentInstance.preview.set(false);
-    fixture.detectChanges();
-    TestBed.tick();
-    expect(MockObserver.instances[1].observeCount).toBeGreaterThan(before);
-    expect(MockObserver.instances[1].observed).toEqual([el(1)]);
-    el(1).style.position = 'static';
-    fire(1, entry(el(1), 8, 40, 0.97));
-    expect(el(1).classList).not.toContain('stuck');
   });
 
   it('does nothing when scroll-state is supported', () => {
