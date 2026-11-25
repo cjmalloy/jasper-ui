@@ -1,3 +1,4 @@
+import { FloatingDirective } from '../../directive/floating.directive';
 import { AsyncPipe } from '@angular/common';
 import { Component, computed, DestroyRef, effect, inject, signal, untracked } from '@angular/core';
 import {
@@ -47,7 +48,7 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
   selector: 'app-submit-page',
   templateUrl: './submit.component.html',
   styleUrls: ['./submit.component.scss'],
-  imports: [
+  imports: [FloatingDirective, 
     RefComponent,
     TabsComponent,
     RouterLink,

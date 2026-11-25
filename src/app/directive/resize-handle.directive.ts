@@ -9,6 +9,7 @@ import { ResizeStart, resizeStart, resizeToPointer } from '../util/resize';
     '[style.cursor]': 'cursor()',
     '[class.resize-dragging]': 'dragging()',
     '[class.resize-handle]': "enabled()",
+    '[class.resized]': 'resized()',
     '(pointerdown)': 'onPointerDown($event)',
     '(window:pointermove)': 'onPointerMove($event)',
     '(window:pointerup)': 'onPointerUp($event)',
@@ -20,8 +21,11 @@ export class ResizeHandleDirective {
 
   readonly cursor = signal('auto');
   readonly dragging = signal(false);
+  readonly resized = signal(false);
 
   readonly hitArea = input(24);
+  /** Keeps the grip reachable, so the embed can't be collapsed. */
+  readonly minSize = input(48);
   readonly appResizeHandle = input<boolean | string | undefined>(true);
   readonly child = input<HTMLElement | undefined>();
   readonly initChild = input(false);
@@ -92,9 +96,13 @@ export class ResizeHandleDirective {
   onPointerMove(event: PointerEvent) {
     if (!this.enabled()) return;
     if (this.dragging() && this.start) {
+      this.resized.set(true);
+      // The host binding applies later, but styles gated on .resized must be gone before measuring
+      this.el.nativeElement.classList.add('resized');
+      // Mobile embeds take the full width, so only the height can change (see resizeCursor)
       resizeToPointer(this.el.nativeElement, this.start, event,
-        width => this.setWidth(width + 'px'),
-        height => this.setHeight(height + 'px'));
+        this.config.mobile() ? undefined : width => this.setWidth(Math.max(this.minSize(), width) + 'px'),
+        height => this.setHeight(Math.max(this.minSize(), height) + 'px'));
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
@@ -119,7 +127,29 @@ export class ResizeHandleDirective {
 
   private hit(event: PointerEvent) {
     const rect = this.el.nativeElement.getBoundingClientRect();
+    const grip = this.config.mobile() && this.grip(rect);
+    if (grip) {
+      // Mobile draws a larger grip away from the corner (see .resize-handle:before), so hit test the grip itself
+      const pad = this.hitArea() / 2;
+      return event.clientX >= grip.left - pad && event.clientX <= grip.right + pad
+        && event.clientY >= grip.top - pad && event.clientY <= grip.bottom + pad;
+    }
     return rect.right - event.clientX + rect.bottom - event.clientY < this.hitArea();
+  }
+
+  private grip(rect: DOMRect) {
+    const style = getComputedStyle(this.el.nativeElement, '::before');
+    // Computed lengths are unzoomed, but the rect and pointer include zoom (ex. fullscreen markdown at 200%)
+    const zoom = this.el.nativeElement.currentCSSZoom || 1;
+    const width = parseFloat(style.width) * zoom, height = parseFloat(style.height) * zoom;
+    const right = parseFloat(style.right) * zoom, bottom = parseFloat(style.bottom) * zoom;
+    if (!width || !height || isNaN(right) || isNaN(bottom)) return undefined;
+    return {
+      left: rect.right - right - width,
+      right: rect.right - right,
+      top: rect.bottom - bottom - height,
+      bottom: rect.bottom - bottom,
+    };
   }
 
   private setWidth(width: string) {

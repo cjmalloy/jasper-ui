@@ -112,7 +112,7 @@
                  type="text"
                  size="1"
                  autocomplete="off"
-                 [attr.list]="listId"
+                 [attr.list]="autocomplete().length ? listId : null"
                  formControlName="url"
                  appAutofocus
                  (input)="search(url.value)"

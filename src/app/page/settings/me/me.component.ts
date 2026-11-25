@@ -1,3 +1,4 @@
+import { FloatingDirective } from '../../../directive/floating.directive';
 import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
@@ -23,7 +24,7 @@ import { printError } from '../../../util/http';
   templateUrl: './me.component.html',
   styleUrls: ['./me.component.scss'],
   host: { 'class': 'full-page-form' },
-  imports: [ReactiveFormsModule, UserTagSelectorComponent, ExtFormComponent, LoadingComponent]
+  imports: [FloatingDirective, ReactiveFormsModule, UserTagSelectorComponent, ExtFormComponent, LoadingComponent]
 })
 export class SettingsMePage implements HasChanges {
   config = inject(ConfigService);

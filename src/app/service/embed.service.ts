@@ -848,7 +848,7 @@ export class EmbedService {
  * Resolves once the content is at least 300px high, or has not changed for 5 seconds.
  * Keeps following the height until it has not changed for 30 seconds.
  */
-function followHeight(iframe: HTMLIFrameElement) {
+export function followHeight(iframe: HTMLIFrameElement) {
   return new Promise<void>(resolve => {
     let settled = setTimeout(resolve, 5_000);
     let stop = setTimeout(() => unlisten(), 30_000);
@@ -857,7 +857,8 @@ function followHeight(iframe: HTMLIFrameElement) {
       if (typeof h !== 'number' || !Number.isFinite(h) || h <= 0) return;
       clearTimeout(stop);
       stop = setTimeout(() => unlisten(), 30_000);
-      if (iframe.ownerDocument.fullscreenElement) return;
+      // Fullscreen forces the height, except zoomed oEmbeds (ex. Tweets) which follow their content
+      if (iframe.ownerDocument.fullscreenElement && !iframe.closest('.zoom')) return;
       iframe.style.height = h + 'px';
       clearTimeout(settled);
       if (h >= 300) {
@@ -906,13 +907,24 @@ export function transparentIframe(content: string, bgColor: string, overflow = '
           parent.postMessage({ jasperIframeHeight: height }, ${JSON.stringify(location.origin)});
         };
         // Keep reporting until the height has not changed for 30 seconds
-        let last = Date.now();
-        const timer = setInterval(() => {
-          const old = height;
-          report();
-          if (height !== old) last = Date.now();
-          if (Date.now() - last > 30_000) clearInterval(timer);
-        }, 100);
+        let last = 0;
+        let timer = 0;
+        const follow = () => {
+          last = Date.now();
+          if (timer) return;
+          timer = setInterval(() => {
+            const old = height;
+            report();
+            if (height !== old) last = Date.now();
+            if (Date.now() - last > 30_000) {
+              clearInterval(timer);
+              timer = 0;
+            }
+          }, 100);
+        };
+        // A new width (ex. entering fullscreen) reflows the content long after it loaded
+        addEventListener('resize', follow);
+        follow();
         report();
       })();
     </script></body>

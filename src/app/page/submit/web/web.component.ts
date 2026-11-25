@@ -1,3 +1,4 @@
+import { FloatingDirective } from '../../../directive/floating.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   afterNextRender,
@@ -56,7 +57,7 @@ import { getVisibilityTags } from '../../../util/tag';
   templateUrl: './web.component.html',
   styleUrls: ['./web.component.scss'],
   host: { 'class': 'full-page-form' },
-  imports: [
+  imports: [FloatingDirective, 
     ReactiveFormsModule,
     NavComponent,
     LoadingComponent,

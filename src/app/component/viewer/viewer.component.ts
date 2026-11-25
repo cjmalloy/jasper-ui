@@ -35,7 +35,7 @@ import { RefService } from '../../service/api/ref.service';
 import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
-import { EmbedService } from '../../service/embed.service';
+import { EmbedService, followHeight } from '../../service/embed.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
 import { CLIPBOARD_COPY_EVENT, copyImage } from '../../util/clipboard';
@@ -68,6 +68,8 @@ import { TodoComponent } from '../todo/todo.component';
     '[attr.title]': "title()",
     '(keydown)': 'onKeydown($event)',
     '(window:resize)': 'measureLayout()',
+    '(document:fullscreenchange)': 'onFullscreenChange()',
+
   },
   imports: [
     forwardRef(() => RefComponent),
@@ -211,6 +213,10 @@ export class ViewerComponent {
       });
     });
     effect(() => {
+      this.config.mobile();
+      untracked(() => this.resizeEmbed());
+    });
+    effect(() => {
       const value = this.videoEl();
       untracked(() => this.setVideo(value));
     });
@@ -232,6 +238,13 @@ export class ViewerComponent {
 
   init() {
     this.measureLayout();
+    this.sizeEmbed();
+    this.reload(this.currentAudio);
+    this.reload(this.currentVideo);
+    this.setPdfIframe(this.pdfIframeEl());
+  }
+
+  private sizeEmbed() {
     const ref = this.ref();
     const layout = this.layout();
     if (hasTag('plugin/fullscreen', ref)) {
@@ -242,9 +255,30 @@ export class ViewerComponent {
         height: ref?.plugins?.['plugin/embed']?.height || (this.config.mobile() ? layout.height : Math.floor(layout.height * 0.8)),
       });
     }
-    this.reload(this.currentAudio);
-    this.reload(this.currentVideo);
-    this.setPdfIframe(this.pdfIframeEl());
+  }
+
+  /**
+   * Fetch the oEmbed again sized for the new layout when switching between mobile and desktop.
+   */
+  private resizeEmbed() {
+    const size = this.embedSize();
+    if (!size) return;
+    this.measureLayout();
+    this.sizeEmbed();
+    if (isEqual(size, this.embedSize())) return;
+    const i = this.iframe()?.nativeElement;
+    if (!i) return;
+    i.style.width = '';
+    i.style.height = '';
+    i.style.transform = '';
+    i.style.marginRight = '';
+    i.style.marginBottom = '';
+    // The resize handle moves percentage widths onto the container (see followChild)
+    const container = i.parentElement;
+    if (container) {
+      container.style.width = '';
+      container.style.height = '';
+    }
   }
 
   private readonly initializeLayout = afterNextRender(() => this.measureLayout());
@@ -329,6 +363,25 @@ export class ViewerComponent {
     }
   }
 
+  private wasFullscreen = false;
+  /**
+   * Zoomed oEmbeds (ex. Tweets) get a new width in fullscreen, so follow their height again
+   * even if they stopped reporting it long ago.
+   */
+  onFullscreenChange() {
+    // Nested viewers (ex. oEmbeds in fullscreen markdown) are inside the fullscreen element
+    const fullscreen = !!document.fullscreenElement?.contains(this.el.nativeElement);
+    if (fullscreen === this.wasFullscreen) return;
+    this.wasFullscreen = fullscreen;
+    const i = this.iframe()?.nativeElement;
+    if (i && this.zoom()) followHeight(i);
+  }
+
+  setVideoRatio(video: HTMLVideoElement) {
+    if (!video.videoWidth || !video.videoHeight) return;
+    video.style.setProperty('--video-ratio', '' + video.videoWidth / video.videoHeight);
+  }
+
   private setAudio(value: ElementRef<HTMLAudioElement> | undefined) {
     this.removeAudioListener();
     if (!value) return;
@@ -360,6 +413,10 @@ export class ViewerComponent {
         this.embeds.writeIframe(oembed, i, this.embedWidth(), true)
           .then(() => {
             if (this.oembed() !== oembed || this.iframe()?.nativeElement !== i) return;
+            // Players fill their iframe, so CSS may shrink them while keeping their shape (ex. markdown in fullscreen)
+            const ratio = oembed.html?.startsWith('<iframe') && oembed.width && oembed.height;
+            i.style.aspectRatio = ratio ? `${oembed.width} / ${oembed.height}` : '';
+            i.classList.toggle('keep-ratio', !!ratio);
             const width = this.embedSize()?.width || 0;
             if (oembed.width! > width) {
               const s = width / oembed.width!;
@@ -373,6 +430,8 @@ export class ViewerComponent {
             this.embedReady.set(true);
               });
       } else {
+        i.style.aspectRatio = '';
+        i.classList.remove('keep-ratio');
         setIframeSrc(i, embedUrl(this.embed()?.url || this.ref()?.url));
         if (!i.style.width) i.style.width = this.embedWidth();
         if (!i.style.height) i.style.height = this.embedHeight();
@@ -401,7 +460,6 @@ export class ViewerComponent {
   });
 
   readonly resizable = computed(() => {
-    if (this.config.mobile()) return false;
     if (this.ref()?.plugins?.['plugin/embed']?.noResize) return false;
     const html = this.oembed()?.html;
     return !html || html.startsWith('<iframe');
@@ -463,9 +521,8 @@ export class ViewerComponent {
 
   readonly embedWidth = computed(() => {
     if (this.embed()?.width) return Math.min(this.embed().width, this.layout().parentWidth - ((this.thread() || !this.config.mobile()) ? 32 : 12)) + 'px';
-    if (this.config.mobile() && this.layout().landscape) {
-      return this.thread() ? 'calc(100vw - 32px)' : 'calc(100vw - 12px)';
-    }
+    if (this.config.mobile() && !this.thread()) return '100%';
+    if (this.config.mobile() && this.layout().landscape) return 'calc(100vw - 32px)';
     return this.config.huge() ? '67%' : '80%';
   });
 
