@@ -127,7 +127,6 @@ test.describe.serial('Lens Header', () => {
     await page.locator('.full-page.ref .toggle').first().click();
     await page.keyboard.up('Control');
     await expect.poll(() => page.evaluate(() => !!document.fullscreenElement)).toBe(true);
-    // The lens shares the page query, so on a ref page the header shows responses of that ref
-    await expectStacked(page, await header(page, filters[0], page.locator('.embed:fullscreen')), viewport.width, 'Lens Embed');
+    await expectStacked(page, await header(page, filters[0], page.locator('.embed:fullscreen')), viewport.width, titles[filters[0]]);
   });
 });
