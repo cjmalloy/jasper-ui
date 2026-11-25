@@ -43,7 +43,9 @@ describe('LensComponent', () => {
   it.each([
     ['sourcesOf', '.sources-of'],
     ['responseOf', '.responses-of'],
-  ] as const)('reacts when query.%s loads', async (property, selector) => {
+  ] as const)('reacts when query.%s loads on a full page', async (property, selector) => {
+    fixture.componentRef.setInput('fullPage', true);
+    fixture.detectChanges();
     expect(fixture.nativeElement.querySelector(selector)).toBeNull();
 
     (component.query[property] as WritableSignal<Ref | undefined>).set({
@@ -54,6 +56,34 @@ describe('LensComponent', () => {
     await vi.waitFor(() => {
       expect(fixture.nativeElement.querySelector(selector)).not.toBeNull();
     });
+  });
+
+  it('ignores the page query targets in embeds', async () => {
+    (component.query.responseOf as WritableSignal<Ref | undefined>).set({ url: 'https://example.com/host' });
+    (component.query.sourcesOf as WritableSignal<Ref | undefined>).set({ url: 'https://example.com/host' });
+    fixture.componentRef.setInput('tag', '!internal');
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('.lens-targets')).toBeNull();
+  });
+
+  it('shows targets from the embed filter', async () => {
+    fixture.destroy();
+    const getCurrent = vi.spyOn(TestBed.inject(RefService), 'getCurrent')
+      .mockImplementation(url => of({ url, title: 'Embed target' }));
+    fixture = TestBed.createComponent(LensComponent);
+    (fixture.componentInstance.query.responseOf as WritableSignal<Ref | undefined>).set({ url: 'https://example.com/host' });
+    fixture.componentRef.setInput('tag', 'science');
+    fixture.componentRef.setInput('filter', ['responses/https://example.com/target']);
+    fixture.detectChanges();
+
+    await vi.waitFor(() => {
+      expect(fixture.nativeElement.querySelector('.responses-of')).not.toBeNull();
+    });
+    expect(getCurrent).toHaveBeenCalledWith('https://example.com/target');
+    expect(getCurrent).not.toHaveBeenCalledWith('https://example.com/host');
+    expect(fixture.nativeElement.querySelector('.sources-of')).toBeNull();
   });
 
   describe('template ui', () => {
