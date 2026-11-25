@@ -905,13 +905,24 @@ export function transparentIframe(content: string, bgColor: string, overflow = '
           parent.postMessage({ jasperIframeHeight: height }, ${JSON.stringify(location.origin)});
         };
         // Keep reporting until the height has not changed for 30 seconds
-        let last = Date.now();
-        const timer = setInterval(() => {
-          const old = height;
-          report();
-          if (height !== old) last = Date.now();
-          if (Date.now() - last > 30_000) clearInterval(timer);
-        }, 100);
+        let last = 0;
+        let timer = 0;
+        const follow = () => {
+          last = Date.now();
+          if (timer) return;
+          timer = setInterval(() => {
+            const old = height;
+            report();
+            if (height !== old) last = Date.now();
+            if (Date.now() - last > 30_000) {
+              clearInterval(timer);
+              timer = 0;
+            }
+          }, 100);
+        };
+        // A new width (ex. entering fullscreen) reflows the content long after it loaded
+        addEventListener('resize', follow);
+        follow();
         report();
       })();
     </script></body>
