@@ -44,7 +44,9 @@ $tablet-width: 948px;
   .sidebar {
     position: static !important;
     float: none !important;
-    backdrop-filter: blur(1px) !important;
+    // iOS hides the text caret in inputs inside a backdrop-filter
+    backdrop-filter: none !important;
+    background-color: var(--bg-accent);
     border: none !important;
     margin-left: 0;
 

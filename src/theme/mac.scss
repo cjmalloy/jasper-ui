@@ -101,10 +101,6 @@ body.darwin.safari {
 }
 
 body.ios {
-  // iOS hides the text caret in inputs inside a backdrop-filter
-  .sidebar {
-    backdrop-filter: none !important;
-  }
   input, textarea {
     background-color: var(--form-bg);
   }
