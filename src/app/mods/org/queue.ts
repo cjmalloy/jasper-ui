@@ -17,7 +17,7 @@ export const queueTemplate: Template = {
       { query: 'queue', label: $localize`🚧️ queue`, title: $localize`Work Queues`, group: $localize`Templates 🎨️` },
     ],
     // language=Handlebars
-    ui: `
+    sidebarUi: `
       {{#if bounty}}
         <div class="ext-text">
           <b i18n>Bounty:</b> {{ bounty }}

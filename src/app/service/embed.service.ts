@@ -6,7 +6,7 @@ import { catchError, EMPTY, forkJoin, map, Observable, of, retry, Subscription, 
 import { Ext } from '../model/ext';
 import { Oembed } from '../model/oembed';
 import { Page } from '../model/page';
-import { Ref, RefSort } from '../model/ref';
+import { Ref, RefPageArgs, RefSort } from '../model/ref';
 import { wikiUriFormat } from '../mods/org/wiki';
 import { OembedStore } from '../store/oembed';
 import { Store } from '../store/store';
@@ -542,8 +542,8 @@ export class EmbedService {
       const title = t.title;
       const type = this.editor.getUrlType(url);
       if (type === 'tag') {
-        subscriptions.push(this.loadQuery$(url).subscribe(({params, page, ext}) => {
-          const c = createLens(vc, params, page, this.editor.getQuery(url), ext);
+        subscriptions.push(this.loadQuery$(url).subscribe(({params, page, ext, args}) => {
+          const c = createLens(vc, params, page, this.editor.getQuery(url), ext, args);
           if (title) c.location.nativeElement.title = title;
           this.insert(t, c.location.nativeElement);
           t.remove();
@@ -692,8 +692,8 @@ export class EmbedService {
               console.error(err);
               return EMPTY;
             }),
-          ).subscribe(({params, page, ext}) =>
-            done(createLens(vc, params, page, this.editor.getQuery(url), ext).location.nativeElement));
+          ).subscribe(({params, page, ext, args}) =>
+            done(createLens(vc, params, page, this.editor.getQuery(url), ext, args).location.nativeElement));
         }
         return done();
       }));
@@ -712,8 +712,8 @@ export class EmbedService {
               console.error(err);
               return EMPTY;
             }),
-          ).subscribe(({params, page, ext}) =>
-            done(createLens(vc, params, page, this.editor.getQuery(url), ext).location.nativeElement));
+          ).subscribe(({params, page, ext, args}) =>
+            done(createLens(vc, params, page, this.editor.getQuery(url), ext, args).location.nativeElement));
         }
         return this.refOrWarning$(url, vc, true).subscribe(el => done(el));
       }));
@@ -809,13 +809,15 @@ export class EmbedService {
     setIframeSrc(iframe, dataUrl(transparentIframe(html, this.iframeBg, scroll ? 'auto' : 'hidden')));
   }
 
-  loadQuery$(url: string):  Observable<{params: any, page: Page<Ref>, ext?: Ext}> {
+  loadQuery$(url: string):  Observable<{params: any, page: Page<Ref>, ext?: Ext, args: RefPageArgs}> {
     const query = this.editor.getQuery(url);
     const params = parseBookmarkParams(url);
     const view: string = params.view;
+    const args = getArgs(query, getArray(params.sort) as RefSort[], getArray(params.filter) as UrlFilter[], params.search, params.pageNumber, params.pageSize);
     return forkJoin({
       params: of(params),
-      page: this.refs.page(getArgs(query, getArray(params.sort) as RefSort[], getArray(params.filter) as UrlFilter[], params.search, params.pageNumber, params.pageSize)),
+      args: of(args),
+      page: this.refs.page(args),
       ext: this.exts.getCachedExts(uniq([
         ...topAnds(query),
         ...topAnds(query).map(queryPrefix),

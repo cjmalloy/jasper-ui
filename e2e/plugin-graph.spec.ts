@@ -75,4 +75,47 @@ test.describe.serial('Graph Plugin', () => {
     await page.getByText('Select all').click();
     await expect(page.locator('.ref-list .link a', { hasText: 'Title' }).first()).toContainText('Title');
   });
+
+  test('context menu stays on screen', async () => {
+    const figure = page.locator('.force-directed-graph');
+    await figure.scrollIntoViewIfNeeded();
+    const box = (await figure.boundingBox())!;
+    const viewport = page.viewportSize()!;
+    await figure.click({
+      button: 'right',
+      position: { x: box.width - 2, y: Math.min(box.height - 40, viewport.height - box.y - 2) },
+    });
+    const menu = (await page.locator('.graph-context-menu').boundingBox())!;
+    expect(menu.x + menu.width).toBeLessThanOrEqual(viewport.width);
+    expect(menu.y + menu.height).toBeLessThanOrEqual(viewport.height);
+    await page.keyboard.press('Escape');
+    await page.mouse.click(1, 1);
+    await expect(page.locator('.graph-context-menu')).toHaveCount(0);
+  });
+
+  test('context menu works with the keyboard', async () => {
+    const figure = page.locator('.force-directed-graph');
+    const arrows = page.locator('.graph-context-menu [role=menuitemcheckbox]', { hasText: 'arrow' });
+    await figure.click({ button: 'right' });
+    await expect(page.locator('.graph-context-menu [role^=menuitem]').first()).toBeFocused();
+    const checked = await arrows.getAttribute('aria-checked');
+    await arrows.focus();
+    await page.keyboard.press(' ');
+    await expect(page.locator('.graph-context-menu')).toHaveCount(0);
+    await figure.click({ button: 'right' });
+    await expect(arrows).toHaveAttribute('aria-checked', checked === 'true' ? 'false' : 'true');
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.graph-context-menu')).toHaveCount(0);
+  });
+
+  test('context menu in fullscreen', async () => {
+    const figure = page.locator('.force-directed-graph');
+    await figure.click({ button: 'right' });
+    await page.locator('.graph-context-menu div', { hasText: 'Fullscreen' }).click();
+    await expect.poll(() => page.evaluate(() => document.fullscreenElement?.classList.contains('force-directed-graph'))).toBe(true);
+    await figure.click({ button: 'right' });
+    await expect(figure.locator('.graph-context-menu')).toBeVisible();
+    await page.locator('.graph-context-menu div', { hasText: 'Fullscreen' }).click();
+    await expect.poll(() => page.evaluate(() => !!document.fullscreenElement)).toBe(false);
+  });
 });
