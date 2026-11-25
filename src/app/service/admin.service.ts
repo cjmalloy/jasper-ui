@@ -35,6 +35,7 @@ import { lensMod } from '../mods/lens';
 import { mailboxMod } from '../mods/mailbox';
 import { mapMod } from '../mods/map';
 import { audioMod } from '../mods/media/audio';
+import { carouselMod } from '../mods/media/carousel';
 import { codeMod } from '../mods/media/code';
 import { durationMod } from '../mods/media/duration';
 import { embedMod } from '../mods/media/embed';
@@ -225,6 +226,7 @@ export class AdminService {
     voteMod,
     imageMod,
     masonryMod,
+    carouselMod,
     lensMod,
     pipMod,
     chessMod,
