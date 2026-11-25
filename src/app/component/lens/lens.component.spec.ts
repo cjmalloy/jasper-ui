@@ -129,6 +129,17 @@ describe('LensComponent', () => {
       }));
     });
 
+    it('fetches more pages with the size of the first request', async () => {
+      refs.page.mockReturnValue(of(Page.of<Ref>([])));
+      fixture.componentRef.setInput('args', { query: 'science', page: 0, size: 5 });
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await actions!.fetch(1);
+      expect(refs.page.mock.calls.at(-1)![0]).toMatchObject({ page: 1, size: 5 });
+      await actions!.fetch(2, 10);
+      expect(refs.page.mock.calls.at(-1)![0]).toMatchObject({ page: 2, size: 10 });
+    });
+
     it('fetches more pages with the args of the first page and a stable sort', async () => {
       refs.page.mockReturnValue(of(Page.of<Ref>([])));
       fixture.componentRef.setInput('tag', 'config/home');

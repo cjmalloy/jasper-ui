@@ -152,10 +152,10 @@ export class LensComponent implements HasChanges {
       });
     };
     const actions: LensUiApi = {
-      fetch: (pageNumber = 0, size = params.size) => firstValueFrom(this.refs.page(withStableDateSort({
+      fetch: (pageNumber = 0, size) => firstValueFrom(this.refs.page(withStableDateSort({
         ...args,
         page: pageNumber,
-        size,
+        size: size ?? args.size ?? page?.page.size ?? params.size,
       }))),
       graph: urls => firstValueFrom(this.graphs.list(urls)),
       embed: (el, ref) => mount(el, createEmbed(this.vc, ref)),
