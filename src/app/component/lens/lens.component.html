@@ -1,24 +1,28 @@
 @if (header()) {
   <app-viewer class="lens-header" [text]="header()" />
 }
-  @if (query.responseOf()) {
-    <div class="list-container responses-of">
-      <div class="label" i18n>Responses Of:</div>
-      <app-ref class="full-page"
-               [ref]="query.responseOf()"
-               [showToggle]="true"
-               (copied)="query.refresh()" />
-    </div>
-  }
-  @if (query.sourcesOf()) {
-    <div class="list-container sources-of">
-      <div class="label" i18n>Sources Of:</div>
-      <app-ref class="full-page"
-               [ref]="query.sourcesOf()"
-               [showToggle]="true"
-               (copied)="query.refresh()" />
-    </div>
-  }
+@if (query.responseOf() || query.sourcesOf()) {
+  <div class="lens-targets">
+    @if (query.responseOf()) {
+      <div class="list-container responses-of">
+        <div class="label" i18n>Responses Of:</div>
+        <app-ref class="full-page"
+                 [ref]="query.responseOf()"
+                 [showToggle]="true"
+                 (copied)="query.refresh()" />
+      </div>
+    }
+    @if (query.sourcesOf()) {
+      <div class="list-container sources-of">
+        <div class="label" i18n>Sources Of:</div>
+        <app-ref class="full-page"
+                 [ref]="query.sourcesOf()"
+                 [showToggle]="true"
+                 (copied)="query.refresh()" />
+      </div>
+    }
+  </div>
+}
 @if (isTemplate('graph')) {
   @defer {
     <app-force-directed #lens

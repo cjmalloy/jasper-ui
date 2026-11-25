@@ -11,7 +11,7 @@ import { AdminService } from './admin.service';
 import { RefService } from './api/ref.service';
 import { ConfigService } from './config.service';
 import { EditorService } from './editor.service';
-import { EmbedService } from './embed.service';
+import { EmbedService, followHeight } from './embed.service';
 
 @Component({ template: '' })
 class HostComponent {
@@ -337,6 +337,30 @@ describe('EmbedService', () => {
 
     it('looks up links directly followed by a toggle for another URL', () => {
       expect(lookups('[paper](https://example.com/paper)![+](https://example.com/other)')).toEqual(['https://example.com/paper']);
+    });
+  });
+
+  describe('followHeight', () => {
+    function setup(zoom: boolean) {
+      const container = document.createElement('div');
+      if (zoom) container.classList.add('zoom');
+      const iframe = document.createElement('iframe');
+      container.appendChild(iframe);
+      document.body.appendChild(container);
+      Object.defineProperty(document, 'fullscreenElement', { configurable: true, get: () => container });
+      followHeight(iframe);
+      window.dispatchEvent(new MessageEvent('message', { data: { jasperIframeHeight: 420 }, source: iframe.contentWindow }));
+      container.remove();
+      delete (document as any).fullscreenElement;
+      return iframe;
+    }
+
+    it('follows the content height of zoomed oEmbeds in fullscreen', () => {
+      expect(setup(true).style.height).toBe('420px');
+    });
+
+    it('ignores the content height of other iframes in fullscreen', () => {
+      expect(setup(false).style.height).toBe('');
     });
   });
 });
