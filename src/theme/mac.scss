@@ -36,6 +36,10 @@ body.darwin.safari {
   input:not([type=checkbox]):not([type=radio]) {
     height: 28px;
   }
+  .form-array > input.big:not([type=checkbox]):not([type=radio]) {
+    height: auto;
+    min-height: 28px;
+  }
   .actions, .advanced-actions {
     .action > span {
       & > input, & > button {
