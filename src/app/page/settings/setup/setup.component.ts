@@ -3,16 +3,23 @@ import { Overlay, OverlayModule, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { KeyValuePipe, NgTemplateOutlet } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, DestroyRef, inject, signal, TemplateRef, viewChild, ViewContainerRef } from '@angular/core';
-import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { afterNextRender, Component, computed, DestroyRef, inject, Injector, signal, TemplateRef, viewChild, ViewContainerRef } from '@angular/core';
+import { FormControl, FormGroup, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { FormlyConfig, FormlyFieldConfig, FormlyFormBuilder } from '@ngx-formly/core';
 import { forOwn, sortBy, uniq } from 'lodash-es';
 import { catchError, concat, EMPTY, last, Observable, of, Subscription, switchMap, tap, throwError } from 'rxjs';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
+import { AdminConfigComponent } from '../../../form/admin-config/admin-config.component';
 import { DiffComponent } from '../../../form/diff/diff.component';
+import { configFormFields, optionalFields } from '../../../formly/formly-schema';
+import { Plugin } from '../../../model/plugin';
 import { Config, Mod, ModType } from '../../../model/tag';
+import { Template } from '../../../model/template';
 import { AdminService } from '../../../service/admin.service';
+import { PluginService } from '../../../service/api/plugin.service';
+import { TemplateService } from '../../../service/api/template.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { equalBundle, mergeBundle } from '../../../util/diff';
@@ -25,6 +32,21 @@ interface ModUpdatePreview {
   proposed: Mod;
   diffBase: Mod;
   conflict: boolean;
+}
+
+// $mobile-width in theme/mobile.scss
+const MOBILE_WIDTH = 740;
+
+interface ModConfigEntry {
+  type: 'plugin' | 'template';
+  entity: Plugin | Template;
+  fields: FormlyFieldConfig[];
+  group: FormGroup<{ defaults: FormControl<string> }>;
+}
+
+interface ModConfigState {
+  mod: string;
+  entries: ModConfigEntry[];
 }
 
 @Component({
@@ -40,15 +62,22 @@ interface ModUpdatePreview {
     DiffComponent,
     OverlayModule,
     LoadingComponent,
+    AdminConfigComponent,
   ],
 })
 export class SettingsSetupPage {
   admin = inject(AdminService);
   private mod = inject(ModService);
+  private plugins = inject(PluginService);
+  private templates = inject(TemplateService);
   store = inject(Store);
   private fb = inject(UntypedFormBuilder);
   private overlay = inject(Overlay);
+  private formlyConfig = inject(FormlyConfig);
+  // Constructing the builder registers the formly types needed to filter the defaults form
+  private formlyBuilder = inject(FormlyFormBuilder);
   private vc = inject(ViewContainerRef);
+  private injector = inject(Injector);
 
 
   readonly submitted = signal<boolean>(false);
@@ -56,13 +85,21 @@ export class SettingsSetupPage {
   readonly installMessages = signal<string[]>([]);
   readonly mergeState = signal<ModUpdatePreview | undefined>(undefined);
   readonly mergeSaving = signal(false);
+  readonly configState = signal<ModConfigState | undefined>(undefined);
+  readonly configSaving = signal(false);
+  readonly configErrors = signal<string[]>([]);
   readonly modChangesLoaded = signal(false);
   readonly modChangesError = signal<string[]>([]);
   readonly installingDefaults = computed(() => this.admin.installingDefaults());
   readonly noMods = computed(() => this.store.account.admin && !this.installingDefaults() && !this.admin.loading() && this.admin.noMods());
-  readonly hasLog = computed(() => !!(this.modChangesError().length || this.serverError().length || this.installMessages().length));
+  readonly hasLog = computed(() => !!(this.configState() || this.modChangesError().length || this.serverError().length || this.installMessages().length));
+  /**
+   * The log is rendered in two places, so render the config form only in the visible one.
+   */
+  readonly mobile = signal(false);
   private mergeSavingSubscription?: Subscription;
   private modChangesSubscription?: Subscription;
+  private configSavingSubscription?: Subscription;
 
   readonly mergePopup = viewChild<TemplateRef<any>>('mergePopup');
 
@@ -87,11 +124,19 @@ export class SettingsSetupPage {
       mods: fb.group(formSafeNames({...this.admin.def.plugins, ...this.admin.def.templates })),
     });
     this.clear();
+    const mobile = window.matchMedia?.(`(max-width: ${MOBILE_WIDTH}px)`);
+    if (mobile) {
+      this.mobile.set(mobile.matches);
+      const onChange = (e: MediaQueryListEvent) => this.mobile.set(e.matches);
+      mobile.addEventListener('change', onChange);
+      inject(DestroyRef).onDestroy(() => mobile.removeEventListener('change', onChange));
+    }
     this.loadModChanges(this.admin.ready$.pipe(tap(() => this.clear())));
   }
 
   private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.cancelMerge();
+    this.cancelConfig();
     this.modChangesSubscription?.unsubscribe();
   });
 
@@ -345,7 +390,16 @@ export class SettingsSetupPage {
   private openMergePopup() {
     const mergePopup = this.mergePopup();
     if (!mergePopup || this.mergePopupRef?.hasAttached()) return;
-    this.mergePopupRef = this.overlay.create({
+    this.mergePopupRef = this.createPopup();
+    this.mergePopupRef.attach(new TemplatePortal(mergePopup, this.vc));
+    this.mergePopupSub.add(this.mergePopupRef.backdropClick().subscribe(() => this.cancelMerge()));
+    this.mergePopupSub.add(this.mergePopupRef.keydownEvents().subscribe(event => {
+      if (event.key === 'Escape') this.cancelMerge();
+    }));
+  }
+
+  private createPopup() {
+    return this.overlay.create({
       height: window.visualViewport?.height ? window.visualViewport.height + 'px' : '100vh',
       width: '100vw',
       hasBackdrop: true,
@@ -355,11 +409,112 @@ export class SettingsSetupPage {
         .top('0'),
       scrollStrategy: this.overlay.scrollStrategies.block(),
     });
-    this.mergePopupRef.attach(new TemplatePortal(mergePopup, this.vc));
-    this.mergePopupSub.add(this.mergePopupRef.backdropClick().subscribe(() => this.cancelMerge()));
-    this.mergePopupSub.add(this.mergePopupRef.keydownEvents().subscribe(event => {
-      if (event.key === 'Escape') this.cancelMerge();
-    }));
+  }
+
+  private modConfigEntries(mod: string): ModConfigEntry[] {
+    const installed = this.admin.getInstalledMod(mod);
+    if (!installed) return [];
+    const entry = (type: 'plugin' | 'template', entity: Plugin | Template, fields: FormlyFieldConfig[]): ModConfigEntry => ({
+      type,
+      entity,
+      fields,
+      group: new FormGroup({
+        defaults: new FormControl(JSON.stringify(entity.defaults || {}, null, 2), { nonNullable: true }),
+      }),
+    });
+    return [
+      ...(installed.plugin || []).map(p => ['plugin', p] as const),
+      ...(installed.template || []).map(t => ['template', t] as const),
+    ]
+      .filter(([, e]) => e.origin === this.store.account.origin())
+      .map(([type, e]) => ({ type, e, fields: this.defaultsFields(e) }))
+      .filter(({ fields }) => fields.length)
+      .map(({ type, e, fields }) => entry(type, e, fields));
+  }
+
+  /**
+   * The Default Values form from the plugin and template editors.
+   */
+  private defaultsFields(entity: Plugin | Template) {
+    return optionalFields(this.formlyConfig, configFormFields(entity.config));
+  }
+
+  hasDefaultsForm(config: Config) {
+    const installed = this.admin.getInstalledMod(modId(config));
+    if (!installed) return false;
+    return [...installed.plugin || [], ...installed.template || []]
+      .some(e => e.origin === this.store.account.origin() && this.defaultsFields(e).length);
+  }
+
+  configMod(config: Config) {
+    if (this.configSaving()) return;
+    // Don't discard unsaved edits to another mod
+    if (this.configState()?.entries.some(e => e.group.dirty)) return;
+    const mod = modId(config);
+    this.configErrors.set([]);
+    this.configState.set({ mod, entries: this.modConfigEntries(mod) });
+    afterNextRender(() => document.querySelector<HTMLElement>('.mod-config-panel')?.focus(), { injector: this.injector });
+  }
+
+  saveConfig() {
+    const state = this.configState();
+    if (!state || this.configSaving()) return;
+    this.configErrors.set([]);
+    for (const e of state.entries) e.group.markAllAsTouched();
+    if (state.entries.some(e => e.group.invalid)) {
+      this.configErrors.set([$localize`Please fix the errors in the form.`]);
+      return;
+    }
+    const updates: Observable<string>[] = [];
+    let saved = false;
+    for (const e of state.entries) {
+      if (!e.group.dirty) continue;
+      let defaults: any;
+      try {
+        defaults = JSON.parse(e.group.controls.defaults.value);
+      } catch (err: any) {
+        this.configErrors.update(errors => [...errors, err.message]);
+        continue;
+      }
+      const update$ = e.type === 'plugin'
+        ? this.plugins.update({ ...e.entity as Plugin, defaults })
+        : this.templates.update({ ...e.entity as Template, defaults });
+      updates.push(update$.pipe(tap(cursor => {
+        saved = true;
+        // Keep the new cursor so re-saving this entry after a partial failure passes the optimistic update check
+        e.entity = { ...e.entity, defaults, modifiedString: cursor };
+        e.group.markAsPristine();
+      })));
+    }
+    if (this.configErrors().length) return;
+    const _ = (msg?: string) => this.installMessages.update(messages => msg ? [...messages, msg] : messages);
+    if (!updates.length) {
+      this.cancelConfig();
+      return;
+    }
+    this.configSaving.set(true);
+    this.configSavingSubscription = concat(...updates).pipe(
+      last(null, null),
+      catchError((res: HttpErrorResponse) => {
+        this.configSaving.set(false);
+        this.configErrors.set(printError(res));
+        // Earlier entries were saved, so refresh the installed mods while keeping the remaining edits
+        if (saved) this.reset();
+        return EMPTY;
+      }),
+    ).subscribe(() => {
+      this.cancelConfig();
+      this.reset();
+      _($localize`Saved ${state.mod} config.`);
+    });
+    this.configSavingSubscription.add(() => this.configSaving.set(false));
+  }
+
+  cancelConfig() {
+    this.configState.set(undefined);
+    this.configErrors.set([]);
+    this.configSavingSubscription?.unsubscribe();
+    this.configSaving.set(false);
   }
 
   installed(config: Config) {
