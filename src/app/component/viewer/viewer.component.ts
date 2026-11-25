@@ -369,7 +369,8 @@ export class ViewerComponent {
    * even if they stopped reporting it long ago.
    */
   onFullscreenChange() {
-    const fullscreen = document.fullscreenElement === this.el.nativeElement;
+    // Nested viewers (ex. oEmbeds in fullscreen markdown) are inside the fullscreen element
+    const fullscreen = !!document.fullscreenElement?.contains(this.el.nativeElement);
     if (fullscreen === this.wasFullscreen) return;
     this.wasFullscreen = fullscreen;
     const i = this.iframe()?.nativeElement;
