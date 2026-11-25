@@ -14,7 +14,7 @@ test.describe.serial('Carousel Template', () => {
   }
 
   test('enable carousel mod', async ({ page }) => {
-    await mod(page, '#mod-carousel', '#mod-images');
+    await mod(page, '#mod-carousel', '#mod-images', '[id="mod-plugin/embed"]');
   });
 
   test('create refs', async ({ request }) => {
@@ -142,5 +142,41 @@ test.describe.serial('Carousel Template', () => {
     const tallImage = (await slide('Tall').locator('.image-expand').boundingBox())!;
     expect(Math.abs(tallImage.height - media.height)).toBeLessThan(4);
     expect(tallImage.width / tallImage.height).toBeCloseTo(0.25, 1);
+  });
+
+  test('keeps the size an embed is resized to', async ({ page, request }) => {
+    const resize = tag + '/resize';
+    const url = `https://example.com/${resize}`;
+    await page.route(url, route => route.fulfill({ contentType: 'text/html', body: '<p>Embedded page</p>' }));
+    const res = await request.post(`${api}/ref`, {
+      headers: await headers(request),
+      data: { url, title: 'Embed', tags: ['public', resize, 'plugin/embed'], origin: localOrigin() },
+    });
+    expect(res.ok(), await res.text()).toBeTruthy();
+    await page.goto(`/tag/${resize}?debug=USER&view=carousel`, { waitUntil: 'networkidle' });
+    const slide = page.locator('.carousel-slide.active');
+    const container = slide.locator('.embed-container');
+    const iframe = container.locator('iframe');
+    await expect(iframe).toHaveClass(/ready/);
+    const before = (await container.boundingBox())!;
+    await page.mouse.move(before.x + before.width - 3, before.y + before.height - 3);
+    await page.mouse.down();
+    await page.mouse.move(before.x + before.width - 103, before.y + before.height - 53, { steps: 5 });
+    await page.mouse.up();
+    await expect(container).toHaveClass(/\bresized\b/);
+    // The slide recenters on the new size
+    await expect.poll(async () => {
+      const s = (await slide.boundingBox())!;
+      const c = (await container.boundingBox())!;
+      return Math.round(s.x + s.width / 2 - (c.x + c.width / 2));
+    }).toBe(0);
+    const after = (await container.boundingBox())!;
+    expect(after.width).toBeCloseTo(before.width - 100, -1);
+    expect(after.height).toBeLessThan(before.height - 50);
+    expect((await slide.boundingBox())!.width).toBeCloseTo(after.width + 16, 0);
+    // The frame fills the box the grip is drawn on
+    const frame = (await iframe.boundingBox())!;
+    expect(frame.width).toBeCloseTo(after.width, 0);
+    expect(frame.height).toBeCloseTo(after.height, 0);
   });
 });

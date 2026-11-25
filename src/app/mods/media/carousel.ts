@@ -12,7 +12,7 @@ export const carouselTemplate: Template = {
   name: $localize`🎠️ Carousel`,
   config: {
     mod: $localize`🎠️ Carousel`,
-    version: 4,
+    version: 5,
     type: 'lens',
     global: true,
     view: $localize`🎠️`,
@@ -51,6 +51,10 @@ export const carouselTemplate: Template = {
         padding-inline: calc(var(--slide) * var(--peek));
         overscroll-behavior-x: contain;
       }
+      /* Hold the slide still while its handle is dragged, so the grip follows the pointer */
+      .carousel-track:has(.resize-dragging) {
+        scroll-snap-type: none;
+      }
       .carousel-track::-webkit-scrollbar {
         display: none;
       }
@@ -75,6 +79,24 @@ export const carouselTemplate: Template = {
           calc(var(--slide) / 2),
           calc((var(--height) - 16px) * var(--ratio) + 16px),
           max(var(--slide), 100cqw - var(--peek) * var(--slide)));
+      }
+      /* Wrap media the user has resized with its handle, so it keeps the dragged size */
+      .carousel-slide:has(> .carousel-media > * > .resized) {
+        flex-basis: auto;
+        min-width: calc(var(--slide) / 2);
+        max-width: max(var(--slide), 100cqw - var(--peek) * var(--slide));
+      }
+      .carousel-slide:has(> .carousel-media > * > .resized) > .carousel-media {
+        container-type: normal;
+      }
+      .carousel-media > * > .resized {
+        flex: none !important;
+        align-self: center !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
+        min-height: 0;
+        margin: auto !important;
+        transform: none !important;
       }
       .carousel-slide.active {
         cursor: auto;
@@ -112,7 +134,7 @@ export const carouselTemplate: Template = {
       .carousel-media > * > .embed-container:has(> iframe.keep-ratio) {
         --r: var(--ratio, 16 / 9);
       }
-      .carousel-media > * > :is(.image-expand, video, .embed-container:has(> iframe.keep-ratio)) {
+      .carousel-media > * > :is(.image-expand, video, .embed-container:has(> iframe.keep-ratio)):not(.resized) {
         width: min(100cqw, 100cqh * var(--r)) !important;
         height: min(100cqh, 100cqw / var(--r)) !important;
         max-width: none !important;
@@ -123,7 +145,7 @@ export const carouselTemplate: Template = {
         background-size: contain !important;
         background-position: center !important;
       }
-      .carousel-media > * > :is(.embed-container, app-qr),
+      .carousel-media > * > :is(.embed-container, app-qr):not(.resized),
       .carousel-media > * > .embed-container > iframe {
         flex: 1 1 auto;
         align-self: stretch;
@@ -134,7 +156,7 @@ export const carouselTemplate: Template = {
         margin: 0 !important;
         transform: none !important;
       }
-      .carousel-media > * > .embed-container:has(> iframe.keep-ratio) {
+      .carousel-media > * > .embed-container:has(> iframe.keep-ratio):not(.resized) {
         flex: none;
         align-self: center;
       }
