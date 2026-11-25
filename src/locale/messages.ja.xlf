@@ -9256,6 +9256,10 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Load</source>
         <target>読み込む</target>
       </trans-unit>
+      <trans-unit id="1850284514970163613" datatype="html">
+        <source>JSON is not a Ref, an Ext or a { ref, ext } bundle.</source>
+        <target>JSONはRef、Ext、または { ref, ext } バンドルではありません。</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
