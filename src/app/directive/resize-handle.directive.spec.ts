@@ -86,6 +86,28 @@ describe('ResizeHandleDirective hit test', () => {
     computed.mockRestore();
   });
 
+  it('should scale the mobile grip by the zoom', () => {
+    const el = document.createElement('div');
+    Object.defineProperty(el, 'offsetWidth', { value: 400 });
+    Object.defineProperty(el, 'offsetHeight', { value: 300 });
+    Object.defineProperty(el, 'currentCSSZoom', { value: 2 });
+    el.getBoundingClientRect = () => ({ left: 100, top: 400, right: 500, bottom: 700, width: 400, height: 300 } as DOMRect);
+    // At 2x the grip is 48x96, 44px from the right, hanging 50px below (x 408-456, y 654-750)
+    const computed = vi.spyOn(window, 'getComputedStyle').mockImplementation(() =>
+      ({ width: '24px', height: '48px', right: '22px', bottom: '-25px' }) as any);
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ConfigService, useValue: { mobile: () => true } },
+        { provide: ElementRef, useValue: { nativeElement: el } },
+      ],
+    });
+    const directive = TestBed.runInInjectionContext(() => new ResizeHandleDirective());
+    const event = (x: number, y: number) => ({ button: 0, clientX: x, clientY: y, preventDefault: vi.fn(), stopPropagation: vi.fn(), stopImmediatePropagation: vi.fn() } as any);
+    directive.onPointerDown(event(432, 730));
+    expect(directive.dragging()).toBe(true);
+    computed.mockRestore();
+  });
+
   it('should not collapse below the minimum size', () => {
     const el = document.createElement('div');
     Object.defineProperty(el, 'offsetWidth', { value: 400 });

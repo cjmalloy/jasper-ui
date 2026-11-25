@@ -139,8 +139,10 @@ export class ResizeHandleDirective {
 
   private grip(rect: DOMRect) {
     const style = getComputedStyle(this.el.nativeElement, '::before');
-    const width = parseFloat(style.width), height = parseFloat(style.height);
-    const right = parseFloat(style.right), bottom = parseFloat(style.bottom);
+    // Computed lengths are unzoomed, but the rect and pointer include zoom (ex. fullscreen markdown at 200%)
+    const zoom = this.el.nativeElement.currentCSSZoom || 1;
+    const width = parseFloat(style.width) * zoom, height = parseFloat(style.height) * zoom;
+    const right = parseFloat(style.right) * zoom, bottom = parseFloat(style.bottom) * zoom;
     if (!width || !height || isNaN(right) || isNaN(bottom)) return undefined;
     return {
       left: rect.right - right - width,

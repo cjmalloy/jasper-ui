@@ -37,6 +37,19 @@ describe('ViewerComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('clears the container width when the layout changes', () => {
+    const container = document.createElement('div');
+    container.style.width = '80%';
+    const iframe = document.createElement('iframe');
+    iframe.style.width = '100%';
+    container.appendChild(iframe);
+    (component as any).iframe = () => ({ nativeElement: iframe });
+    (component as any).embedSize.set({ width: 1, height: 1 });
+    (component as any).resizeEmbed();
+    expect(iframe.style.width).toBe('');
+    expect(container.style.width).toBe('');
+  });
+
   it('clears derived lens state when a viewer is reused for an ordinary ref', () => {
     fixture.componentRef.setInput('ref', { url: 'tag:/science', tags: ['plugin/lens'] });
     expect(component.lens()).toBe(true);

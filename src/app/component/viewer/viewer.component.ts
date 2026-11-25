@@ -271,6 +271,12 @@ export class ViewerComponent {
     i.style.transform = '';
     i.style.marginRight = '';
     i.style.marginBottom = '';
+    // The resize handle moves percentage widths onto the container (see followChild)
+    const container = i.parentElement;
+    if (container) {
+      container.style.width = '';
+      container.style.height = '';
+    }
   }
 
   private readonly initializeLayout = afterNextRender(() => this.measureLayout());
