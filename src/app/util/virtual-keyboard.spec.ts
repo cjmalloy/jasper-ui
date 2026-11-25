@@ -65,8 +65,35 @@ describe('virtual keyboard', () => {
     expect(open()).toBe(false);
     input.focus();
     expect(open()).toBe(true);
-    input.blur();
+  });
+
+  it('should stay open after leaving the text field until the viewport recovers', () => {
+    document.body.classList.add('android');
+    stop = trackAndroidKeyboard();
+    input.focus();
+    resize(400);
+    expect(open()).toBe(true);
+    checkbox.focus();
+    expect(open()).toBe(true);
+    resize(800);
     expect(open()).toBe(false);
+  });
+
+  it('should stay open when rotating with the keyboard open', () => {
+    document.body.classList.add('android');
+    let width = 400;
+    Object.defineProperty(window, 'innerWidth', { configurable: true, get: () => width });
+    stop = trackAndroidKeyboard();
+    input.focus();
+    resize(400);
+    expect(open()).toBe(true);
+    width = 800;
+    resize(150);
+    expect(open()).toBe(true);
+    resize(380);
+    expect(open()).toBe(false);
+    resize(150);
+    expect(open()).toBe(true);
   });
 
   it('should do nothing outside Android', () => {
