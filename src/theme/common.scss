@@ -1574,6 +1574,10 @@ formly-field-geometries .geometry-item > formly-field > formly-group {
   }
   @media (max-width: 740px), (pointer: coarse) {
     grid-column: auto;
+    // Forms are flush with the screen edge, so stay within the 4px margin
+    &::before {
+      inset: -8px -4px;
+    }
     // iOS hides the island under the keyboard. Android resizes the viewport,
     // so the island is unstuck while the keyboard is open.
     body:not(.ios):not(.android) &,
