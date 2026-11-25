@@ -1,9 +1,8 @@
-import { A11yModule } from '@angular/cdk/a11y';
 import { Overlay, OverlayModule, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { KeyValuePipe, NgTemplateOutlet } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, DestroyRef, inject, signal, TemplateRef, viewChild, ViewContainerRef } from '@angular/core';
+import { afterNextRender, Component, computed, DestroyRef, inject, Injector, signal, TemplateRef, viewChild, ViewContainerRef } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { FormlyConfig, FormlyFieldConfig, FormlyFormBuilder } from '@ngx-formly/core';
@@ -34,6 +33,9 @@ interface ModUpdatePreview {
   conflict: boolean;
 }
 
+// $mobile-width in theme/mobile.scss
+const MOBILE_WIDTH = 740;
+
 interface ModConfigEntry {
   type: 'plugin' | 'template';
   entity: Plugin | Template;
@@ -60,7 +62,6 @@ interface ModConfigState {
     OverlayModule,
     LoadingComponent,
     AdminConfigComponent,
-    A11yModule,
   ],
 })
 export class SettingsSetupPage {
@@ -75,6 +76,7 @@ export class SettingsSetupPage {
   // Constructing the builder registers the formly types needed to filter the defaults form
   private formlyBuilder = inject(FormlyFormBuilder);
   private vc = inject(ViewContainerRef);
+  private injector = inject(Injector);
 
 
   readonly submitted = signal<boolean>(false);
@@ -89,13 +91,16 @@ export class SettingsSetupPage {
   readonly modChangesError = signal<string[]>([]);
   readonly installingDefaults = computed(() => this.admin.installingDefaults());
   readonly noMods = computed(() => this.store.account.admin && !this.installingDefaults() && !this.admin.loading() && this.admin.noMods());
-  readonly hasLog = computed(() => !!(this.modChangesError().length || this.serverError().length || this.installMessages().length));
+  readonly hasLog = computed(() => !!(this.configState() || this.modChangesError().length || this.serverError().length || this.installMessages().length));
+  /**
+   * The log is rendered in two places, so render the config form only in the visible one.
+   */
+  readonly mobile = signal(false);
   private mergeSavingSubscription?: Subscription;
   private modChangesSubscription?: Subscription;
   private configSavingSubscription?: Subscription;
 
   readonly mergePopup = viewChild<TemplateRef<any>>('mergePopup');
-  readonly configPopup = viewChild<TemplateRef<any>>('configPopup');
 
   experiments = !!this.admin.getTemplate('config/experiments');
   readonly selectAllToggle = signal<boolean>(false);
@@ -108,8 +113,6 @@ export class SettingsSetupPage {
     ...this.admin.def.plugins, ...this.admin.def.templates });
 
   private mergePopupRef?: OverlayRef;
-  private configPopupRef?: OverlayRef;
-  private configPopupSub = new Subscription();
 
   constructor() {
     const mod = this.mod;
@@ -120,6 +123,13 @@ export class SettingsSetupPage {
       mods: fb.group(formSafeNames({...this.admin.def.plugins, ...this.admin.def.templates })),
     });
     this.clear();
+    const mobile = window.matchMedia?.(`(max-width: ${MOBILE_WIDTH}px)`);
+    if (mobile) {
+      this.mobile.set(mobile.matches);
+      const onChange = (e: MediaQueryListEvent) => this.mobile.set(e.matches);
+      mobile.addEventListener('change', onChange);
+      inject(DestroyRef).onDestroy(() => mobile.removeEventListener('change', onChange));
+    }
     this.loadModChanges(this.admin.ready$.pipe(tap(() => this.clear())));
   }
 
@@ -436,19 +446,13 @@ export class SettingsSetupPage {
   }
 
   configMod(config: Config) {
-    const configPopup = this.configPopup();
-    if (!configPopup || this.configPopupRef?.hasAttached()) return;
+    if (this.configSaving()) return;
+    // Don't discard unsaved edits to another mod
+    if (this.configState()?.entries.some(e => e.group.dirty)) return;
     const mod = modId(config);
     this.configErrors.set([]);
     this.configState.set({ mod, entries: this.modConfigEntries(mod) });
-    this.configPopupRef = this.createPopup();
-    this.configPopupRef.attach(new TemplatePortal(configPopup, this.vc));
-    this.configPopupSub.add(this.configPopupRef.backdropClick().subscribe(() => {
-      if (!this.configSaving()) this.cancelConfig();
-    }));
-    this.configPopupSub.add(this.configPopupRef.keydownEvents().subscribe(event => {
-      if (event.key === 'Escape' && !this.configSaving()) this.cancelConfig();
-    }));
+    afterNextRender(() => document.querySelector<HTMLElement>('.mod-config-panel')?.focus(), { injector: this.injector });
   }
 
   saveConfig() {
@@ -510,10 +514,6 @@ export class SettingsSetupPage {
     this.configErrors.set([]);
     this.configSavingSubscription?.unsubscribe();
     this.configSaving.set(false);
-    this.configPopupSub.unsubscribe();
-    this.configPopupSub = new Subscription();
-    this.configPopupRef?.dispose();
-    this.configPopupRef = undefined;
   }
 
   installed(config: Config) {

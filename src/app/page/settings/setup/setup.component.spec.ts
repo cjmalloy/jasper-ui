@@ -288,7 +288,7 @@ describe('SettingsSetupPage', () => {
       component.configMod(plugin);
       fixture.detectChanges();
       expect(component.configState()!.entries.map(e => e.entity.tag)).toEqual(['plugin/a', 'combo']);
-      expect(document.querySelectorAll('.mod-config-popup .mod-config-form').length).toBe(2);
+      expect(fixture.nativeElement.querySelectorAll('.log .mod-config-form').length).toBe(2);
       expect(component.configState()!.entries[0].fields[0].props!.required).toBe(false);
     });
 
@@ -325,14 +325,28 @@ describe('SettingsSetupPage', () => {
       expect(component.configSaving()).toBe(false);
     });
 
-    it('should not dismiss the popup while saving', () => {
+    it('should render the form only in the visible log', () => {
+      component.configMod(plugin);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelectorAll('.mod-config-panel').length).toBe(1);
+      expect(fixture.nativeElement.querySelector('.log.mobile-hide .mod-config-panel')).toBeTruthy();
+      component.mobile.set(true);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelectorAll('.mod-config-panel').length).toBe(1);
+      expect(fixture.nativeElement.querySelector('.log.mobile-block .mod-config-panel')).toBeTruthy();
+    });
+
+    it('should not replace the form while saving or with unsaved edits', () => {
+      const blog = { tag: 'blog', name: 'Blog', origin: '', config: { mod: 'Blog', form }, defaults: {} };
       vi.spyOn(TestBed.inject(TemplateService), 'update').mockReturnValue(NEVER);
       component.configMod(plugin);
       component.configState()!.entries[1].group.markAsDirty();
+      component.configMod(blog);
+      expect(component.configState()!.mod).toBe('Combo');
       component.saveConfig();
-      document.querySelector('.cdk-overlay-backdrop')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      document.querySelector('.mod-config-popup')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-      expect(component.configState()).toBeTruthy();
+      component.configState()!.entries.forEach(e => e.group.markAsPristine());
+      component.configMod(blog);
+      expect(component.configState()!.mod).toBe('Combo');
       expect(component.configSaving()).toBe(true);
     });
 

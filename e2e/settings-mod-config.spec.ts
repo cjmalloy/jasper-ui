@@ -31,14 +31,14 @@ test.describe.serial('Mod Config', () => {
     const blog = page.locator('.mod-row', { has: page.locator('#mod-blog') });
     await blog.locator('.mod-config-link').click();
 
-    const popup = page.locator('.mod-config-popup');
-    await expect(popup).toBeVisible();
-    await expect(popup.locator('.mod-config-form')).toHaveCount(1);
-    const checkbox = popup.locator('.mod-config-form input[type="checkbox"]').first();
+    const panel = page.locator('.mod-config-panel');
+    await expect(panel).toBeVisible();
+    await expect(panel.locator('.mod-config-form')).toHaveCount(1);
+    const checkbox = panel.locator('.mod-config-form input[type="checkbox"]').first();
     await expect(checkbox).not.toBeChecked();
     await checkbox.check();
-    await popup.locator('.mod-config-save').click();
-    await expect(popup).toHaveCount(0);
+    await panel.locator('.mod-config-save').click();
+    await expect(panel).toHaveCount(0);
     await expect(page.locator('.log div', { hasText: 'config.' }).first()).toBeAttached();
 
     const res = await request.get(`${api}/template`, {
@@ -53,8 +53,8 @@ test.describe.serial('Mod Config', () => {
 
     await page.goto('/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
     await blog.locator('.mod-config-link').click();
-    await expect(popup.locator('.mod-config-form input[type="checkbox"]').first()).toBeChecked();
-    await popup.locator('.mod-config-cancel').click();
-    await expect(popup).toHaveCount(0);
+    await expect(panel.locator('.mod-config-form input[type="checkbox"]').first()).toBeChecked();
+    await panel.locator('.mod-config-cancel').click();
+    await expect(panel).toHaveCount(0);
   });
 });

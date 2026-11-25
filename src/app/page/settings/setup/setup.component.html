@@ -35,7 +35,7 @@
     @if (hasLog()) {
       <span class="mobile-block"><!-- Log --></span>
       <div class="log mobile-block">
-        <ng-container *ngTemplateOutlet="log" />
+        <ng-container *ngTemplateOutlet="log; context: { mobile: true }" />
       </div>
     }
 
@@ -75,13 +75,16 @@
 
   </form>
   @if (hasLog()) {
-    <span class="log mobile-hide">
-      <ng-container *ngTemplateOutlet="log" />
-    </span>
+    <div class="log mobile-hide">
+      <ng-container *ngTemplateOutlet="log; context: { mobile: false }" />
+    </div>
   }
 </div>
 
-<ng-template #log>
+<ng-template #log let-mobile="mobile">
+  @if (configState() && mobile === this.mobile()) {
+    <ng-container *ngTemplateOutlet="configPanel" />
+  }
   @if (modChangesError().length) {
     <div class="mod-changes-error">
       @for (e of modChangesError(); track $index) {
@@ -126,16 +129,9 @@
   </div>
 </ng-template>
 
-<ng-template #configPopup>
-  <div class="mod-config-popup"
-       role="dialog"
-       aria-modal="true"
-       aria-labelledby="mod-config-title"
-       cdkTrapFocus
-       [cdkTrapFocusAutoCapture]="true">
-    <div class="merge-popup-header">
-      <label id="mod-config-title" class="mod-config-title">{{ configState()!.mod }}</label>
-    </div>
+<ng-template #configPanel>
+  <div class="mod-config-panel" tabindex="-1" aria-labelledby="mod-config-title" role="region">
+    <h2 id="mod-config-title" class="mod-config-title">{{ configState()!.mod }}</h2>
     <div class="mod-config-content" [attr.inert]="configSaving() ? '' : null">
       <div class="form mod-config-forms">
         @for (e of configState()!.entries; track e.type + e.entity.tag) {
@@ -151,7 +147,6 @@
         <div class="error mod-config-error">{{ err }}</div>
       }
     </div>
-    <span><!-- Buttons --></span>
     <span class="buttons right mod-config-buttons">
       @if (configSaving()) {
         <app-loading [inline]="true" />
