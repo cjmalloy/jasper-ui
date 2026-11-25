@@ -50,6 +50,22 @@ describe('ViewerComponent', () => {
     expect(container.style.width).toBe('');
   });
 
+  it('follows the zoomed oEmbed height again after entering fullscreen', () => {
+    const container = document.createElement('div');
+    container.classList.add('zoom');
+    const iframe = document.createElement('iframe');
+    container.appendChild(iframe);
+    document.body.appendChild(container);
+    (component as any).iframe = () => ({ nativeElement: iframe });
+    (component as any).zoom = () => true;
+    Object.defineProperty(document, 'fullscreenElement', { configurable: true, get: () => component.el.nativeElement });
+    document.dispatchEvent(new Event('fullscreenchange'));
+    window.dispatchEvent(new MessageEvent('message', { data: { jasperIframeHeight: 900 }, source: iframe.contentWindow }));
+    delete (document as any).fullscreenElement;
+    container.remove();
+    expect(iframe.style.height).toBe('900px');
+  });
+
   it('clears derived lens state when a viewer is reused for an ordinary ref', () => {
     fixture.componentRef.setInput('ref', { url: 'tag:/science', tags: ['plugin/lens'] });
     expect(component.lens()).toBe(true);
