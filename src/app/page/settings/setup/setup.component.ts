@@ -1,3 +1,4 @@
+import { FloatingDirective } from '../../../directive/floating.directive';
 import { Overlay, OverlayModule, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { KeyValuePipe, NgTemplateOutlet } from '@angular/common';
@@ -30,7 +31,7 @@ interface ModUpdatePreview {
   selector: 'app-settings-setup-page',
   templateUrl: './setup.component.html',
   styleUrls: ['./setup.component.scss'],
-  imports: [
+  imports: [FloatingDirective, 
     FakeLinkDirective,
     ReactiveFormsModule,
     RouterLink,

@@ -1,3 +1,4 @@
+import { FloatingDirective } from '../../directive/floating.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
@@ -24,7 +25,7 @@ import { prefix, setPublic } from '../../util/tag';
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
   host: { 'class': 'full-page-form' },
-  imports: [RouterLink, SettingsComponent, ReactiveFormsModule, UserFormComponent]
+  imports: [FloatingDirective, RouterLink, SettingsComponent, ReactiveFormsModule, UserFormComponent]
 })
 export class UserPage implements HasChanges {
   private mod = inject(ModService);

@@ -1,3 +1,4 @@
+import { FloatingDirective } from '../../directive/floating.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, effect, inject, input, linkedSignal, signal, untracked, viewChild } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -25,7 +26,7 @@ import { LoadingComponent } from '../loading/loading.component';
   selector: 'app-template',
   templateUrl: './template.component.html',
   styleUrls: ['./template.component.scss'],
-  imports: [
+  imports: [FloatingDirective, 
     RelativePipe,FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, TemplateFormComponent, LoadingComponent, DiffComponent],
   host: {
     '[attr.tabindex]': '0',

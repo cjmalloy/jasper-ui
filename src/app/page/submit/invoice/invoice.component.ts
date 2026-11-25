@@ -1,3 +1,4 @@
+import { FloatingDirective } from '../../../directive/floating.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -37,7 +38,7 @@ import { getVisibilityTags, prefix } from '../../../util/tag';
   templateUrl: './invoice.component.html',
   styleUrls: ['./invoice.component.scss'],
   host: { 'class': 'full-page-form' },
-  imports: [
+  imports: [FloatingDirective, 
     EditorComponent,
     ReactiveFormsModule,
     QrScannerComponent,

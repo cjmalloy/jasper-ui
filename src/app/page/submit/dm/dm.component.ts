@@ -1,3 +1,4 @@
+import { FloatingDirective } from '../../../directive/floating.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
@@ -66,7 +67,7 @@ import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/ta
   templateUrl: './dm.component.html',
   styleUrls: ['./dm.component.scss'],
   host: { 'class': 'full-page-form' },
-  imports: [
+  imports: [FloatingDirective, 
     forwardRef(() => EditorComponent),
     ReactiveFormsModule,
     AutofocusDirective,

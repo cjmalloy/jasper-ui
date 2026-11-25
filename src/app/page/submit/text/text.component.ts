@@ -1,3 +1,4 @@
+import { FloatingDirective } from '../../../directive/floating.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   afterNextRender,
@@ -73,7 +74,7 @@ import { getVisibilityTags, hasPrefix, hasTag, notPublicSecret } from '../../../
   templateUrl: './text.component.html',
   styleUrls: ['./text.component.scss'],
   host: { 'class': 'full-page-form' },
-  imports: [
+  imports: [FloatingDirective, 
     FakeLinkDirective,
     forwardRef(() => EditorComponent),
     FormlyForm,

@@ -1,3 +1,4 @@
+import { FloatingDirective } from '../../directive/floating.directive';
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
@@ -128,7 +129,7 @@ import { ViewerComponent } from '../viewer/viewer.component';
     '(fullscreenchange)': 'onFullscreenChange()',
     '(click)': 'onClick()',
   },
-  imports: [
+  imports: [FloatingDirective, 
     RelativePipe,
     FakeLinkDirective,
     forwardRef(() => ViewerComponent),
