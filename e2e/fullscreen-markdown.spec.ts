@@ -60,7 +60,7 @@ test.describe.serial('Fullscreen Markdown', () => {
   }
 
   test('enable mods', async ({ page }) => {
-    await mod(page, '#mod-root', '#mod-cache', '#mod-images', '[id="mod-plugin/video"]', '[id="mod-plugin/fullscreen"]'');
+    await mod(page, '#mod-root', '#mod-cache', '#mod-images', '[id="mod-plugin/video"]', '[id="mod-plugin/fullscreen"]');
   });
 
   test('create refs', async ({ request }) => {
