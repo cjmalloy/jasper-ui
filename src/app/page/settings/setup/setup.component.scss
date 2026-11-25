@@ -77,6 +77,21 @@ label {
   outline: none;
 }
 
+// Let wide fields (like the markdown editor) shrink to the log column
+.mod-config-forms,
+.mod-config-forms ::ng-deep :is(.form, formly-list-section .form-array > formly-field > formly-group) {
+  grid-template-columns: min-content minmax(0, 1fr);
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+.mod-config-forms ::ng-deep :is(.editor.add-button, .fill-editor > textarea, .fill-editor > ngx-monaco-editor) {
+  min-width: 0;
+}
+.mod-config-forms ::ng-deep textarea {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
 // The log column can be much narrower than the viewport, so stack the form
 // based on the panel width instead of waiting for the mobile breakpoint
 @container (max-width: 500px) {
@@ -93,7 +108,11 @@ label {
   .mod-config-forms ::ng-deep label {
     text-align: left !important;
   }
-  .mod-config-forms ::ng-deep :is(select, input:not([type=checkbox], [type=radio]), textarea, .form-array, .cdk-drop-list) {
+  .mod-config-forms ::ng-deep :is(.nested-footer-left, .nested-footer-right) {
+    left: 0;
+    width: 100%;
+  }
+  .mod-config-forms ::ng-deep :is(select, input:not([type=checkbox], [type=radio]), textarea, div.form-array, .cdk-drop-list) {
     min-width: 0;
     max-width: 100%;
   }
