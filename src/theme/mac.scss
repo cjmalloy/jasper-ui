@@ -51,7 +51,7 @@ body.darwin.safari {
     }
   }
   .form-array, .buttons {
-    button {
+    button:not(.toggle) {
       min-height: 28px !important;
       min-width: 32px !important;
     }
@@ -69,7 +69,7 @@ body.darwin.safari {
     select {
       font-size: 21px;
     }
-    button {
+    button:not(.toggle) {
       min-height: 28px !important;
       padding: 1px 6px;
     }
