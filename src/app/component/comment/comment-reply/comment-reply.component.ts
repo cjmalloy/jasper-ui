@@ -1,3 +1,4 @@
+import { FloatingDirective } from '../../../directive/floating.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
@@ -39,6 +40,7 @@ import { LoadingComponent } from '../../loading/loading.component';
   styleUrls: ['./comment-reply.component.scss'],
   host: { 'class': 'comment-reply' },
   imports: [
+    FloatingDirective,
     forwardRef(() => EditorComponent),
     ReactiveFormsModule,
     LoadingComponent,
