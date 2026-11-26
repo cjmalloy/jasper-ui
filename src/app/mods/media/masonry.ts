@@ -6,7 +6,7 @@ export const masonryTemplate: Template = {
   name: $localize`🧱️ Masonry`,
   config: {
     mod: $localize`🧱️ Masonry`,
-    version: 5,
+    version: 6,
     type: 'plugin',
     default: false,
     description: $localize`Overrides the built-in Image viewer with a masonry layout where images have a fixed width and variable height.`,
@@ -57,6 +57,12 @@ export const masonryTemplate: Template = {
             position: absolute;
             grid-area: auto;
           }
+          /* Anchored overlays are laid out on every list layout, so only show them for the active ref */
+          &:not(:hover, .mobile-unlock) {
+            & > .voting, & > .link, & > .info, & > .actions, &::after {
+              display: none;
+            }
+          }
           & > .voting {
             top: anchor(--masonry-ref top);
             left: anchor(--masonry-ref left);
@@ -72,6 +78,7 @@ export const masonryTemplate: Template = {
             left: anchor(--masonry-ref left);
             min-width: calc(anchor-size(--masonry-ref width) - 28px);
             white-space: nowrap;
+            flex-wrap: nowrap;
             overflow: visible;
             position-try-fallbacks: flip-inline;
           }
