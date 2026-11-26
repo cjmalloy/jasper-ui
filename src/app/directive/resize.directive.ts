@@ -1,4 +1,4 @@
-import { computed, Directive, ElementRef, inject, input, output, signal } from '@angular/core';
+import { computed, DestroyRef, Directive, ElementRef, inject, input, output, signal } from '@angular/core';
 
 @Directive({
   selector: '[appResize]',
@@ -10,16 +10,25 @@ import { computed, Directive, ElementRef, inject, input, output, signal } from '
     '(mousedown)': 'onMousedown($event)',
     '(touchstart)': 'onTouchstart($event)',
     '(click)': 'onClick($event)',
-    '(window:mousemove)': 'onMousemove($event)',
-    '(window:touchmove)': 'onTouchmove($event)',
-    '(window:contextmenu)': 'onCancel($event)',
-    '(window:mouseup)': 'onCancel($event)',
-    '(window:touchend)': 'onCancel($event)',
-    '(window:touchcancel)': 'onCancel($event)',
   },
 })
 export class ResizeDirective {
   private el = inject(ElementRef);
+
+  /**
+   * Window listeners are only added while dragging. Non-passive touchmove listeners
+   * on every image would block scrolling on touch screens.
+   */
+  private readonly windowListeners: [string, (e: any) => void, AddEventListenerOptions?][] = [
+    ['mousemove', e => this.onMousemove(e)],
+    ['touchmove', e => this.onTouchmove(e), { passive: false }],
+    ['contextmenu', e => this.onCancel(e)],
+    ['mouseup', e => this.onCancel(e)],
+    ['touchend', e => this.onCancel(e)],
+    ['touchcancel', e => this.onCancel(e)],
+  ];
+  private listening = false;
+  private readonly destroy = inject(DestroyRef).onDestroy(() => this.unlisten());
 
 
   readonly enabled = input<boolean | undefined>(undefined, { alias: 'appResize' });
@@ -68,6 +77,7 @@ export class ResizeDirective {
       x: Math.floor(this.el.nativeElement.offsetWidth),
       y: Math.floor(this.el.nativeElement.offsetHeight),
     };
+    this.listen();
   }
 
   onTouchstart(e: TouchEvent) {
@@ -89,6 +99,7 @@ export class ResizeDirective {
       x: Math.floor(this.el.nativeElement.offsetWidth),
       y: Math.floor(this.el.nativeElement.offsetHeight),
     };
+    this.listen();
   }
 
   onClick(e: MouseEvent) {
@@ -149,12 +160,25 @@ export class ResizeDirective {
   }
 
   onCancel(e: Event) {
+    this.unlisten();
     if (this.enabled() === false) return;
     delete this.dragStart;
     if (this.dragging) {
       this.dragging = false;
       e.preventDefault();
     }
+  }
+
+  private listen() {
+    if (this.listening) return;
+    this.listening = true;
+    for (const [type, fn, options] of this.windowListeners) window.addEventListener(type, fn, options);
+  }
+
+  private unlisten() {
+    if (!this.listening) return;
+    this.listening = false;
+    for (const [type, fn, options] of this.windowListeners) window.removeEventListener(type, fn, options);
   }
 
 }
