@@ -1,3 +1,5 @@
+@use 'stacked-form';
+
 // Mini: Smallest possible size
 $mini-width: 380px;
 // Mobile: Change tabs and forms
@@ -573,18 +575,7 @@ $tablet-width: 948px;
     flex-direction: column;
   }
   .form {
-    grid-template-columns: auto minmax(0, 1fr);
-    &, .nested-form, .field, formly-field, formly-group, formly-wrapper-form-field, formly-list-section {
-      // Stack labels above their fields, but not inside nested form groups
-      & > :not(:is(formly-list-section .form-array > formly-field > formly-group, formly-field-geometries .geometry-item > formly-field > formly-group) *) {
-        grid-column: 1 / -1;
-      }
-      // Keep checkboxes next to their label
-      & > label:has(+ formly-field-checkbox, + div > input[type=checkbox]:first-child),
-      & > label + :is(formly-field-checkbox, div:has(> input[type=checkbox]:first-child)) {
-        grid-column: auto;
-      }
-    }
+    @include stacked-form.stacked-form;
   }
 }
 
