@@ -184,7 +184,7 @@
               [tags]="plugins() || viewerTags()"
               [disableResize]="disableResize()"
               [fullscreen]="fullscreen()"
-              (contextmenu)="unlockViewer($event)"
+              (appLongPress)="unlockViewer($event)"
               (copied)="copied.emit($event)" />
 }
 <div class="actions"
@@ -324,7 +324,7 @@
               [tags]="plugins() || viewerTags()"
               [disableResize]="disableResize()"
               [fullscreen]="fullscreen()"
-              (contextmenu)="unlockViewer($event)"
+              (appLongPress)="unlockViewer($event)"
               (copied)="copied.emit($event)" />
 }
 

@@ -25,6 +25,7 @@ import { DateTime } from 'luxon';
 import { catchError, map, Observable, of, startWith, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
+import { LongPressDirective } from '../../directive/long-press.directive';
 import { TitleDirective } from '../../directive/title.directive';
 import { DiffComponent } from '../../form/diff/diff.component';
 import { writePlugins } from '../../form/plugins/plugins.component';
@@ -132,6 +133,7 @@ import { ViewerComponent } from '../viewer/viewer.component';
   imports: [FloatingDirective, 
     RelativePipe,
     FakeLinkDirective,
+    LongPressDirective,
     forwardRef(() => ViewerComponent),
     forwardRef(() => RefFormComponent),
     forwardRef(() => MdComponent),
@@ -394,7 +396,7 @@ export class RefComponent implements HasChanges {
   });
 
   unlockViewer(event: Event) {
-    if (!this.config.mobile()) return;
+    if (!this.config.mobile() && !this.config.noHover()) return;
     this.mobileUnlock.set(!this.mobileUnlock());
     event.preventDefault();
   }
