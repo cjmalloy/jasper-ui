@@ -6,7 +6,7 @@ export const masonryTemplate: Template = {
   name: $localize`🧱️ Masonry`,
   config: {
     mod: $localize`🧱️ Masonry`,
-    version: 6,
+    version: 7,
     type: 'plugin',
     default: false,
     description: $localize`Overrides the built-in Image viewer with a masonry layout where images have a fixed width and variable height.`,
@@ -17,6 +17,11 @@ export const masonryTemplate: Template = {
         & > .ref {
           .image-expand {
             min-height: 0;
+            /* Images cover the background, and a backdrop filter on every image is slow to scroll on mobile */
+            &:not(.loading) {
+              -webkit-backdrop-filter: none !important;
+              backdrop-filter: none !important;
+            }
             &.loading {
               height: auto;
               aspect-ratio: 1;
@@ -52,35 +57,49 @@ export const masonryTemplate: Template = {
           /* Position overlays against the list so they can overflow the ref and flip at the list edge */
           position: static;
           anchor-name: --masonry-ref;
-          anchor-scope: --masonry-ref, --masonry-link, --masonry-info, --masonry-actions;
-          & > .voting, & > .link, & > .info, & > .actions, &::after {
+          anchor-scope: --masonry-ref, --masonry-box, --masonry-link, --masonry-info, --masonry-actions;
+          /* The overlay box is at least 20rem wide, overflowing right, or left if there is no room.
+             It comes first so every line can align with it. */
+          &::before {
+            content: '';
+            top: anchor(--masonry-ref top);
+            left: anchor(--masonry-ref left);
+            width: min(max(anchor-size(--masonry-ref width), 20rem), 100%);
+            height: 0;
+            anchor-name: --masonry-box;
+            position-try-fallbacks: flip-inline;
+            pointer-events: none;
+          }
+          &::before, & > .voting, & > .link, & > .info, & > .actions, &::after {
             position: absolute;
             grid-area: auto;
           }
           /* Anchored overlays are laid out on every list layout, so only show them for the active ref */
-          &:not(:hover, .mobile-unlock) {
-            & > .voting, & > .link, & > .info, & > .actions, &::after {
-              display: none;
+          @media (hover: hover) {
+            &:not(:hover, .mobile-unlock) {
+              &::before, & > .voting, & > .link, & > .info, & > .actions, &::after {
+                display: none;
+              }
+            }
+          }
+          @media (hover: none) {
+            &:not(.mobile-unlock) {
+              &::before, & > .voting, & > .link, & > .info, & > .actions, &::after {
+                display: none;
+              }
             }
           }
           & > .voting {
             top: anchor(--masonry-ref top);
-            left: anchor(--masonry-ref left);
+            left: anchor(--masonry-box left);
+          }
+          & > .link, & > .info, & > .actions {
+            left: anchor(--masonry-box left);
+            right: anchor(--masonry-box right);
           }
           & > .link {
             top: anchor(--masonry-ref top);
-            left: anchor(--masonry-ref left);
-            right: anchor(--masonry-ref right);
             anchor-name: --masonry-link;
-          }
-          /* Keep info and actions on one line, overflowing right, or left if there is no room */
-          & > .info, & > .actions {
-            left: anchor(--masonry-ref left);
-            min-width: calc(anchor-size(--masonry-ref width) - 28px);
-            white-space: nowrap;
-            flex-wrap: nowrap;
-            overflow: visible;
-            position-try-fallbacks: flip-inline;
           }
           & > .info {
             top: anchor(--masonry-link bottom);
@@ -93,8 +112,8 @@ export const masonryTemplate: Template = {
           &::after {
             top: anchor(--masonry-ref top);
             bottom: calc(anchor(--masonry-actions bottom) - 14px);
-            left: min(anchor(--masonry-ref left), calc(anchor(--masonry-info left) - 14px), calc(anchor(--masonry-actions left) - 14px));
-            right: min(anchor(--masonry-ref right), calc(anchor(--masonry-info right) - 14px), calc(anchor(--masonry-actions right) - 14px));
+            left: anchor(--masonry-box left);
+            right: anchor(--masonry-box right);
           }
         }
       }
