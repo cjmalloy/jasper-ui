@@ -978,7 +978,8 @@ export class RefComponent implements HasChanges {
 
   readonly redundantLink = computed(() => {
     if (this.editingLink()) return true;
-    if (!this.clickableLink()) return true;
+    // Cached files link to the Ref but still need their title when there is no embed
+    if (!this.clickableLink() && !this.url().startsWith('cache:')) return true;
     return this.expandPlugins().length;
   });
 

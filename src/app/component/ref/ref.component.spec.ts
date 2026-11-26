@@ -135,6 +135,7 @@ describe('RefComponent', () => {
     fixture.componentRef.setInput('ref', { url: 'cache:1', origin: '@city', title: 'Image', tags: ['plugin/file'] });
     fixture.detectChanges();
     expect(component.clickableLink()).toBe(false);
+    expect(component.redundantLink()).toBeFalsy();
     const link: HTMLAnchorElement = fixture.nativeElement.querySelector('.link a');
     expect(decodeURIComponent(link.getAttribute('href')!)).toContain('/ref/cache:1');
   });
