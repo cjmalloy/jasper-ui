@@ -188,6 +188,17 @@ describe('AdminService', () => {
     expect(service.getTemplateAdminForm('parent', 'advancedAdminForm').map(f => f.key)).toEqual(['b']);
   });
 
+  it('should stack template uis unless overridden', () => {
+    (service as any).updateStatus((status: any) => {
+      status.templates['parent'] = { tag: 'parent', config: { ui: 'a' } };
+      status.templates['parent/child'] = { tag: 'parent/child', config: { ui: 'b' } };
+      status.templates['parent/child/leaf'] = { tag: 'parent/child/leaf', config: { ui: 'c', overrideUi: true } };
+    });
+    expect(service.getTemplateUi('parent/child/other').map(t => t.tag)).toEqual(['parent', 'parent/child']);
+    expect(service.getTemplateUi('parent/child/leaf').map(t => t.tag)).toEqual(['parent/child/leaf']);
+    expect(service.getTemplateSidebarUi('parent/child')).toEqual([]);
+  });
+
   it('should suggest hot tags and hot plugins from mods in every origin', async () => {
     const page = <T>(content: T[], number: number, totalPages: number) => of({
       content, page: { number, size: content.length, totalElements: 0, totalPages },

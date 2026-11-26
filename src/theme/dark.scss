@@ -216,6 +216,10 @@ body.dark-theme {
     backdrop-filter: blur(1px);
   }
 
+  .buttons.floating.stuck::before {
+    background-color: var(--bg-accent);
+  }
+
   @container scroll-state((stuck: top) or (stuck: bottom)) {
     .buttons.floating::before {
       background-color: var(--bg-accent);

@@ -1,3 +1,4 @@
+import { FloatingDirective } from '../../../directive/floating.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
@@ -13,7 +14,7 @@ import { printError } from '../../../util/http';
   selector: 'app-settings-password-page',
   templateUrl: './password.component.html',
   styleUrls: ['./password.component.scss'],
-  imports: [ReactiveFormsModule]
+  imports: [FloatingDirective, ReactiveFormsModule]
 })
 export class SettingsPasswordPage {
   admin = inject(AdminService);

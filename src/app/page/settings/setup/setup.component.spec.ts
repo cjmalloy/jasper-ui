@@ -6,9 +6,12 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
 import { NEVER, of, ReplaySubject, throwError } from 'rxjs';
+import { provideJasperFormly } from '../../../formly/formly.config';
 import { Mod } from '../../../model/tag';
 import { Template } from '../../../model/template';
 import { AdminService } from '../../../service/admin.service';
+import { PluginService } from '../../../service/api/plugin.service';
+import { TemplateService } from '../../../service/api/template.service';
 import { Store } from '../../../store/store';
 
 import { SettingsSetupPage } from './setup.component';
@@ -54,6 +57,7 @@ describe('SettingsSetupPage', () => {
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
+        provideJasperFormly(),
       ],
     }).compileComponents();
 
@@ -254,6 +258,130 @@ describe('SettingsSetupPage', () => {
       expect(admin.updateMod$).toHaveBeenCalledTimes(1);
       expectMerged(admin.updateMod$.mock.calls[0][1]);
       expect(component.installMessages()).not.toContainEqual(expect.stringContaining('Skipped'));
+    });
+  });
+
+  describe('configMod', () => {
+    const form = [{ key: 'title', type: 'string', props: { required: true } }];
+    const adminForm = [{ key: 'secret', type: 'string' }];
+    const plugin = { tag: 'plugin/a', name: 'A', origin: '', config: { mod: 'Combo', form }, defaults: { title: 'a' } };
+    const other = { tag: 'plugin/b', name: 'B', origin: '', config: { mod: 'Combo', adminForm } };
+    const template = { tag: 'combo', name: 'Combo', origin: '', config: { mod: 'Combo', form }, defaults: { title: 't', keep: true } };
+
+    beforeEach(() => {
+      status.plugins = { 'plugin/a': plugin, 'plugin/b': other };
+      status.templates = { combo: template };
+      admin.getInstalledMod = () => ({ plugin: [plugin, other], template: [template] });
+    });
+
+    afterEach(() => component.cancelConfig());
+
+    it('should show a config link only for installed mods with forms for defaults', () => {
+      expect(component.hasDefaultsForm(plugin)).toBe(true);
+      admin.getInstalledMod = () => ({ plugin: [other], template: [] });
+      expect(component.hasDefaultsForm(other)).toBe(false);
+      admin.getInstalledMod = () => undefined;
+      expect(component.hasDefaultsForm(plugin)).toBe(false);
+    });
+
+    it('should combine the defaults form of every entity in the mod', () => {
+      component.configMod(plugin);
+      fixture.detectChanges();
+      expect(component.configState()!.entries.map(e => e.entity.tag)).toEqual(['plugin/a', 'combo']);
+      expect(fixture.nativeElement.querySelectorAll('.log .mod-config-form').length).toBe(2);
+      expect(component.configState()!.entries[0].fields[0].props!.required).toBe(false);
+    });
+
+    it('should only save changed configs', () => {
+      const plugins = TestBed.inject(PluginService);
+      const templates = TestBed.inject(TemplateService);
+      const updatePlugin = vi.spyOn(plugins, 'update').mockReturnValue(of('cursor'));
+      const updateTemplate = vi.spyOn(templates, 'update').mockReturnValue(of('cursor'));
+      component.configMod(plugin);
+      const entry = component.configState()!.entries[1];
+      entry.group.controls.defaults.setValue(JSON.stringify({ ...template.defaults, title: 'changed' }));
+      entry.group.markAsDirty();
+      component.saveConfig();
+      expect(updatePlugin).not.toHaveBeenCalled();
+      expect(updateTemplate).toHaveBeenCalledWith(expect.objectContaining({
+        tag: 'combo',
+        config: template.config,
+        defaults: { title: 'changed', keep: true },
+      }));
+      expect(component.configState()).toBeUndefined();
+      expect(admin.reload$).toHaveBeenCalled();
+      expect(component.installMessages()).toContainEqual('Saved Combo config.');
+    });
+
+    it('should keep the popup open on server errors', () => {
+      const templates = TestBed.inject(TemplateService);
+      vi.spyOn(templates, 'update').mockReturnValue(throwError(() => ({ status: 500, message: 'boom' })));
+      component.configMod(plugin);
+      const entry = component.configState()!.entries[1];
+      entry.group.markAsDirty();
+      component.saveConfig();
+      expect(component.configState()).toBeTruthy();
+      expect(component.configErrors().length).toBeGreaterThan(0);
+      expect(component.configSaving()).toBe(false);
+    });
+
+    it('should render the form only in the visible log', () => {
+      component.configMod(plugin);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelectorAll('.mod-config-panel').length).toBe(1);
+      expect(fixture.nativeElement.querySelector('.log.mobile-hide .mod-config-panel')).toBeTruthy();
+      component.mobile.set(true);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelectorAll('.mod-config-panel').length).toBe(1);
+      expect(fixture.nativeElement.querySelector('.log.mobile-block .mod-config-panel')).toBeTruthy();
+    });
+
+    it('should not replace the form while saving or with unsaved edits', () => {
+      const blog = { tag: 'blog', name: 'Blog', origin: '', config: { mod: 'Blog', form }, defaults: {} };
+      vi.spyOn(TestBed.inject(TemplateService), 'update').mockReturnValue(NEVER);
+      component.configMod(plugin);
+      component.configState()!.entries[1].group.markAsDirty();
+      component.configMod(blog);
+      expect(component.configState()!.mod).toBe('Combo');
+      component.saveConfig();
+      component.configState()!.entries.forEach(e => e.group.markAsPristine());
+      component.configMod(blog);
+      expect(component.configState()!.mod).toBe('Combo');
+      expect(component.configSaving()).toBe(true);
+    });
+
+    it('should refresh mods and keep unsaved edits after a partial failure', () => {
+      vi.spyOn(TestBed.inject(PluginService), 'update').mockReturnValue(of('cursor'));
+      vi.spyOn(TestBed.inject(TemplateService), 'update').mockReturnValue(throwError(() => ({ status: 500, message: 'boom' })));
+      component.configMod(plugin);
+      const [saved, failed] = component.configState()!.entries;
+      saved.group.markAsDirty();
+      failed.group.markAsDirty();
+      component.saveConfig();
+      expect(admin.reload$).toHaveBeenCalled();
+      expect(saved.group.dirty).toBe(false);
+      expect(failed.group.dirty).toBe(true);
+      expect(component.configState()).toBeTruthy();
+    });
+
+    it('should resend a saved entry with its new cursor after a partial failure', () => {
+      const updatePlugin = vi.spyOn(TestBed.inject(PluginService), 'update').mockReturnValue(of('2024-01-02T00:00:00Z'));
+      vi.spyOn(TestBed.inject(TemplateService), 'update').mockReturnValue(throwError(() => ({ status: 500, message: 'boom' })));
+      component.configMod(plugin);
+      const [saved, failed] = component.configState()!.entries;
+      saved.entity.modifiedString = '2024-01-01T00:00:00Z';
+      saved.group.controls.defaults.setValue(JSON.stringify({ title: 'first' }));
+      saved.group.markAsDirty();
+      failed.group.markAsDirty();
+      component.saveConfig();
+      saved.group.controls.defaults.setValue(JSON.stringify({ title: 'second' }));
+      saved.group.markAsDirty();
+      component.saveConfig();
+      expect(updatePlugin).toHaveBeenCalledTimes(2);
+      expect(updatePlugin.mock.calls[1][0]).toEqual(expect.objectContaining({
+        modifiedString: '2024-01-02T00:00:00Z',
+        defaults: { title: 'second' },
+      }));
     });
   });
 });

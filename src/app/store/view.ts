@@ -561,10 +561,6 @@ export class ViewStore {
     return this.view() === 'list';
   });
 
-  readonly graph = computed(() => {
-    return this.view() === 'graph';
-  });
-
   readonly showRemotes = computed(() => {
     if (!this.showRemotesCheckbox()) return true;
     return this.route.routeSnapshot()?.queryParams['showRemotes'] !== undefined && this.route.routeSnapshot()?.queryParams['showRemotes'] !== 'false';

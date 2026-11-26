@@ -48,8 +48,8 @@ export class TemplateService {
     );
   }
 
-  update(template: Template): Observable<void> {
-    return this.http.put<void>(this.base, writeTemplate(template)).pipe(
+  update(template: Template): Observable<string> {
+    return this.http.put<string>(this.base, writeTemplate(template)).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }

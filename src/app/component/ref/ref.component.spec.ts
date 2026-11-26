@@ -39,6 +39,86 @@ describe('RefComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('long-press without Picture-in-Picture', () => {
+    let markRead: any;
+    beforeEach(() => {
+      const admin = TestBed.inject(AdminService) as any;
+      vi.spyOn(admin, 'pip').mockReturnValue(false);
+      const getPlugin = admin.getPlugin.bind(admin);
+      vi.spyOn(admin, 'getPlugin').mockImplementation((tag: any) => tag === 'plugin/fullscreen' ? {} : getPlugin(tag));
+      Object.defineProperty(document, 'fullscreenEnabled', { configurable: true, value: true });
+      (document.documentElement as any).requestFullscreen = vi.fn(() => Promise.resolve());
+      markRead = vi.spyOn(component, 'markRead').mockImplementation(() => {});
+    });
+    afterEach(() => {
+      delete (document as any).fullscreenEnabled;
+      delete (document.documentElement as any).requestFullscreen;
+      delete (navigator as any).userActivation;
+    });
+
+    it('skips fullscreen without the Fullscreen API (ex. iPhone)', () => {
+      delete (document.documentElement as any).requestFullscreen;
+      const event = { preventDefault: vi.fn(), stopPropagation: vi.fn() } as any;
+      component.pip(event);
+      expect(component.fullscreen()).toBe(false);
+      expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+
+    it('opens fullscreen', () => {
+      const event = { preventDefault: vi.fn(), stopPropagation: vi.fn() } as any;
+      component.pip(event);
+      expect(component.fullscreen()).toBe(true);
+      expect(component.expanded()).toBe(true);
+      expect(event.preventDefault).toHaveBeenCalled();
+    });
+
+    it('waits for the finger to lift before opening fullscreen', () => {
+      Object.defineProperty(navigator, 'userActivation', { configurable: true, value: { isActive: false } });
+      component.pip({ preventDefault: vi.fn(), stopPropagation: vi.fn() } as any);
+      expect(component.fullscreen()).toBe(false);
+      window.dispatchEvent(new Event('pointerup'));
+      expect(component.fullscreen()).toBe(true);
+      expect(markRead).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not open fullscreen if the row is destroyed before the finger lifts', () => {
+      Object.defineProperty(navigator, 'userActivation', { configurable: true, value: { isActive: false } });
+      const open = vi.spyOn(component as any, 'openFullscreen');
+      component.pip({ preventDefault: vi.fn(), stopPropagation: vi.fn() } as any);
+      fixture.destroy();
+      window.dispatchEvent(new Event('pointerup'));
+      expect(open).not.toHaveBeenCalled();
+    });
+
+    it('does not open fullscreen while editing or viewing source', () => {
+      const event = { preventDefault: vi.fn(), stopPropagation: vi.fn() } as any;
+      component.editing.set(true);
+      component.pip(event);
+      component.editing.set(false);
+      component.viewSource.set(true);
+      component.pip(event);
+      expect(component.fullscreen()).toBe(false);
+      expect(component.expanded()).toBe(false);
+      expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+
+    it('does not open fullscreen if editing starts before the finger lifts', () => {
+      Object.defineProperty(navigator, 'userActivation', { configurable: true, value: { isActive: false } });
+      component.pip({ preventDefault: vi.fn(), stopPropagation: vi.fn() } as any);
+      component.editing.set(true);
+      window.dispatchEvent(new Event('pointerup'));
+      expect(component.fullscreen()).toBe(false);
+    });
+
+    it('does not open fullscreen if the long-press is cancelled', () => {
+      Object.defineProperty(navigator, 'userActivation', { configurable: true, value: { isActive: false } });
+      component.pip({ preventDefault: vi.fn(), stopPropagation: vi.fn() } as any);
+      window.dispatchEvent(new Event('pointercancel'));
+      window.dispatchEvent(new Event('pointerup'));
+      expect(component.fullscreen()).toBe(false);
+    });
+  });
+
   it('lists recipients sharing a Template signature once', () => {
     (TestBed.inject(AdminService) as any).updateStatus((status: any) => {
       status.templates['support'] = { tag: 'support', config: { signature: '+support' } };

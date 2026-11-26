@@ -27,7 +27,8 @@
                 [cols]="lensCols()"
                 [sort]="lensSort()"
                 [filter]="lensFilter()"
-                [search]="lensSearch()" />
+                [search]="lensSearch()"
+                [args]="lensResult()?.args" />
     } @else {
       <app-loading />
     }
@@ -67,6 +68,7 @@
            [autoplay]="autoplay()"
            controls
            [appResize]="!disableResize()"
+           (loadedmetadata)="setVideoRatio(video)"
            (playing)="playing.emit(videoUrl())"
            (pause)="!this.ended && pausing.emit(videoUrl())"
            (ended)="ended.emit(videoUrl())">

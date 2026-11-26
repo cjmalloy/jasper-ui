@@ -634,18 +634,6 @@ Please Reload.</source>
         <source>Pinned</source>
         <target>ピン留め済み</target>
       </trans-unit>
-      <trans-unit id="2432914601893106030" datatype="html">
-        <source>Load <x id="START_BLOCK_IF" equiv-text="@if (uc &gt; 1) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(uc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></source>
-        <target>読み込む <x id="START_BLOCK_IF" equiv-text="@if (uc &gt; 1) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(uc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></target>
-      </trans-unit>
-      <trans-unit id="1339790056087287185" datatype="html">
-        <source>Load sources <x id="START_BLOCK_IF" equiv-text="@if (sc &gt; 1) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(sc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></source>
-        <target><x id="START_BLOCK_IF" equiv-text="@if (sc &gt; 1) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(sc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/> ソースを読み込む</target>
-      </trans-unit>
-      <trans-unit id="6741405788491536837" datatype="html">
-        <source>Load responses <x id="START_BLOCK_IF" equiv-text="@if (rc &gt; 1) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(rc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></source>
-        <target><x id="START_BLOCK_IF" equiv-text="@if (rc &gt; 1) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(rc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/> レスポンスを読み込む</target>
-      </trans-unit>
       <trans-unit id="4814285799071780083" datatype="html">
         <source>Remove</source>
         <target>削除</target>
@@ -3439,10 +3427,6 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       <trans-unit id="570260037370938136" datatype="html">
         <source>🎇️ Graph</source>
         <target>🎇️ グラフ</target>
-      </trans-unit>
-      <trans-unit id="2502726120126882614" datatype="html">
-        <source>Activates built-in graph support and allows users to create graphs.</source>
-        <target>内蔵グラフサポートを有効にし、ユーザーがグラフを作成できるようにします。</target>
       </trans-unit>
       <trans-unit id="1032973943894152435" datatype="html">
         <source>🙈️️ Hide Refs</source>
@@ -9248,6 +9232,38 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="7934833136974560675" datatype="html">
         <source>Retry</source>
         <target>再試行</target>
+      </trans-unit>
+      <trans-unit id="2800991393842503460" datatype="html">
+        <source>Please fix the errors in the form.</source>
+        <target>フォームのエラーを修正してください。</target>
+      </trans-unit>
+      <trans-unit id="6869538831078711075" datatype="html">
+        <source>⚙️ config</source>
+        <target>⚙️ 設定</target>
+      </trans-unit>
+      <trans-unit id="7238203762025871521" datatype="html">
+        <source>Saved <x id="PH" equiv-text="state.mod"/> config.</source>
+        <target><x id="PH" equiv-text="state.mod"/> の設定を保存しました。</target>
+      </trans-unit>
+      <trans-unit id="4527352077627982812" datatype="html">
+        <source>Load responses</source>
+        <target>レスポンスを読み込む</target>
+      </trans-unit>
+      <trans-unit id="518612827034596919" datatype="html">
+        <source>Show results as a force directed graph of sources and responses.</source>
+        <target>結果をソースとレスポンスの力指向グラフで表示します。</target>
+      </trans-unit>
+      <trans-unit id="5386793486940113646" datatype="html">
+        <source>max</source>
+        <target>最大</target>
+      </trans-unit>
+      <trans-unit id="816049387786739989" datatype="html">
+        <source>Load sources</source>
+        <target>ソースを読み込む</target>
+      </trans-unit>
+      <trans-unit id="9131913350495870905" datatype="html">
+        <source>Load</source>
+        <target>読み込む</target>
       </trans-unit>
       <trans-unit id="1850284514970163613" datatype="html">
         <source>JSON is not a Ref, an Ext or a { ref, ext } bundle.</source>

@@ -4,6 +4,7 @@
                  [suppressFieldDotNotation]="true"
                  [style.height.vh]="90"
                  [rowData]="rowData()"
+                 [defaultColDef]="defaultColDef"
                  [columnDefs]="columnDefs()" />
 @if (page()) {
   @if (emptyMessage() && !page()!.content.length) {

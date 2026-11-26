@@ -35,7 +35,7 @@
     @if (hasLog()) {
       <span class="mobile-block"><!-- Log --></span>
       <div class="log mobile-block">
-        <ng-container *ngTemplateOutlet="log" />
+        <ng-container *ngTemplateOutlet="log; context: { mobile: true }" />
       </div>
     }
 
@@ -51,6 +51,11 @@
               <label for="mod-{{ modLabel(e) }}" [title]="c.config?.description || ''">{{ c.config?.mod || c.name || c.tag || 'root' }}@if (hasCustomChanges(c)) {<span class="modified-indicator">*</span>}</label>
               @if (c.config?.experimental) {
                 <span>🧪️</span>
+              }
+              @if (installed(c) && hasDefaultsForm(c)) {
+                <span class="config">
+                  <span class="fake-link no-select mod-config-link" (click)="configMod(c)" i18n>⚙️ config</span>
+                </span>
               }
               @if (modChangesLoaded() && (needsModUpdate(c) || canDiffMod(c))) {
                 <span class="update">
@@ -70,13 +75,16 @@
 
   </form>
   @if (hasLog()) {
-    <span class="log mobile-hide">
-      <ng-container *ngTemplateOutlet="log" />
-    </span>
+    <div class="log mobile-hide">
+      <ng-container *ngTemplateOutlet="log; context: { mobile: false }" />
+    </div>
   }
 </div>
 
-<ng-template #log>
+<ng-template #log let-mobile="mobile">
+  @if (configState() && mobile === this.mobile()) {
+    <ng-container *ngTemplateOutlet="configPanel" />
+  }
   @if (modChangesError().length) {
     <div class="mod-changes-error">
       @for (e of modChangesError(); track $index) {
@@ -118,5 +126,35 @@
       <button type="button" [disabled]="mergeSaving()" (click)="applyMerge(mergeDiff.getModifiedContent())" i18n>save</button>
       <button type="button" [disabled]="mergeSaving()" (click)="cancelMerge()" i18n>cancel</button>
     </span>
+  </div>
+</ng-template>
+
+<ng-template #configPanel>
+  <div class="mod-config-panel" tabindex="-1" aria-labelledby="mod-config-title" role="region">
+    <div id="mod-config-title" class="mod-config-title">{{ configState()!.mod }}</div>
+    <div class="mod-config-content" [attr.inert]="configSaving() ? '' : null">
+      <div class="form mod-config-forms">
+        @for (e of configState()!.entries; track e.type + e.entity.tag) {
+          @if (configState()!.entries.length > 1) {
+            <span><!-- Entity --></span>
+            <div class="mod-config-entity">{{ e.entity.name || e.entity.tag }}</div>
+          }
+          <app-admin-config class="mod-config-form"
+                            fieldName="defaults"
+                            [group]="e.group"
+                            [fields]="e.fields" />
+        }
+      </div>
+    </div>
+    <span class="buttons right floating mod-config-buttons">
+      @if (configSaving()) {
+        <app-loading [inline]="true" />
+      }
+      <button type="button" class="mod-config-save" [disabled]="configSaving()" (click)="saveConfig()" i18n>save</button>
+      <button type="button" class="mod-config-cancel" [disabled]="configSaving()" (click)="cancelConfig()" i18n>cancel</button>
+    </span>
+    @for (err of configErrors(); track $index) {
+      <div class="error mod-config-error">{{ err }}</div>
+    }
   </div>
 </ng-template>

@@ -129,7 +129,7 @@ export class SidebarComponent {
     catchError(() => of(undefined)),
   ) : of(undefined))), { initialValue: undefined });
   readonly writeAccess = computed(() => !!this.tag() && this.auth.tagWriteAccess(this.tag()));
-  readonly ui = computed(() => this.tag() ? this.admin.getTemplateUi(this.tag()) : []);
+  readonly ui = computed(() => this.tag() ? this.admin.getTemplateSidebarUi(this.tag()) : []);
   genUrl = 'internal:' + uuid();
   readonly submitInputTags = computed(() => [...this.inputTags(this.plugin()), ...this.hierarchicalTags()]);
   readonly submitTextParams = computed(() => this.textParams(this.plugin(), this.addTags(), this.genUrl));
@@ -364,7 +364,7 @@ export class SidebarComponent {
   });
   readonly uiMarkdown = computed(() => {
     if (!this.ext()) return '';
-    return this.ui().map(t => hydrate(t.config, 'ui', getTemplateScope(this.store.account.roles(), t, this.ext()!, this.el.nativeElement))).join();
+    return this.ui().map(t => hydrate(t.config, 'sidebarUi', getTemplateScope(this.store.account.roles(), t, this.ext()!, this.el.nativeElement))).join();
   });
 
   subscribe() {
