@@ -6,7 +6,7 @@ export const masonryTemplate: Template = {
   name: $localize`🧱️ Masonry`,
   config: {
     mod: $localize`🧱️ Masonry`,
-    version: 9,
+    version: 2,
     type: 'plugin',
     default: false,
     description: $localize`Overrides the built-in Image viewer with a masonry layout where images have a fixed width and variable height.`,
