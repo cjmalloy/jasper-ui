@@ -185,6 +185,9 @@ test.describe.serial('Carousel Template', () => {
     const container = slide.locator('.embed-container');
     const iframe = container.locator('iframe');
     await expect(iframe).toHaveClass(/ready/);
+    // The grip is drawn inside the slide, so it doesn't scroll the media
+    const viewer = slide.locator('app-viewer');
+    expect(await viewer.evaluate(v => v.scrollWidth - v.clientWidth)).toBe(0);
     const before = (await container.boundingBox())!;
     await page.mouse.move(before.x + before.width - 3, before.y + before.height - 3);
     await page.mouse.down();
@@ -197,6 +200,11 @@ test.describe.serial('Carousel Template', () => {
       const c = (await container.boundingBox())!;
       return Math.abs(Math.round(s.x + s.width / 2 - (c.x + c.width / 2)));
     }).toBe(0);
+    // And glides back to the center of the track
+    await expect.poll(() => slide.evaluate(s => {
+      const t = s.parentElement!;
+      return Math.abs(Math.round(s.getBoundingClientRect().left + s.offsetWidth / 2 - t.getBoundingClientRect().left - t.clientWidth / 2));
+    })).toBeLessThanOrEqual(1);
     const after = (await container.boundingBox())!;
     expect(after.width).toBeCloseTo(before.width - 100, -1);
     expect(after.height).toBeLessThan(before.height - 50);

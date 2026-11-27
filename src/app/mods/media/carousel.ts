@@ -14,7 +14,7 @@ export const carouselTemplate: Template = {
   name: $localize`🎠️ Carousel`,
   config: {
     mod: $localize`🎠️ Carousel`,
-    version: 7,
+    version: 8,
     type: 'lens',
     global: true,
     view: $localize`🎠️`,
@@ -62,8 +62,23 @@ export const carouselTemplate: Template = {
         overscroll-behavior-x: contain;
       }
       /* Hold the slide still while its handle is dragged, so the grip follows the pointer */
-      .carousel-track:has(.resize-dragging) {
+      .carousel-track:has(.resize-dragging),
+      .carousel-track.carousel-recenter {
         scroll-snap-type: none;
+      }
+      /* Keep the grip inside the slide so it can't scroll the media */
+      .carousel-media .resize-handle:before {
+        right: 0;
+        bottom: 0;
+      }
+      @media (max-width: 740px) {
+        .carousel-media .resize-handle:before {
+          right: 22px;
+        }
+      }
+      /* Media fills the slide, so a glow around it would be clipped */
+      .carousel-media :is(.thumbnail, .image-expand, video, .embed-expand, .qr-expand) {
+        filter: none !important;
       }
       .carousel-track::-webkit-scrollbar {
         display: none;
@@ -587,6 +602,7 @@ export const carouselTemplate: Template = {
           // Rotate once scrolling settles, so a drag or fling is not interrupted
           clearTimeout(settle);
           settle = setTimeout(() => {
+            track.classList.remove('carousel-recenter');
             if (slides[active] === goal) goal = undefined;
             rotate(active);
             const index = slides[active]?.index;
@@ -600,6 +616,16 @@ export const carouselTemplate: Template = {
         for (const type of ['wheel', 'pointerdown', 'touchstart']) {
           track.addEventListener(type, () => goal = undefined, { passive: true });
         }
+        // The slide grows from its left edge while dragging, so glide back to the center rather than snapping
+        const recenter = () => {
+          if (!track.querySelector('.resize-dragging') || !slides[active]) return;
+          track.classList.add('carousel-recenter');
+          goal = slides[active];
+          glide();
+          onScroll();
+        };
+        window.addEventListener('pointerup', recenter, { capture: true });
+        window.addEventListener('pointercancel', recenter, { capture: true });
         root.addEventListener('keydown', e => {
           if (e.target !== root && e.target !== track) return;
           if (e.key === 'ArrowLeft') go(active - 1);
@@ -617,6 +643,8 @@ export const carouselTemplate: Template = {
           observer.disconnect();
           shapes.disconnect();
           resize.disconnect();
+          window.removeEventListener('pointerup', recenter, { capture: true });
+          window.removeEventListener('pointercancel', recenter, { capture: true });
           if (frame) cancelAnimationFrame(frame);
           clearTimeout(settle);
           slides.forEach(unmount);
