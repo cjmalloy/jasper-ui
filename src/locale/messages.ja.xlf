@@ -9225,6 +9225,22 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Admin</source>
         <target>管理者</target>
       </trans-unit>
+      <trans-unit id="1246264100764278232" datatype="html">
+        <source>🎠️ Carousel</source>
+        <target>🎠️ カルーセル</target>
+      </trans-unit>
+      <trans-unit id="1291714472065784119" datatype="html">
+        <source>Neighbours:</source>
+        <target>隣接スライド:</target>
+      </trans-unit>
+      <trans-unit id="1830574627828566234" datatype="html">
+        <source>carousel</source>
+        <target>カルーセル</target>
+      </trans-unit>
+      <trans-unit id="3247078875099855587" datatype="html">
+        <source>Show results in a carousel. More results stream in as you scroll.</source>
+        <target>結果をカルーセルで表示します。スクロールすると続きの結果が読み込まれます。</target>
+      </trans-unit>
       <trans-unit id="4149965073949686916" datatype="html">
         <source>Error loading more results.</source>
         <target>さらに結果を読み込めませんでした。</target>
@@ -9257,9 +9273,16 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>max</source>
         <target>最大</target>
       </trans-unit>
+      <trans-unit id="6968056693974820665" datatype="html">
+        <source>🎠️</source>
+      </trans-unit>
       <trans-unit id="816049387786739989" datatype="html">
         <source>Load sources</source>
         <target>ソースを読み込む</target>
+      </trans-unit>
+      <trans-unit id="8469213464471202921" datatype="html">
+        <source>Number of slides visible on each side of the current slide (0 to 3).</source>
+        <target>現在のスライドの両側に表示するスライドの数(0〜3)。</target>
       </trans-unit>
       <trans-unit id="9131913350495870905" datatype="html">
         <source>Load</source>

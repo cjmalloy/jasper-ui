@@ -28,6 +28,7 @@ import { embedMod } from './media/embed';
 import { fileMod } from './media/file';
 import { imageMod } from './media/image';
 import { masonryMod } from './media/masonry';
+import { carouselMod } from './media/carousel';
 import { mp3Mod } from './media/mp3';
 import { pdfMod } from './media/pdf';
 import { playlistMod } from './media/playlist';
@@ -167,6 +168,7 @@ export const mods: Mod[] = [
   voteMod,
   imageMod,
   masonryMod,
+  carouselMod,
   lensMod,
   pipMod,
   chessMod,

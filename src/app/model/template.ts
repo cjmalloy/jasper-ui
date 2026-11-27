@@ -140,6 +140,11 @@ export interface LensUiApi {
   title: (ref: Ref) => string;
   /** Does the Ref have a tag in the current query. */
   matches: (ref: Ref) => boolean;
+  /**
+   * Show a page number and size in the URL, replacing the current history entry
+   * without reloading the view. Does nothing for embedded lenses.
+   */
+  replacePage: (page: number, size?: number) => void;
   /** Run when the view is re-rendered or destroyed. */
   onDestroy: (fn: () => void) => void;
 }
