@@ -39,6 +39,18 @@ describe('RefComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('hides the long press overlay when touching outside the ref', () => {
+    vi.spyOn((component as any).config, 'noHover').mockReturnValue(true);
+    component.unlockViewer(new Event('contextmenu'));
+    expect(component.mobileUnlock()).toBe(true);
+
+    fixture.nativeElement.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+    expect(component.mobileUnlock()).toBe(true);
+
+    document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+    expect(component.mobileUnlock()).toBe(false);
+  });
+
   describe('long-press without Picture-in-Picture', () => {
     let markRead: any;
     beforeEach(() => {
@@ -126,6 +138,18 @@ describe('RefComponent', () => {
     });
     fixture.componentRef.setInput('ref', { url: 'comment:1', origin: '', tags: ['plugin/inbox/support', 'plugin/inbox/help'] });
     expect(component.recipients()).toEqual(['+support']);
+  });
+
+  it('links cached file titles to the Ref', () => {
+    (TestBed.inject(AdminService) as any).updateStatus((status: any) => {
+      status.plugins['plugin/file'] = { tag: 'plugin/file' };
+    });
+    fixture.componentRef.setInput('ref', { url: 'cache:1', origin: '@city', title: 'Image', tags: ['plugin/file'] });
+    fixture.detectChanges();
+    expect(component.clickableLink()).toBe(false);
+    expect(component.redundantLink()).toBeFalsy();
+    const link: HTMLAnchorElement = fixture.nativeElement.querySelector('.link a');
+    expect(decodeURIComponent(link.getAttribute('href')!)).toContain('/ref/cache:1');
   });
 
   it('derives titles from new refs and form edits', () => {

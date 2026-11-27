@@ -38,9 +38,15 @@ export abstract class PageStore<A, T> {
     computation: (current, previous) => {
       if (current.page || !previous?.value.page) return current;
       if (!isEqual(omit(current.args as object, 'search'), omit(previous.value.args as object, 'search'))) return current;
-      return { ...current, page: previous.value.page };
+      return { ...current, args: previous.value.args, page: previous.value.page };
     },
   });
+
+  /**
+   * The args that loaded {@link page}, which lag {@link args} while a search-only change reloads.
+   * Undefined when the page is shown by a component.
+   */
+  readonly pageArgs = computed(() => this.shown() ? undefined : this.loaded().args);
 
   readonly page = computed(() => {
     const shown = this.shown();

@@ -7870,6 +7870,18 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Overrides the built-in Image viewer with a masonry layout where images have a fixed width and variable height.</source>
         <target>組み込みの画像ビューアを、画像の幅が固定で高さが可変のメイソンリーレイアウトで上書きします。</target>
       </trans-unit>
+      <trans-unit id="4659580842560944650" datatype="html">
+        <source>Infinite Scroll:</source>
+        <target>無限スクロール:</target>
+      </trans-unit>
+      <trans-unit id="8990769651805334695" datatype="html">
+        <source>On</source>
+        <target>オン</target>
+      </trans-unit>
+      <trans-unit id="3500458863157551898" datatype="html">
+        <source>Off</source>
+        <target>オフ</target>
+      </trans-unit>
       <trans-unit id="1847047605496409443" datatype="html">
         <source>Street</source>
         <target>通り</target>
@@ -9228,6 +9240,14 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="3247078875099855587" datatype="html">
         <source>Show results in a carousel. More results stream in as you scroll.</source>
         <target>結果をカルーセルで表示します。スクロールすると続きの結果が読み込まれます。</target>
+      </trans-unit>
+      <trans-unit id="4149965073949686916" datatype="html">
+        <source>Error loading more results.</source>
+        <target>さらに結果を読み込めませんでした。</target>
+      </trans-unit>
+      <trans-unit id="7934833136974560675" datatype="html">
+        <source>Retry</source>
+        <target>再試行</target>
       </trans-unit>
       <trans-unit id="2800991393842503460" datatype="html">
         <source>Please fix the errors in the form.</source>

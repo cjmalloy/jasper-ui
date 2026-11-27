@@ -25,6 +25,7 @@ import { DateTime } from 'luxon';
 import { catchError, map, Observable, of, startWith, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
+import { LongPressDirective } from '../../directive/long-press.directive';
 import { TitleDirective } from '../../directive/title.directive';
 import { DiffComponent } from '../../form/diff/diff.component';
 import { writePlugins } from '../../form/plugins/plugins.component';
@@ -132,6 +133,7 @@ import { ViewerComponent } from '../viewer/viewer.component';
   imports: [FloatingDirective, 
     RelativePipe,
     FakeLinkDirective,
+    LongPressDirective,
     forwardRef(() => ViewerComponent),
     forwardRef(() => RefFormComponent),
     forwardRef(() => MdComponent),
@@ -388,15 +390,32 @@ export class RefComponent implements HasChanges {
   });
 
   private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
+    this.listenDismiss(false);
     if (this.lastSelected()) {
       this.store.view.clearLastSelected();
     }
   });
 
   unlockViewer(event: Event) {
-    if (!this.config.mobile()) return;
+    if (!this.config.mobile() && !this.config.noHover()) return;
     this.mobileUnlock.set(!this.mobileUnlock());
+    this.listenDismiss(this.mobileUnlock());
     event.preventDefault();
+  }
+
+  /** Touching outside the ref hides the long press overlay. */
+  private readonly dismissUnlock = (e: Event) => {
+    if (this.el.nativeElement.contains(e.target as Node)) return;
+    this.mobileUnlock.set(false);
+    this.listenDismiss(false);
+  };
+
+  private listenDismiss(on: boolean) {
+    if (on) {
+      document.addEventListener('pointerdown', this.dismissUnlock, { capture: true, passive: true });
+    } else {
+      document.removeEventListener('pointerdown', this.dismissUnlock, { capture: true });
+    }
   }
 
   getPluginClasses() {
@@ -970,13 +989,16 @@ export class RefComponent implements HasChanges {
   });
 
   readonly clickableLink = computed(() => {
+    // Cached files have no external URL, so link to the Ref like the permalink
+    if (this.url().startsWith('cache:')) return false;
     if (this.file()) return true;
     return clickableLink(this.url());
   });
 
   readonly redundantLink = computed(() => {
     if (this.editingLink()) return true;
-    if (!this.clickableLink()) return true;
+    // Cached files link to the Ref but still need their title when there is no embed
+    if (!this.clickableLink() && !this.url().startsWith('cache:')) return true;
     return this.expandPlugins().length;
   });
 
