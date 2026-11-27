@@ -4,6 +4,8 @@ import { Template } from '../../model/template';
 
 const carouselLabels = {
   empty: $localize`No results found`,
+  error: $localize`Error loading more results.`,
+  retry: $localize`Retry`,
 };
 const carouselLabelsSource = JSON.stringify(carouselLabels).replace(/</g, '\\u003c');
 
@@ -12,7 +14,7 @@ export const carouselTemplate: Template = {
   name: $localize`🎠️ Carousel`,
   config: {
     mod: $localize`🎠️ Carousel`,
-    version: 5,
+    version: 6,
     type: 'lens',
     global: true,
     view: $localize`🎠️`,
@@ -41,6 +43,11 @@ export const carouselTemplate: Template = {
         isolation: isolate;
         outline: none;
       }
+      .carousel-frame:focus-visible {
+        outline: 2px solid Highlight;
+        outline: 2px solid -webkit-focus-ring-color;
+        outline-offset: 2px;
+      }
       .carousel-track {
         position: relative;
         z-index: 0;
@@ -48,7 +55,8 @@ export const carouselTemplate: Template = {
         overflow-x: auto;
         scroll-snap-type: x mandatory;
         scrollbar-width: none;
-        padding-inline: calc(var(--slide) * var(--peek));
+        /* Room to center the first and last slides, however narrow */
+        padding-inline: 50cqw;
         overscroll-behavior-x: contain;
       }
       /* Hold the slide still while its handle is dragged, so the grip follows the pointer */
@@ -72,6 +80,8 @@ export const carouselTemplate: Template = {
         flex-direction: column;
         transform: perspective(1200px) translateZ(calc(var(--distance) * -120px)) rotateY(calc(var(--tilt) * 40deg));
         cursor: pointer;
+        /* Until styled as part of the neighbourhood */
+        visibility: hidden;
       }
       /* Follow the shape of the media, leaving room to see the neighbours */
       .carousel-slide.sized {
@@ -187,6 +197,27 @@ export const carouselTemplate: Template = {
       .carousel-media > * > .md-container .expand {
         border: none !important;
       }
+      .carousel-title {
+        display: none;
+        margin: auto;
+        padding: 8px;
+        text-align: center;
+        overflow-wrap: anywhere;
+      }
+      /* Bookmarks without media or text */
+      .carousel-slide:not(:has(> .carousel-media > * > *)) > .carousel-title {
+        display: block;
+      }
+      .carousel-error {
+        position: absolute;
+        inset-inline: 0;
+        bottom: 8px;
+        z-index: 200;
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        align-items: center;
+      }
       .carousel-empty {
         padding: 16px;
         text-align: center;
@@ -216,12 +247,13 @@ export const carouselTemplate: Template = {
         let tailPage;
         let fetchingHead = false;
         let fetchingTail = false;
-        let failed = false;
+        let error;
         let first;
         let active = -1;
         let destroyed = false;
         let frame;
         let settle;
+        let styled = new Set();
 
         const observer = new IntersectionObserver(entries => {
           for (const e of entries) {
@@ -264,11 +296,11 @@ export const carouselTemplate: Template = {
         }
 
         function complete() {
-          return failed || tailPage !== undefined && headPage >= tailPage - 1;
+          return tailPage !== undefined && headPage >= tailPage - 1;
         }
         // Loop once every page is loaded, if there are enough slides to keep one hidden on each side
         function loops() {
-          return !failed && complete() && slides.length >= 2 * peek + 3;
+          return complete() && slides.length >= 2 * peek + 3;
         }
 
         function create(ref) {
@@ -279,7 +311,15 @@ export const carouselTemplate: Template = {
           el.setAttribute('aria-label', actions.title(ref));
           const media = document.createElement('div');
           media.className = 'carousel-media';
-          el.append(media);
+          const title = document.createElement(/^https?:/i.test(ref.url) ? 'a' : 'div');
+          title.className = 'carousel-title';
+          title.textContent = actions.title(ref);
+          if (title.tagName === 'A') {
+            title.href = ref.url;
+            title.target = '_blank';
+            title.rel = 'noopener noreferrer';
+          }
+          el.append(media, title);
           el.addEventListener('click', () => {
             const i = slides.findIndex(s => s.el === el);
             if (i !== active) go(i);
@@ -358,31 +398,52 @@ export const carouselTemplate: Template = {
             empty.textContent = labels.empty;
             track.replaceChildren(empty);
           }
+          if (active < 0 && first) track.scrollLeft = center(slides.indexOf(first));
           rotate(Math.max(0, active));
           updateActive();
         }
 
+        /** Stop streaming until the user retries, rather than retrying on every scroll. */
+        function failed() {
+          if (destroyed || error) return;
+          error = document.createElement('div');
+          error.className = 'carousel-error';
+          const message = document.createElement('span');
+          message.textContent = labels.error;
+          const retry = document.createElement('button');
+          retry.type = 'button';
+          retry.textContent = labels.retry;
+          retry.addEventListener('click', () => {
+            error.remove();
+            error = undefined;
+            updateActive();
+            if (!slides.length) fetchHead();
+          });
+          error.append(message, retry);
+          root.append(error);
+        }
+
         function fetchHead() {
-          if (fetchingHead || complete() || destroyed) return;
+          if (fetchingHead || complete() || destroyed || error) return;
           fetchingHead = true;
           actions.fetch(headPage + 1, pageSize).then(p => {
             fetchingHead = false;
             if (!destroyed) addHead(p);
           }, () => {
             fetchingHead = false;
-            failed = true;
+            failed();
           });
         }
 
         function fetchTail() {
-          if (fetchingTail || complete() || destroyed) return;
+          if (fetchingTail || complete() || destroyed || error || tailPage === undefined) return;
           fetchingTail = true;
           actions.fetch(tailPage - 1, pageSize).then(p => {
             fetchingTail = false;
             if (!destroyed) addTail(p);
           }, () => {
             fetchingTail = false;
-            failed = true;
+            failed();
           });
         }
 
@@ -401,14 +462,29 @@ export const carouselTemplate: Template = {
         /** Fractional index of the slide in the center, so slides of any width tilt the same. */
         function position() {
           const x = track.scrollLeft;
-          let prev = center(0);
-          if (x <= prev || slides.length < 2) return (x - prev) / (slides[0].el.offsetWidth || 1);
-          for (let i = 1; i < slides.length; i++) {
-            const next = center(i);
-            if (x <= next) return i - 1 + (x - prev) / ((next - prev) || 1);
-            prev = next;
+          const last = slides.length - 1;
+          const start = center(0);
+          if (x <= start || !last) return (x - start) / (slides[0].el.offsetWidth || 1);
+          const end = center(last);
+          if (x >= end) return last + (x - end) / (slides[last].el.offsetWidth || 1);
+          // Centers increase left to right, so search for the pair around x
+          let lo = 0, hi = last;
+          while (hi - lo > 1) {
+            const mid = (lo + hi) >> 1;
+            if (center(mid) <= x) lo = mid; else hi = mid;
           }
-          return slides.length - 1 + (x - prev) / (slides[slides.length - 1].el.offsetWidth || 1);
+          const prev = center(lo);
+          return lo + (x - prev) / ((center(hi) - prev) || 1);
+        }
+
+        function style(el, offset) {
+          const d = Math.abs(offset);
+          const far = Math.min(d, peek + 1);
+          el.style.setProperty('--tilt', String(Math.max(-1, Math.min(1, offset))));
+          el.style.setProperty('--distance', String(Math.min(d, 1) + far / 4));
+          el.style.opacity = String(Math.max(0, 1 - far / (peek + 1)));
+          el.style.zIndex = String(Math.round(100 - far * 10));
+          el.style.visibility = far > peek + 0.99 ? 'hidden' : 'visible';
         }
 
         function updateActive() {
@@ -416,17 +492,18 @@ export const carouselTemplate: Template = {
           if (!slides.length) return;
           const pos = position();
           const best = Math.max(0, Math.min(slides.length - 1, Math.round(pos)));
-          for (let i = 0; i < slides.length; i++) {
-            const el = slides[i].el;
-            const offset = i - pos;
-            const d = Math.abs(offset);
-            const far = Math.min(d, peek + 1);
-            el.style.setProperty('--tilt', String(Math.max(-1, Math.min(1, offset))));
-            el.style.setProperty('--distance', String(Math.min(d, 1) + far / 4));
-            el.style.opacity = String(Math.max(0, 1 - far / (peek + 1)));
-            el.style.zIndex = String(Math.round(100 - far * 10));
-            el.style.visibility = far > peek + 0.99 ? 'hidden' : '';
+          // Only style the neighbourhood, and hide slides that have left it
+          const near = new Set();
+          const from = Math.max(0, Math.floor(pos) - peek - 1);
+          const to = Math.min(slides.length - 1, Math.ceil(pos) + peek + 1);
+          for (let i = from; i <= to; i++) {
+            near.add(slides[i].el);
+            style(slides[i].el, i - pos);
           }
+          for (const el of styled) {
+            if (!near.has(el)) style(el, peek + 1);
+          }
+          styled = near;
           if (best !== active) {
             slides[active]?.el.classList.remove('active');
             slides[best].el.classList.add('active');
@@ -465,7 +542,8 @@ export const carouselTemplate: Template = {
           slides.forEach(unmount);
         });
 
-        if (page) {
+        // Later pages would leave the earlier ones unreachable
+        if (page?.page.number === 0) {
           addHead(page);
         } else {
           fetchHead();

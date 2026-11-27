@@ -168,7 +168,7 @@ test.describe.serial('Carousel Template', () => {
     await expect.poll(async () => {
       const s = (await slide.boundingBox())!;
       const c = (await container.boundingBox())!;
-      return Math.round(s.x + s.width / 2 - (c.x + c.width / 2));
+      return Math.abs(Math.round(s.x + s.width / 2 - (c.x + c.width / 2)));
     }).toBe(0);
     const after = (await container.boundingBox())!;
     expect(after.width).toBeCloseTo(before.width - 100, -1);
@@ -178,5 +178,60 @@ test.describe.serial('Carousel Template', () => {
     const frame = (await iframe.boundingBox())!;
     expect(frame.width).toBeCloseTo(after.width, 0);
     expect(frame.height).toBeCloseTo(after.height, 0);
+  });
+
+  test('starts from the first page when opened on a later page', async ({ page }) => {
+    await page.goto(`/tag/${tag}?debug=USER&pageSize=5&pageNumber=2&sort=published,ASC&view=carousel`, { waitUntil: 'networkidle' });
+    await expect(page.locator('.carousel-slide.active')).toHaveAttribute('aria-label', 'Slide 0');
+    await expect(page.locator('.carousel-slide[aria-label="Slide 1"]')).toHaveCount(1);
+  });
+
+  test('centers a narrow slide at the end', async ({ page, request }) => {
+    const narrow = tag + '/narrow';
+    const svg = 'data:image/svg+xml,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="400"><rect width="100" height="400" fill="teal"/></svg>');
+    const res = await request.post(`${api}/ref`, {
+      headers: await headers(request),
+      data: { url: `comment:${narrow}`, title: 'Narrow', tags: ['public', narrow, 'plugin/image'], plugins: { 'plugin/image': { url: svg } }, origin: localOrigin() },
+    });
+    expect(res.ok(), await res.text()).toBeTruthy();
+    await page.goto(`/tag/${narrow}?debug=USER&view=carousel`, { waitUntil: 'networkidle' });
+    const slide = page.locator('.carousel-slide[aria-label="Narrow"]');
+    await expect(slide).toHaveClass(/sized/);
+    const frame = (await page.locator('.carousel-frame').boundingBox())!;
+    await expect.poll(async () => {
+      const b = (await slide.boundingBox())!;
+      return Math.abs(Math.round(b.x + b.width / 2 - (frame.x + frame.width / 2)));
+    }).toBe(0);
+    await expect(slide).toHaveCSS('opacity', '1');
+  });
+
+  test('shows the title of bookmarks without media', async ({ page, request }) => {
+    const bookmark = tag + '/bookmark';
+    const url = `https://example.com/${bookmark}`;
+    const res = await request.post(`${api}/ref`, {
+      headers: await headers(request),
+      data: { url, title: 'Plain Bookmark', tags: ['public', bookmark], origin: localOrigin() },
+    });
+    expect(res.ok(), await res.text()).toBeTruthy();
+    await page.goto(`/tag/${bookmark}?debug=USER&view=carousel`, { waitUntil: 'networkidle' });
+    const title = page.locator('.carousel-slide.active .carousel-title');
+    await expect(title).toBeVisible();
+    await expect(title).toHaveText('Plain Bookmark');
+    await expect(title).toHaveAttribute('href', url);
+    await page.goto(`/tag/${tag}?debug=USER&pageSize=5&sort=published,ASC&view=carousel`, { waitUntil: 'networkidle' });
+    await expect(page.locator('.carousel-slide.active .carousel-title')).toBeHidden();
+  });
+
+  test('retries a failed page', async ({ page }) => {
+    let fail = true;
+    await page.route(/\/api\/v1\/ref\/page\?(.*&)?page=[1-9]/, route => fail ? route.fulfill({ status: 500, contentType: 'application/json', body: '{}' }) : route.fallback());
+    await page.goto(`/tag/${tag}?debug=USER&pageSize=5&sort=published,ASC&view=carousel`, { waitUntil: 'networkidle' });
+    const error = page.locator('.carousel-error');
+    await expect(error).toContainText('Error loading more results.');
+    fail = false;
+    await error.locator('button', { hasText: 'Retry' }).click();
+    await expect(error).toHaveCount(0);
+    await expect.poll(() => page.locator('.carousel-slide').count()).toBeGreaterThan(5);
   });
 });
