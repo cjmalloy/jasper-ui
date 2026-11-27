@@ -6,7 +6,7 @@ export const masonryTemplate: Template = {
   name: $localize`🧱️ Masonry`,
   config: {
     mod: $localize`🧱️ Masonry`,
-    version: 8,
+    version: 9,
     type: 'plugin',
     default: false,
     description: $localize`Overrides the built-in Image viewer with a masonry layout where images have a fixed width and variable height.`,
@@ -68,6 +68,12 @@ export const masonryTemplate: Template = {
               & > .voting, & > .link, & > .info, & > .actions, &::after {
                 display: none;
               }
+            }
+          }
+          /* Clicking the image raises it over the overlay, which is wider than the image here */
+          &:not(.mobile-unlock):has(> .embed:focus-within) {
+            & > .voting, & > .link, & > .info, & > .actions, &::after {
+              display: none;
             }
           }
           @media (hover: none) {

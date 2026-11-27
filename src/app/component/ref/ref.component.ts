@@ -390,6 +390,7 @@ export class RefComponent implements HasChanges {
   });
 
   private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
+    this.listenDismiss(false);
     if (this.lastSelected()) {
       this.store.view.clearLastSelected();
     }
@@ -398,7 +399,23 @@ export class RefComponent implements HasChanges {
   unlockViewer(event: Event) {
     if (!this.config.mobile() && !this.config.noHover()) return;
     this.mobileUnlock.set(!this.mobileUnlock());
+    this.listenDismiss(this.mobileUnlock());
     event.preventDefault();
+  }
+
+  /** Touching outside the ref hides the long press overlay. */
+  private readonly dismissUnlock = (e: Event) => {
+    if (this.el.nativeElement.contains(e.target as Node)) return;
+    this.mobileUnlock.set(false);
+    this.listenDismiss(false);
+  };
+
+  private listenDismiss(on: boolean) {
+    if (on) {
+      document.addEventListener('pointerdown', this.dismissUnlock, { capture: true, passive: true });
+    } else {
+      document.removeEventListener('pointerdown', this.dismissUnlock, { capture: true });
+    }
   }
 
   getPluginClasses() {
