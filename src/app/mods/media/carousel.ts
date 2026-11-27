@@ -14,7 +14,7 @@ export const carouselTemplate: Template = {
   name: $localize`🎠️ Carousel`,
   config: {
     mod: $localize`🎠️ Carousel`,
-    version: 6,
+    version: 7,
     type: 'lens',
     global: true,
     view: $localize`🎠️`,
@@ -53,6 +53,8 @@ export const carouselTemplate: Template = {
         z-index: 0;
         display: flex;
         overflow-x: auto;
+        /* Tilted neighbours can reach past the top and bottom */
+        overflow-y: hidden;
         scroll-snap-type: x mandatory;
         scrollbar-width: none;
         /* Room to center the first and last slides, however narrow */
@@ -177,6 +179,7 @@ export const carouselTemplate: Template = {
       .carousel-media > * > .md-container {
         align-self: stretch;
         min-width: 0;
+        max-width: 100% !important;
       }
       .carousel-media > * > .md-container.code,
       .carousel-media > * > .md-container.code > .md {
@@ -192,6 +195,15 @@ export const carouselTemplate: Template = {
         max-width: none !important;
         margin: 0 !important;
         overflow: auto;
+      }
+      /* Fit media embedded in markdown inside the slide */
+      .carousel-media .md :is(img, video, iframe, app-viewer, .image-expand, .embed-container) {
+        max-width: 100% !important;
+        /* Less the padding of the markdown */
+        max-height: calc(100cqh - 16px) !important;
+      }
+      .carousel-media .md :is(img, video, .image-expand) {
+        height: auto !important;
       }
       .carousel-media > * > .md-container,
       .carousel-media > * > .md-container .expand {
@@ -238,17 +250,26 @@ export const carouselTemplate: Template = {
         peek = Math.max(0, Math.min(3, Math.floor(Number(peek ?? 1)) || 0));
         root.style.setProperty('--peek', peek);
 
-        // Slides in DOM order: pages fetched backwards from the end come before the first page
+        // The page in the URL is the card shown, as if every page held one card
+        let target = Math.max(0, Math.floor(Number(page?.page.number)) || 0);
+        let shown = target;
+        // Fetch in larger batches, starting with the one holding the target card
+        const batch = page?.page.size > 1 ? page.page.size : 20;
+
+        // Slides in DOM order: batches are added on both sides of the first one, wrapping past the ends
         const slides = [];
         const byEl = new Map();
         const urls = new Set();
-        let pageSize;
-        let headPage = -1;
+        const batches = new Set();
+        let total;
+        let headPage;
         let tailPage;
         let fetchingHead = false;
         let fetchingTail = false;
         let error;
         let first;
+        let start;
+        let goal;
         let active = -1;
         let destroyed = false;
         let frame;
@@ -296,14 +317,18 @@ export const carouselTemplate: Template = {
         }
 
         function complete() {
-          return tailPage !== undefined && headPage >= tailPage - 1;
+          return total !== undefined && batches.size >= total;
+        }
+        /** The batch fetching in one direction would also be fetched in the other. */
+        function last() {
+          return total - batches.size <= 1;
         }
         // Loop once every page is loaded, if there are enough slides to keep one hidden on each side
         function loops() {
           return complete() && slides.length >= 2 * peek + 3;
         }
 
-        function create(ref) {
+        function create(ref, index) {
           if (urls.has(ref.url + ' ' + ref.origin)) return;
           urls.add(ref.url + ' ' + ref.origin);
           const el = document.createElement('div');
@@ -324,7 +349,7 @@ export const carouselTemplate: Template = {
             const i = slides.findIndex(s => s.el === el);
             if (i !== active) go(i);
           });
-          const slide = { el, ref, media };
+          const slide = { el, ref, media, index };
           byEl.set(el, slide);
           observer.observe(el);
           return slide;
@@ -335,7 +360,11 @@ export const carouselTemplate: Template = {
           const before = ref?.el.offsetLeft;
           const scroll = track.scrollLeft;
           const delta = move();
-          if (ref) track.scrollLeft = scroll + ref.el.offsetLeft - before;
+          // Setting the scroll position stops a smooth scroll, so only move when needed and carry on to the slide
+          if (ref && ref.el.offsetLeft !== before) {
+            track.scrollLeft = scroll + ref.el.offsetLeft - before;
+            if (goal) glide();
+          }
           if (active >= 0) active += delta;
           return delta;
         }
@@ -361,15 +390,37 @@ export const carouselTemplate: Template = {
           });
         }
 
+        function slidesOf(p) {
+          total = p.page.totalPages;
+          batches.add(p.page.number);
+          const added = [];
+          p.content.forEach((ref, i) => {
+            const slide = create(ref, p.page.number * batch + i);
+            if (!slide) return;
+            if (!slide.index) first = slide;
+            added.push(slide);
+          });
+          return added;
+        }
+
+        function addFirst(p) {
+          if (!p.content.length && p.page.number > 0 && p.page.totalPages > 0) {
+            // Past the end, so show the last card instead
+            target = p.page.totalElements - 1;
+            fetchFirst();
+            return;
+          }
+          headPage = tailPage = p.page.number;
+          const added = slidesOf(p);
+          start = added.filter(s => s.index <= target).pop() || added[0];
+          track.append(...added.map(s => s.el));
+          slides.push(...added);
+          loaded();
+        }
+
         function addHead(p) {
-          pageSize = p.page.size;
           headPage = p.page.number;
-          tailPage ??= Math.max(p.page.totalPages, headPage + 1);
-          if (!p.content.length) tailPage = Math.min(tailPage, headPage + 1);
-          for (const ref of p.content) {
-            const slide = create(ref);
-            if (!slide) continue;
-            first ??= slide;
+          for (const slide of slidesOf(p)) {
             track.append(slide.el);
             slides.push(slide);
           }
@@ -378,7 +429,7 @@ export const carouselTemplate: Template = {
 
         function addTail(p) {
           tailPage = p.page.number;
-          const added = p.content.map(create).filter(s => s);
+          const added = slidesOf(p);
           shift(slides[active] || slides[0], () => {
             if (slides.length) {
               slides[0].el.before(...added.map(s => s.el));
@@ -398,8 +449,8 @@ export const carouselTemplate: Template = {
             empty.textContent = labels.empty;
             track.replaceChildren(empty);
           }
-          if (active < 0 && first) track.scrollLeft = center(slides.indexOf(first));
-          rotate(Math.max(0, active));
+          if (active < 0 && start) track.scrollLeft = center(slides.indexOf(start));
+          rotate(active >= 0 ? active : Math.max(0, slides.indexOf(start)));
           updateActive();
         }
 
@@ -417,16 +468,29 @@ export const carouselTemplate: Template = {
             error.remove();
             error = undefined;
             updateActive();
-            if (!slides.length) fetchHead();
+            if (!slides.length) fetchFirst();
           });
           error.append(message, retry);
           root.append(error);
         }
 
-        function fetchHead() {
-          if (fetchingHead || complete() || destroyed || error) return;
+        function fetchFirst() {
+          if (fetchingHead || destroyed || error) return;
           fetchingHead = true;
-          actions.fetch(headPage + 1, pageSize).then(p => {
+          actions.fetch(Math.floor(target / batch), batch).then(p => {
+            fetchingHead = false;
+            if (!destroyed) addFirst(p);
+          }, () => {
+            fetchingHead = false;
+            failed();
+          });
+        }
+
+        function fetchHead() {
+          if (fetchingHead || complete() || destroyed || error || headPage === undefined) return;
+          if (fetchingTail && last()) return;
+          fetchingHead = true;
+          actions.fetch((headPage + 1) % total, batch).then(p => {
             fetchingHead = false;
             if (!destroyed) addHead(p);
           }, () => {
@@ -437,8 +501,9 @@ export const carouselTemplate: Template = {
 
         function fetchTail() {
           if (fetchingTail || complete() || destroyed || error || tailPage === undefined) return;
+          if (fetchingHead && last()) return;
           fetchingTail = true;
-          actions.fetch(tailPage - 1, pageSize).then(p => {
+          actions.fetch((tailPage - 1 + total) % total, batch).then(p => {
             fetchingTail = false;
             if (!destroyed) addTail(p);
           }, () => {
@@ -455,8 +520,12 @@ export const carouselTemplate: Template = {
         function go(i) {
           if (!slides.length) return;
           i += rotate(Math.max(0, Math.min(slides.length - 1, i)));
-          i = Math.max(0, Math.min(slides.length - 1, i));
-          track.scrollTo({ left: center(i), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+          goal = slides[Math.max(0, Math.min(slides.length - 1, i))];
+          glide();
+        }
+
+        function glide() {
+          track.scrollTo({ left: center(slides.indexOf(goal)), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
         }
 
         /** Fractional index of the slide in the center, so slides of any width tilt the same. */
@@ -517,15 +586,26 @@ export const carouselTemplate: Template = {
           frame ??= requestAnimationFrame(updateActive);
           // Rotate once scrolling settles, so a drag or fling is not interrupted
           clearTimeout(settle);
-          settle = setTimeout(() => rotate(active), 150);
+          settle = setTimeout(() => {
+            if (slides[active] === goal) goal = undefined;
+            rotate(active);
+            const index = slides[active]?.index;
+            if (index === undefined || index === shown) return;
+            shown = index;
+            actions.replacePage(index, 1);
+          }, 150);
         };
         track.addEventListener('scroll', onScroll, { passive: true });
+        // Stop carrying on to a slide once the user scrolls themselves
+        for (const type of ['wheel', 'pointerdown', 'touchstart']) {
+          track.addEventListener(type, () => goal = undefined, { passive: true });
+        }
         root.addEventListener('keydown', e => {
           if (e.target !== root && e.target !== track) return;
           if (e.key === 'ArrowLeft') go(active - 1);
           else if (e.key === 'ArrowRight') go(active + 1);
-          else if (e.key === 'Home') go(slides.indexOf(first));
-          else if (e.key === 'End') go((slides.indexOf(first) || slides.length) - 1);
+          else if (e.key === 'Home') go(first ? slides.indexOf(first) : 0);
+          else if (e.key === 'End') go((first && slides.indexOf(first) || slides.length) - 1);
           else return;
           e.preventDefault();
         });
@@ -542,11 +622,10 @@ export const carouselTemplate: Template = {
           slides.forEach(unmount);
         });
 
-        // Later pages would leave the earlier ones unreachable
-        if (page?.page.number === 0) {
-          addHead(page);
+        if (page?.page.number === 0 && page.page.size === batch) {
+          addFirst(page);
         } else {
-          fetchHead();
+          fetchFirst();
         }
       }
     </script>

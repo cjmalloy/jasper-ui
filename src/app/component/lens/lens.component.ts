@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import {
   Component,
   ComponentRef,
@@ -12,6 +13,7 @@ import {
   ViewContainerRef
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 import { catchError, firstValueFrom, of } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
@@ -70,6 +72,8 @@ export class LensComponent implements HasChanges {
   private refs = inject(RefService);
   private graphs = inject(GraphService);
   private vc = inject(ViewContainerRef);
+  private router = inject(Router);
+  private location = inject(Location);
   private el = inject<ElementRef<HTMLElement>>(ElementRef);
 
   readonly ext = input<Ext | undefined>();
@@ -194,6 +198,14 @@ export class LensComponent implements HasChanges {
       icon: ref => sortOrder(this.admin.getIcons(ref.tags, ref.plugins, getScheme(ref.url))).filter(i => active(ref, i)).shift()?.label || '',
       title: ref => getTitle(ref),
       matches: ref => !!query && !!capturesAny([query], ref.tags),
+      replacePage: (pageNumber, size) => {
+        if (!alive || !this.fullPage()) return;
+        // Rewrite the URL without navigating, so the view is not reloaded and no history is added
+        this.location.replaceState(this.router.serializeUrl(this.router.createUrlTree([], {
+          queryParams: { pageNumber: pageNumber || null, pageSize: size ?? null },
+          queryParamsHandling: 'merge',
+        })));
+      },
       onDestroy,
     };
     const text = templates.map(template => hydrate(template.config, 'ui', getTemplateScope(this.store.account.roles(), template, ext, this.el.nativeElement, {

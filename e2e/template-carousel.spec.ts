@@ -79,6 +79,30 @@ test.describe.serial('Carousel Template', () => {
     expect(frame!.x + frame!.width).toBeLessThanOrEqual(sidebar!.x);
   });
 
+  test('shows the card in the URL', async ({ page }) => {
+    await page.goto(`/tag/${tag}?debug=USER&pageSize=5&pageNumber=7&sort=published,ASC&view=carousel`, { waitUntil: 'networkidle' });
+    const active = page.locator('.carousel-slide.active');
+    await expect(active).toHaveAttribute('aria-label', 'Slide 7');
+    await expect(page.locator('.carousel-slide[aria-label="Slide 6"]')).toHaveCSS('opacity', /^0\.[45]/);
+    const history = await page.evaluate(() => history.length);
+    await page.locator('.carousel-frame').focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(active).toHaveAttribute('aria-label', 'Slide 8');
+    await expect(page).toHaveURL(/[?&]pageNumber=8(&|$)/);
+    await expect(page).toHaveURL(/[?&]pageSize=1(&|$)/);
+    expect(await page.evaluate(() => history.length)).toBe(history);
+    await page.keyboard.press('Home');
+    await expect(page).not.toHaveURL(/pageNumber/);
+
+    await page.goto(`/tag/${tag}?debug=USER&pageSize=1&pageNumber=10&sort=published,ASC&view=carousel`, { waitUntil: 'networkidle' });
+    await expect(active).toHaveAttribute('aria-label', 'Slide 10');
+    await expect(page.locator('.carousel-slide[aria-label="Slide 0"]')).toHaveCount(1);
+    // Past the end shows the last card
+    await page.goto(`/tag/${tag}?debug=USER&pageSize=1&pageNumber=99&sort=published,ASC&view=carousel`, { waitUntil: 'networkidle' });
+    await expect(active).toHaveAttribute('aria-label', `Slide ${count - 1}`);
+    await expect(page).toHaveURL(new RegExp(`[?&]pageNumber=${count - 1}(&|$)`));
+  });
+
   test('embeds as a lens', async ({ page, request }) => {
     const res = await request.post(`${api}/ref`, {
       headers: await headers(request),
@@ -98,6 +122,9 @@ test.describe.serial('Carousel Template', () => {
     await expect(active.locator('.md-container')).toHaveCSS('border-top-width', '0px');
     await carousel.locator('.carousel-slide[aria-label="Slide 1"]').click();
     await expect(active).toHaveAttribute('aria-label', 'Slide 1');
+    // Only the carousel of the page shows its card in the URL
+    await page.waitForTimeout(500);
+    expect(page.url()).not.toContain('pageNumber');
   });
 
   test('sizes slides to their media', async ({ page, request }) => {
@@ -180,10 +207,40 @@ test.describe.serial('Carousel Template', () => {
     expect(frame.height).toBeCloseTo(after.height, 0);
   });
 
-  test('starts from the first page when opened on a later page', async ({ page }) => {
-    await page.goto(`/tag/${tag}?debug=USER&pageSize=5&pageNumber=2&sort=published,ASC&view=carousel`, { waitUntil: 'networkidle' });
-    await expect(page.locator('.carousel-slide.active')).toHaveAttribute('aria-label', 'Slide 0');
-    await expect(page.locator('.carousel-slide[aria-label="Slide 1"]')).toHaveCount(1);
+  test('fits media in markdown and does not scroll vertically', async ({ page, request }) => {
+    const md = tag + '/md';
+    const svg = (w: number, h: number) => 'data:image/svg+xml,' + encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="teal"/></svg>`);
+    const start = Date.now() - 60 * 60 * 1000;
+    for (const [i, [title, comment]] of ([['Big', `![](${svg(2000, 2000)})`], ['Wide', `![](${svg(1600, 900)})`], ['Wider', `![](${svg(1600, 900)})`]] as const).entries()) {
+      const res = await request.post(`${api}/ref`, {
+        headers: await headers(request),
+        data: { url: `comment:${md}/${i}`, title, comment, tags: ['public', md], published: new Date(start + i * 60 * 1000).toISOString(), origin: localOrigin() },
+      });
+      expect(res.ok(), await res.text()).toBeTruthy();
+    }
+    await page.goto(`/tag/${md}?debug=USER&sort=published,ASC&view=carousel`, { waitUntil: 'networkidle' });
+    const slide = page.locator('.carousel-slide[aria-label="Big"]');
+    const image = slide.locator('.md .image-expand');
+    await expect(image).not.toHaveClass(/loading/);
+    const media = slide.locator('.carousel-media');
+    await expect.poll(() => media.evaluate(m => {
+      const v = m.firstElementChild!;
+      return v.scrollHeight <= v.clientHeight && v.scrollWidth <= v.clientWidth;
+    })).toBe(true);
+    const box = (await image.boundingBox())!;
+    const card = (await media.boundingBox())!;
+    expect(box.width).toBeLessThanOrEqual(card.width);
+    expect(box.height).toBeLessThanOrEqual(card.height);
+    // Tilted neighbours reach past the track, but must not let it scroll
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.reload({ waitUntil: 'networkidle' });
+    await expect(slide.locator('.md .image-expand')).not.toHaveClass(/loading/);
+    const track = page.locator('.carousel-track');
+    await page.mouse.move(card.x + card.width / 2, card.y + card.height / 2);
+    await page.mouse.wheel(0, 200);
+    expect(await track.evaluate(t => t.scrollTop)).toBe(0);
+    await expect(track).toHaveCSS('overflow-y', 'hidden');
   });
 
   test('centers a narrow slide at the end', async ({ page, request }) => {
