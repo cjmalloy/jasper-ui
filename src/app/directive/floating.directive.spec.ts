@@ -1,87 +1,107 @@
 /// <reference types="vitest/globals" />
-import { Component } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FloatingDirective } from './floating.directive';
+import { Component, signal } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { FloatingDirective, isStuck } from './floating.directive';
+
+describe('isStuck', () => {
+  let parent: HTMLElement;
+  let island: HTMLElement;
+  let next: HTMLElement;
+
+  const rect = (el: HTMLElement, top: number, bottom: number) =>
+    el.getBoundingClientRect = () => ({ top, bottom } as DOMRect);
+
+  beforeEach(() => {
+    parent = document.createElement('div');
+    parent.style.display = 'grid';
+    parent.style.rowGap = '4px';
+    island = document.createElement('span');
+    island.style.position = 'sticky';
+    next = document.createElement('span');
+    parent.append(island, next);
+    document.body.append(parent);
+    for (const el of [parent, next]) el.getClientRects = () => [{}] as any;
+    rect(parent, 0, 500);
+    rect(next, 104, 120);
+  });
+
+  afterEach(() => parent.remove());
+
+  it('is not stuck in place', () => {
+    rect(island, 70, 100);
+    expect(isStuck(island)).toBe(false);
+  });
+
+  it('is stuck when shifted up or down from the next sibling', () => {
+    rect(island, 50, 80);
+    expect(isStuck(island)).toBe(true);
+    rect(island, 90, 120);
+    expect(isStuck(island)).toBe(true);
+  });
+
+  it('is not stuck when static', () => {
+    island.style.position = 'static';
+    rect(island, 50, 80);
+    expect(isStuck(island)).toBe(false);
+  });
+
+  it('uses the end of the parent without a next sibling', () => {
+    next.remove();
+    parent.style.padding = '10px';
+    rect(island, 460, 490);
+    expect(isStuck(island)).toBe(false);
+    rect(island, 300, 330);
+    expect(isStuck(island)).toBe(true);
+  });
+
+  it('skips hidden siblings', () => {
+    const hidden = document.createElement('span');
+    hidden.getClientRects = () => [] as any;
+    rect(hidden, 0, 0);
+    island.after(hidden);
+    rect(island, 70, 100);
+    expect(isStuck(island)).toBe(false);
+  });
+});
 
 @Component({
-  template: `
-    <span class="buttons floating" style="position: sticky; bottom: 8px"></span>
-    <span class="buttons floating top" style="position: sticky; top: 8px"></span>
-  `,
+  template: `<div><span class="buttons" [floating]="preview()"></span><span></span></div>`,
   imports: [FloatingDirective],
 })
-class HostComponent {}
-
-class MockObserver {
-  static instances: MockObserver[] = [];
-  observed: Element[] = [];
-  disconnected = false;
-  constructor(public callback: IntersectionObserverCallback, public options: IntersectionObserverInit) {
-    MockObserver.instances.push(this);
-  }
-  observe(el: Element) { this.observed.push(el); }
-  unobserve(el: Element) { this.observed = this.observed.filter(e => e !== el); }
-  disconnect() { this.disconnected = true; }
-}
-
-const rootBounds = { top: 9, bottom: 591 } as DOMRectReadOnly;
-
-function entry(target: Element, top: number, bottom: number, intersectionRatio: number) {
-  return { target, rootBounds, intersectionRatio, boundingClientRect: { top, bottom } } as unknown as IntersectionObserverEntry;
+class ToggleHostComponent {
+  readonly preview = signal(false);
 }
 
 describe('FloatingDirective', () => {
-  let fixture: ComponentFixture<HostComponent>;
+  const frame = () => new Promise(r => requestAnimationFrame(r));
 
-  function setup(scrollState = false) {
-    MockObserver.instances = [];
-    vi.stubGlobal('IntersectionObserver', MockObserver);
-    vi.stubGlobal('CSS', { supports: () => scrollState });
-    fixture = TestBed.createComponent(HostComponent);
-    fixture.detectChanges();
-    TestBed.tick();
-  }
-
-  function el(i: number) {
-    return fixture.nativeElement.querySelectorAll('span')[i] as HTMLElement;
-  }
-
-  function fire(i: number, ...e: IntersectionObserverEntry[]) {
-    MockObserver.instances[i].callback(e, MockObserver.instances[i] as any);
-    fixture.detectChanges();
-  }
-
+  beforeEach(() => vi.stubGlobal('CSS', { supports: () => false }));
   afterEach(() => vi.unstubAllGlobals());
 
-  it('toggles stuck at the bottom edge', () => {
-    setup();
-    fire(0, entry(el(0), 560, 592, 0.97));
-    expect(el(0).classList).toContain('stuck');
-    fire(0, entry(el(0), 300, 330, 1));
-    expect(el(0).classList).not.toContain('stuck');
-  });
+  it('applies floating and stuck from a runtime [floating] binding', async () => {
+    const fixture = TestBed.createComponent(ToggleHostComponent);
+    document.body.append(fixture.nativeElement);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const island = fixture.nativeElement.querySelector('.buttons') as HTMLElement;
+    const next = island.nextElementSibling as HTMLElement;
+    island.getBoundingClientRect = () => ({ top: 50, bottom: 80 } as DOMRect);
+    next.getBoundingClientRect = () => ({ top: 104, bottom: 120 } as DOMRect);
+    next.getClientRects = () => [{}] as any;
+    expect(island.classList).not.toContain('floating');
 
-  it('toggles stuck at the top edge', () => {
-    setup();
-    fire(1, entry(el(1), 8, 40, 0.97));
-    expect(el(1).classList).toContain('stuck');
-    fire(1, entry(el(1), 100, 130, 1));
-    expect(el(1).classList).not.toContain('stuck');
-  });
+    island.style.position = 'sticky';
+    fixture.componentInstance.preview.set(true);
+    fixture.detectChanges();
+    await frame();
+    fixture.detectChanges();
+    expect(island.classList).toContain('floating');
+    expect(island.classList).toContain('stuck');
 
-  it('ignores horizontal clipping', () => {
-    setup();
-    expect(MockObserver.instances[0].options.rootMargin).toMatch(/^-9px \d{5,}px -9px \d{5,}px$/);
-  });
-
-  it('does nothing when scroll-state is supported', () => {
-    setup(true);
-    expect(MockObserver.instances.length).toBe(0);
-  });
-
-  it('disconnects on destroy', () => {
-    setup();
+    fixture.componentInstance.preview.set(false);
+    fixture.detectChanges();
+    expect(island.classList).not.toContain('floating');
+    expect(island.classList).not.toContain('stuck');
     fixture.destroy();
-    expect(MockObserver.instances.every(o => o.disconnected)).toBe(true);
   });
 });

@@ -17,6 +17,7 @@ import { Store } from './store/store';
 import { createPip } from './util/embed';
 import { isApple } from './util/keyboard';
 import { trackTextareaResize } from './util/resize';
+import { trackAndroidKeyboard } from './util/virtual-keyboard';
 import { isInvalidModelsJson, isModelsJson, notModelsError } from './util/zip';
 
 @Component({
@@ -65,6 +66,7 @@ export class AppComponent {
   constructor() {
     document.body.style.height = '';
     inject(DestroyRef).onDestroy(trackTextareaResize());
+    inject(DestroyRef).onDestroy(trackAndroidKeyboard());
     window.addEventListener('keyup', event => {
       const hotkey = !this.hotkeyActive(event) || this.hotkey(event.key);
       if (this.store.hotkey() && hotkey) {
