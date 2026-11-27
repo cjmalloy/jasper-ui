@@ -30,6 +30,7 @@ import { Page } from '../../model/page';
 import { Plugin } from '../../model/plugin';
 import { Ref } from '../../model/ref';
 import { isWiki, wikiUriFormat } from '../../mods/org/wiki';
+import { banlistConfig } from '../../mods/system/banlist';
 import { TagPreviewPipe } from '../../pipe/tag-preview.pipe';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
@@ -173,7 +174,7 @@ export class SubmitPage {
   });
 
   readonly bannedUrls = computed(() => {
-    return this.admin.getTemplate('config/banlist')?.config?.bannedUrls || this.admin.def.templates['config/banlist']?.config?.bannedUrls;
+    return this.admin.getTemplate('config/banlist')?.config?.bannedUrls || banlistConfig?.config?.bannedUrls;
   });
 
   submitInternal(tag: string) {
@@ -184,7 +185,7 @@ export class SubmitPage {
     if (this.store.submit.wiki()) {
       return wikiUriFormat(url, this.admin.getWikiPrefix());
     }
-    return fixUrl(url, this.admin.getTemplate('config/banlist') || this.admin.def.templates['config/banlist']);
+    return fixUrl(url, this.admin.getTemplate('config/banlist') || banlistConfig);
   }
 
   exists(url: string) {

@@ -15,6 +15,7 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq, without } from 'lodash-es';
 import { catchError, finalize, forkJoin, map, of, Subject, Subscription, switchMap } from 'rxjs';
+import { FloatingDirective } from '../../../directive/floating.directive';
 import { EditorComponent } from '../../../form/editor/editor.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
@@ -34,6 +35,7 @@ import { LoadingComponent } from '../../loading/loading.component';
   host: { 'class': 'comment-edit' },
   imports: [
     forwardRef(() => EditorComponent),
+    FloatingDirective,
     LoadingComponent,
   ]
 })

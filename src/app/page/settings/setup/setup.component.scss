@@ -1,3 +1,5 @@
+@use '../../../../theme/stacked-form';
+
 .update, .config {
   margin-left: 10px;
   font-size: 80%;
@@ -98,8 +100,10 @@ label {
   .mod-config-forms {
     padding: 0;
   }
-  .mod-config-forms,
-  .mod-config-forms ::ng-deep :is(.form, .form-group, formly-list-section .form-array > formly-field > formly-group) {
+  :host ::ng-deep .mod-config-forms {
+    @include stacked-form.stacked-form;
+  }
+  .mod-config-forms ::ng-deep :is(.form-group, formly-list-section .form-array > formly-field > formly-group) {
     display: flex !important;
     flex-direction: column;
     min-width: 0;

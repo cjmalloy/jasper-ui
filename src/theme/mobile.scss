@@ -1,3 +1,5 @@
+@use 'stacked-form';
+
 // Mini: Smallest possible size
 $mini-width: 380px;
 // Mobile: Change tabs and forms
@@ -563,12 +565,17 @@ $tablet-width: 948px;
   }
   .form, .full-page-upload .list-container {
     max-width: calc(100vw - 8px);
-    display: flex !important;
-    flex-direction: column;
 
     label {
       text-align: left !important;
     }
+  }
+  .full-page-upload .list-container {
+    display: flex !important;
+    flex-direction: column;
+  }
+  .form {
+    @include stacked-form.stacked-form;
   }
 }
 

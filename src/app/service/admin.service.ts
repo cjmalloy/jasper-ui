@@ -12,89 +12,9 @@ import { Ref } from '../model/ref';
 import { bundleSize, clear, condition, Config, EditorButton, Mod, TagPageArgs } from '../model/tag';
 import { Template } from '../model/template';
 import { User } from '../model/user';
-import { aiMod } from '../mods/ai/ai';
-import { dalleMod } from '../mods/ai/dalle';
-import { naviMod } from '../mods/ai/navi';
-import { neoMod } from '../mods/ai/neo-banana';
-import { summaryMod } from '../mods/ai/summary';
-import { translateMod } from '../mods/ai/translate';
-import { blogMod } from '../mods/blog';
-import { chatMod } from '../mods/chat';
-import { clipboardMod } from '../mods/clipboard';
-import { commentMod } from '../mods/comment';
-import { deleteMod, tagDeleteNotice } from '../mods/delete';
-import { draftMod } from '../mods/draft';
-import { htmlMod, latexMod } from '../mods/editor';
-import { experimentsMod } from '../mods/experiments';
-import { backgammonMod } from '../mods/games/backgammon';
-import { chessMod } from '../mods/games/chess';
-import { jezzballMod } from '../mods/games/jezzball';
-import { helpMod } from '../mods/help';
-import { homeMod } from '../mods/home';
-import { lensMod } from '../mods/lens';
-import { mailboxMod } from '../mods/mailbox';
-import { mapMod } from '../mods/map';
-import { audioMod } from '../mods/media/audio';
-import { carouselMod } from '../mods/media/carousel';
-import { codeMod } from '../mods/media/code';
-import { durationMod } from '../mods/media/duration';
-import { embedMod } from '../mods/media/embed';
-import { fileMod } from '../mods/media/file';
-import { imageMod } from '../mods/media/image';
-import { masonryMod } from '../mods/media/masonry';
-import { mp3Mod } from '../mods/media/mp3';
-import { pdfEmbedUrl, pdfMod } from '../mods/media/pdf';
-import { playlistMod } from '../mods/media/playlist';
-import { tableMod } from '../mods/media/table';
-import { videoMod } from '../mods/media/video';
-import { ytdlpMod } from '../mods/media/ytdlp';
-import { storeMod } from '../mods/mod';
-import { modlistMod } from '../mods/modlist';
-import { folderMod } from '../mods/org/folder';
-import { graphMod } from '../mods/org/graph';
-import { gridMod } from '../mods/org/grid';
-import { hideMod } from '../mods/org/hide';
-import { kanbanMod } from '../mods/org/kanban';
-import { notesMod } from '../mods/org/notes';
-import { personMod } from '../mods/org/person';
-import { queueMod } from '../mods/org/queue';
-import { readMod } from '../mods/org/read';
-import { saveMod } from '../mods/org/save';
-import { todoMod } from '../mods/org/todo';
-import { DEFAULT_WIKI_PREFIX, wikiMod } from '../mods/org/wiki';
-import { progressMod } from '../mods/progress';
-import { repostMod } from '../mods/repost';
-import { rootMod } from '../mods/root';
-import { emailMod } from '../mods/sync/email';
-import { feedMod } from '../mods/sync/feed';
-import { remoteOriginMod } from '../mods/sync/origin';
-import { scrapeMod } from '../mods/sync/scrape';
-import { banlistMod } from '../mods/system/banlist';
-import { cacheMod } from '../mods/system/cache';
-import { debugMod } from '../mods/system/debug';
-import { errorMod } from '../mods/system/error';
-import { fullscreenMod } from '../mods/system/fullscreen';
-import { gdprMod } from '../mods/system/gdpr';
-import { indexHelperMod } from '../mods/system/index-helper';
-import { oembedMod } from '../mods/system/oembed';
-import { pipMod } from '../mods/system/pip';
-import { scriptMod } from '../mods/system/script';
-import { seamlessMod } from '../mods/system/seamless';
-import { secretMod } from '../mods/system/secret';
-import { snippetMod } from '../mods/system/snippet';
-import { systemMod } from '../mods/system/system';
-import { themesMod } from '../mods/system/theme';
-import { threadMod } from '../mods/thread';
-import { thumbnailMod } from '../mods/thumbnail';
-import { archiveMod } from '../mods/tools/archive';
-import { htmlToMarkdownMod } from '../mods/tools/htmlToMarkdown';
-import { markitdownMod } from '../mods/tools/markitdown';
-import { ninjaTriangleMod } from '../mods/tools/ninga-triangle';
-import { pollMod } from '../mods/tools/poll';
-import { qrMod } from '../mods/tools/qr';
-import { thanksMod } from '../mods/tools/thanks';
-import { userMod } from '../mods/user';
-import { voteMod } from '../mods/vote';
+import { tagDeleteNotice } from '../mods/delete';
+import { pdfEmbedUrl } from '../mods/media/pdf';
+import { DEFAULT_WIKI_PREFIX } from '../mods/org/wiki';
 import { progress } from '../store/bus';
 import { Store } from '../store/store';
 import { equalBundle } from '../util/diff';
@@ -128,6 +48,16 @@ function emptyStatus(): AdminStatus {
   };
 }
 
+/**
+ * Index bundled configs by tag in bundle order, followed by any configs from rest that are not bundled.
+ */
+function bundledFirst<T extends Config>(bundled: T[], rest: Record<string, T>): Record<string, T> {
+  const result: Record<string, T> = {};
+  for (const c of bundled) result[c.tag] = c;
+  for (const tag in rest) result[tag] ||= rest[tag];
+  return result;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -144,105 +74,45 @@ export class AdminService {
 
   private readonly _status = signal<AdminStatus>(emptyStatus());
 
-  mods: Mod[] = [
-    debugMod,
-    rootMod,
-    userMod,
-    folderMod,
-    homeMod,
-    kanbanMod,
-    blogMod,
-    mapMod,
-    chatMod,
-    clipboardMod,
-    mailboxMod,
-    hideMod,
-    saveMod,
-    readMod,
-    draftMod,
+  /**
+   * Bundled mods. Empty until {@link loadBundled$} has finished.
+   */
+  mods: Mod[] = [];
 
-    // Themes
-    themesMod,
-
-    // Configs
-    experimentsMod,
-    helpMod,
-    indexHelperMod,
-    wikiMod,
-    graphMod,
-    modlistMod,
-    banlistMod,
-    snippetMod,
-    htmlToMarkdownMod,
-    thanksMod,
-    gdprMod,
-
-    // Plugins
-    storeMod,
-    oembedMod,
-    scrapeMod,
-    cacheMod,
-    systemMod,
-    secretMod,
-    errorMod,
-    remoteOriginMod,
-    scriptMod,
-    feedMod,
-    deleteMod,
-    mailboxMod,
-    modlistMod,
-    commentMod,
-    threadMod,
-    gridMod,
-    notesMod,
-    emailMod,
-    durationMod,
-    progressMod,
-    fullscreenMod,
-    seamlessMod,
-    thumbnailMod,
-    tableMod,
-    aiMod,
-    naviMod,
-    dalleMod,
-    neoMod,
-    summaryMod,
-    translateMod,
-    pdfMod,
-    archiveMod,
-    latexMod,
-    codeMod,
-    htmlMod,
-    personMod,
-    repostMod,
-    queueMod,
-    qrMod,
-    embedMod,
-    audioMod,
-    videoMod,
-    ytdlpMod,
-    mp3Mod,
-    markitdownMod,
-    voteMod,
-    imageMod,
-    masonryMod,
-    carouselMod,
-    lensMod,
-    pipMod,
-    chessMod,
-    backgammonMod,
-    jezzballMod,
-    pollMod,
-    todoMod,
-    ninjaTriangleMod,
-    playlistMod,
-    fileMod,
-  ];
-
+  /**
+   * Bundled mod definitions followed by installed mods that are not bundled.
+   * Only contains the bundled definitions after {@link loadBundled$} has finished.
+   */
   def = {
-    plugins: <Record<string, Plugin>> Object.fromEntries(this.mods.flatMap(mod => mod.plugin || []).map(p => [p.tag, p])),
-    templates: <Record<string, Template>> Object.fromEntries(this.mods.flatMap(mod => mod.template || []).map(t => [t.tag, t])),
+    plugins: <Record<string, Plugin>> {},
+    templates: <Record<string, Template>> {},
   };
+
+  private bundled$?: Observable<Mod[]>;
+
+  /**
+   * Lazy load the bundled mods. They are only needed to install or update mods.
+   */
+  loadBundled$(): Observable<Mod[]> {
+    return this.bundled$ ||= defer(() => import('../mods/bundle')).pipe(
+      map(({ mods }) => {
+        this.mods = mods;
+        this.def = {
+          plugins: bundledFirst(mods.flatMap(m => m.plugin || []), this.def.plugins),
+          templates: bundledFirst(mods.flatMap(m => m.template || []), this.def.templates),
+        };
+        const status = this.status();
+        for (const p of [...Object.values(status.plugins), ...Object.values(status.disabledPlugins)]) {
+          this.checkModUpdate(this.def.plugins[p.tag], p);
+        }
+        for (const t of [...Object.values(status.templates), ...Object.values(status.disabledTemplates)]) {
+          this.checkModUpdate(this.def.templates[t.tag], t);
+        }
+        return mods;
+      }),
+      shareReplay(1),
+    );
+  }
 
   _cache = new Map<string, any>();
   private firstRun = false;
@@ -356,7 +226,8 @@ export class AdminService {
    * Load mod receipts and flag mods with local changes. Only needed for 3-way merges on the setup page.
    */
   loadModChanges$(): Observable<any> {
-    return this.loadReceipts$().pipe(
+    return this.loadBundled$().pipe(
+      switchMap(() => this.loadReceipts$()),
       tap(() => this.checkMissingReceipts()),
     );
   }
@@ -364,10 +235,11 @@ export class AdminService {
   get firstRun$(): Observable<any> {
     if (this.firstRun) return of(null);
     this.firstRun = true;
-    if (!this.config.installDefaults) return of(null);
-    if (!this.store.account.admin || this.store.account.ext()) return of(null);
-    if (!this.noMods()) return of(null);
-    return this.installDefaults$();
+    if (!this.store.account.admin) return of(null);
+    if (this.config.installDefaults && !this.store.account.ext() && this.noMods()) return this.installDefaults$();
+    // Check for mod updates in the background
+    this.loadBundled$().pipe(catchError(() => EMPTY)).subscribe();
+    return of(null);
   }
 
   /**
@@ -383,6 +255,12 @@ export class AdminService {
    * Install the default mods, then reload.
    */
   installDefaults$(): Observable<any> {
+    return this.loadBundled$().pipe(
+      switchMap(() => this.installBundledDefaults$()),
+    );
+  }
+
+  private installBundledDefaults$(): Observable<any> {
     const installs = this.defaultPlugins.map(p => this.plugins.create({
       ...p,
       origin: this.store.account.origin(),
@@ -487,12 +365,7 @@ export class AdminService {
         }
       }
     });
-    for (const p of list) {
-      if (this.needsUpdate(this.def.plugins[p.tag], p)) {
-        console.log(p.tag + ' needs update');
-        this.store.view.addModUpdate(modId(p));
-      }
-    }
+    for (const p of list) this.checkModUpdate(this.def.plugins[p.tag], p);
   }
 
   private templateToStatus(list: Template[]) {
@@ -506,12 +379,18 @@ export class AdminService {
         }
       }
     });
-    for (const t of list) {
-      if (this.needsUpdate(this.def.templates[t.tag], t)) {
-        console.log((t.tag || 'Root template') + ' needs update');
-        this.store.view.addModUpdate(modId(t));
-      }
-    }
+    for (const t of list) this.checkModUpdate(this.def.templates[t.tag], t);
+  }
+
+  /**
+   * Flag an installed mod for update if it is older than the bundled mod.
+   * Does nothing until the bundled mods are loaded.
+   */
+  private checkModUpdate(def: Config | undefined, status: Config) {
+    if (!this.mods.length || !def) return;
+    if (!this.needsUpdate(def, status)) return;
+    console.log((status.tag || 'Root template') + ' needs update');
+    this.store.view.addModUpdate(modId(status));
   }
 
   private receiptToStatus(list: Ref[]) {
@@ -1296,7 +1175,9 @@ export class AdminService {
   }
 
   installMod$(mod: string, _: progress): Observable<any> {
-    return this.install$(mod, this.getMod(mod)!, _);
+    return this.loadBundled$().pipe(
+      switchMap(() => this.install$(mod, this.getMod(mod)!, _)),
+    );
   }
 
   updateMod$(mod: string, bundle: Mod, receipt: Mod, _: progress): Observable<any> {
