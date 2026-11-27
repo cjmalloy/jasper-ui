@@ -245,10 +245,14 @@ test.describe.serial('Carousel Template', () => {
     const card = (await media.boundingBox())!;
     expect(box.width).toBeLessThanOrEqual(card.width);
     expect(box.height).toBeLessThanOrEqual(card.height);
-    // Markdown stays seamless in the dark theme
+    // Markdown stays seamless in the dark theme, but media inside it keeps its glow
     await page.evaluate(() => document.body.classList.add('dark-theme'));
     await expect(media).toHaveCSS('filter', 'none');
-    await expect(image).toHaveCSS('filter', 'none');
+    await expect(image).toHaveCSS('filter', /drop-shadow/);
+    // With room for the glow inside the slide
+    const viewer = (await media.locator('> *').boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(viewer.x + 1);
+    expect(box.x + box.width).toBeLessThanOrEqual(viewer.x + viewer.width - 1);
     await page.evaluate(() => document.body.classList.remove('dark-theme'));
     // Tilted neighbours reach past the track, but must not let it scroll
     await page.setViewportSize({ width: 1920, height: 1080 });

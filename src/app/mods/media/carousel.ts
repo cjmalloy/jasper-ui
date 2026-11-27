@@ -14,7 +14,7 @@ export const carouselTemplate: Template = {
   name: $localize`🎠️ Carousel`,
   config: {
     mod: $localize`🎠️ Carousel`,
-    version: 9,
+    version: 10,
     type: 'lens',
     global: true,
     view: $localize`🎠️`,
@@ -76,8 +76,9 @@ export const carouselTemplate: Template = {
           right: 22px;
         }
       }
-      /* Media fills the slide, so its glow would be clipped. Glow around the slide instead, but keep markdown seamless */
-      .carousel-media :is(.thumbnail, .image-expand, video, .embed-expand, .qr-expand) {
+      /* Media fills the slide, so its glow would be clipped. Glow around the slide instead */
+      .carousel-media > * > :is(.image-expand, video, .qr-expand),
+      .carousel-media > * > .embed-container > .embed-expand {
         filter: none !important;
       }
       body.dark-theme .carousel-media:has(> * > :is(.image-expand, video, .embed-container, .qr-expand)) {
