@@ -14,7 +14,7 @@ export const carouselTemplate: Template = {
   name: $localize`🎠️ Carousel`,
   config: {
     mod: $localize`🎠️ Carousel`,
-    version: 8,
+    version: 9,
     type: 'lens',
     global: true,
     view: $localize`🎠️`,
@@ -76,9 +76,12 @@ export const carouselTemplate: Template = {
           right: 22px;
         }
       }
-      /* Media fills the slide, so a glow around it would be clipped */
+      /* Media fills the slide, so its glow would be clipped. Glow around the slide instead, but keep markdown seamless */
       .carousel-media :is(.thumbnail, .image-expand, video, .embed-expand, .qr-expand) {
         filter: none !important;
+      }
+      body.dark-theme .carousel-media:has(> * > :is(.image-expand, video, .embed-container, .qr-expand)) {
+        filter: drop-shadow(0px 0px 0.5px #ffffff);
       }
       .carousel-track::-webkit-scrollbar {
         display: none;

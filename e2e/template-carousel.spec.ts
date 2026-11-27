@@ -188,6 +188,11 @@ test.describe.serial('Carousel Template', () => {
     // The grip is drawn inside the slide, so it doesn't scroll the media
     const viewer = slide.locator('app-viewer');
     expect(await viewer.evaluate(v => v.scrollWidth - v.clientWidth)).toBe(0);
+    // In the dark theme, the glow goes around the slide's media where it isn't clipped
+    await page.evaluate(() => document.body.classList.add('dark-theme'));
+    await expect(slide.locator('.carousel-media')).toHaveCSS('filter', /drop-shadow/);
+    await expect(iframe).toHaveCSS('filter', 'none');
+    await page.evaluate(() => document.body.classList.remove('dark-theme'));
     const before = (await container.boundingBox())!;
     await page.mouse.move(before.x + before.width - 3, before.y + before.height - 3);
     await page.mouse.down();
@@ -240,6 +245,11 @@ test.describe.serial('Carousel Template', () => {
     const card = (await media.boundingBox())!;
     expect(box.width).toBeLessThanOrEqual(card.width);
     expect(box.height).toBeLessThanOrEqual(card.height);
+    // Markdown stays seamless in the dark theme
+    await page.evaluate(() => document.body.classList.add('dark-theme'));
+    await expect(media).toHaveCSS('filter', 'none');
+    await expect(image).toHaveCSS('filter', 'none');
+    await page.evaluate(() => document.body.classList.remove('dark-theme'));
     // Tilted neighbours reach past the track, but must not let it scroll
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.reload({ waitUntil: 'networkidle' });
