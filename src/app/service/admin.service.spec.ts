@@ -5,12 +5,13 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { llmPlugin } from '../mods/ai/ai';
 import { blogTemplate } from '../mods/blog';
+import { mods } from '../mods/bundle';
 import { jezzballMod } from '../mods/games/jezzball';
 import { durationPlugin } from '../mods/media/duration';
 import { cachePlugin } from '../mods/system/cache';
 import { scrapePlugin } from '../mods/sync/scrape';
 import { userTemplate } from '../mods/user';
-import { ORIGIN_WILDCARD_REGEX, TAG_ORIGIN_SELECTOR_REGEX } from '../util/format';
+import { modId, ORIGIN_WILDCARD_REGEX, TAG_ORIGIN_SELECTOR_REGEX } from '../util/format';
 import { validFilterColumn, validSortColumn } from '../util/query';
 import { catchError, defer, firstValueFrom, of, Subject, throwError } from 'rxjs';
 import { Store } from '../store/store';
@@ -63,14 +64,33 @@ describe('AdminService', () => {
     expect(create).not.toHaveBeenCalled();
   });
 
-  it('should install default mods for an admin on an empty origin', () => {
+  it('should not load the bundled mods until requested', async () => {
+    expect(service.mods).toEqual([]);
+    expect(service.def.plugins).toEqual({});
+    await firstValueFrom(service.loadBundled$());
+    expect(service.mods.length).toBeGreaterThan(0);
+    expect(service.def.plugins[cachePlugin.tag]).toBe(cachePlugin);
+  });
+
+  it('should flag outdated mods once the bundled mods load', async () => {
+    TestBed.inject(Store).account.admin = true;
+    (service as any).pluginToStatus([{ ...cachePlugin, config: { ...cachePlugin.config, version: -1 } }]);
+    expect(TestBed.inject(Store).view.modUpdates().size).toBe(0);
+    await firstValueFrom(service.loadBundled$());
+    expect(TestBed.inject(Store).view.modUpdates().has(modId(cachePlugin))).toBe(true);
+  });
+
+  it('should install default mods for an admin on an empty origin', async () => {
+    await firstValueFrom(service.loadBundled$());
     TestBed.inject(Store).account.admin = true;
     const create = vi.spyOn(TestBed.inject(PluginService), 'create').mockReturnValue(of(null as any));
-    service.firstRun$;
+    vi.spyOn(service, 'init$', 'get').mockReturnValue(of(null));
+    service.firstRun$.subscribe();
     expect(create).toHaveBeenCalled();
   });
 
-  it('should load defaults after installing default mods', () => {
+  it('should load defaults after installing default mods', async () => {
+    await firstValueFrom(service.loadBundled$());
     const store = TestBed.inject(Store);
     store.account.admin = true;
     const calls: string[] = [];
@@ -99,7 +119,8 @@ describe('AdminService', () => {
     expect(service.noMods()).toBe(false);
   });
 
-  it('should install default mods on demand after the first run', () => {
+  it('should install default mods on demand after the first run', async () => {
+    await firstValueFrom(service.loadBundled$());
     TestBed.inject(ConfigService).installDefaults = false;
     TestBed.inject(Store).account.admin = true;
     service.firstRun$.subscribe();
@@ -220,8 +241,8 @@ describe('AdminService', () => {
   });
 
   it('should only use Ref columns in mod Ref sorts and filters', () => {
-    const plugins = service.mods.flatMap(m => m.plugin || []);
-    const templates = service.mods.flatMap(m => m.template || []);
+    const plugins = mods.flatMap(m => m.plugin || []);
+    const templates = mods.flatMap(m => m.template || []);
     const sorts = plugins.flatMap(p => p.config?.sorts || []).map(s => s.sort);
     const filters = [...plugins, ...templates].flatMap(p => p.config?.filters || []).map(f => f.sort || f.field).filter(c => !!c);
     expect(sorts.length).toBeGreaterThan(0);
@@ -232,7 +253,7 @@ describe('AdminService', () => {
   });
 
   it('should only use Ext, User, Plugin and Template columns in mod tag sorts', () => {
-    const sorts = service.mods.flatMap(m => m.template || []).flatMap(t => t.config?.sorts || []).map(s => s.sort);
+    const sorts = mods.flatMap(m => m.template || []).flatMap(t => t.config?.sorts || []).map(s => s.sort);
     expect(sorts).toContain('tag:len');
     for (const type of ['ext', 'user', 'plugin', 'template'] as const) {
       expect(sorts.filter(c => !validSortColumn(type, c))).toEqual([]);

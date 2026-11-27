@@ -7,7 +7,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { FormlyConfig, FormlyFieldConfig, FormlyFormBuilder } from '@ngx-formly/core';
 import { isValidSchema, validate } from 'jtd';
 import { get } from 'lodash-es';
-import { AdminService } from '../service/admin.service';
+import { mods } from '../mods/bundle';
 import {
   formlyDefaults,
   formlySchema,
@@ -352,9 +352,8 @@ describe('formly schema for built-in mods', () => {
   it('accepts the defaults of every built-in mod', () => {
     TestBed.inject(FormlyFormBuilder);
     const config = TestBed.inject(FormlyConfig);
-    const admin = TestBed.inject(AdminService);
     let checked = 0;
-    for (const mod of admin.mods) {
+    for (const mod of mods) {
       for (const def of [...mod.plugin || [], ...mod.template || []]) {
         const fields = [...def.config?.form || [], ...def.config?.advancedForm || []];
         for (const [field, value] of walk(config, fields, def.defaults)) {

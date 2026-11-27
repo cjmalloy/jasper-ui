@@ -14,6 +14,7 @@ import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
 import { Ref, RefSort } from '../../../model/ref';
 import { mimeToCode } from '../../../mods/media/code';
+import { banlistConfig } from '../../../mods/system/banlist';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { ProxyService } from '../../../service/api/proxy.service';
@@ -258,7 +259,7 @@ export class KanbanColumnComponent implements HasChanges {
     const isUrl = URI_REGEX.test(text) && this.config.allowedSchemes.filter(s => text.startsWith(s)).length;
     // TODO: support local urls
     const ref: Ref = isUrl ? {
-      url: fixUrl(text, this.admin.getTemplate('config/banlist') || this.admin.def.templates['config/banlist']),
+      url: fixUrl(text, this.admin.getTemplate('config/banlist') || banlistConfig),
       origin: this.store.account.origin(),
       tags: [...tagsWithAuthor],
     } : {

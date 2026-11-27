@@ -1,10 +1,12 @@
 import { Location } from '@angular/common';
+import { inject } from '@angular/core';
 import { DefaultUrlSerializer, Routes, UrlSerializer, UrlTree } from '@angular/router';
 import { conditionGuard } from './guard/condition.guard';
 import { hasRoleGuard } from './guard/has-role.guard';
 import { installedModGuard } from './guard/installed-mod.guard';
 import { clearLastSelected } from './guard/last-selected.guard';
 import { pendingChangesGuard } from './guard/pending-changes.guard';
+import { AdminService } from './service/admin.service';
 import { ExtPage } from './page/ext/ext.component';
 import { HomePage } from './page/home/home.component';
 import { InboxAlarmsPage } from './page/inbox/alarms/alarms.component';
@@ -213,7 +215,7 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'me', pathMatch: 'full' },
       { path: 'me', component: SettingsMePage, canActivate: [installedModGuard('user', ['../setup'])], canDeactivate: [pendingChangesGuard], runGuardsAndResolvers: 'always' },
-      { path: 'setup', component: SettingsSetupPage, canActivate: [hasRoleGuard('admin', ['../ref', getSettings])] },
+      { path: 'setup', component: SettingsSetupPage, canActivate: [hasRoleGuard('admin', ['../ref', getSettings])], resolve: { bundled: () => inject(AdminService).loadBundled$() } },
       { path: 'ref/:tag', component: SettingsRefPage, canActivate: [conditionGuard(getSettings, ['../../user'])], canDeactivate: [pendingChangesGuard, clearLastSelected], runGuardsAndResolvers: 'always' },
       { path: 'user', component: SettingsUserPage, canDeactivate: [pendingChangesGuard], runGuardsAndResolvers: 'always' },
       { path: 'plugin', component: SettingsPluginPage, canDeactivate: [pendingChangesGuard], runGuardsAndResolvers: 'always' },
