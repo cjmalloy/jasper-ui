@@ -6,7 +6,7 @@ export const masonryTemplate: Template = {
   name: $localize`🧱️ Masonry`,
   config: {
     mod: $localize`🧱️ Masonry`,
-    version: 7,
+    version: 8,
     type: 'plugin',
     default: false,
     description: $localize`Overrides the built-in Image viewer with a masonry layout where images have a fixed width and variable height.`,
@@ -57,45 +57,39 @@ export const masonryTemplate: Template = {
           /* Position overlays against the list so they can overflow the ref and flip at the list edge */
           position: static;
           anchor-name: --masonry-ref;
-          anchor-scope: --masonry-ref, --masonry-box, --masonry-link, --masonry-info, --masonry-actions;
-          /* The overlay box is at least 20rem wide, overflowing right, or left if there is no room.
-             It comes first so every line can align with it. */
-          &::before {
-            content: '';
-            top: anchor(--masonry-ref top);
-            left: anchor(--masonry-ref left);
-            width: min(max(anchor-size(--masonry-ref width), 20rem), 100%);
-            height: 0;
-            anchor-name: --masonry-box;
-            position-try-fallbacks: flip-inline;
-            pointer-events: none;
-          }
-          &::before, & > .voting, & > .link, & > .info, & > .actions, &::after {
+          anchor-scope: --masonry-ref, --masonry-link, --masonry-info, --masonry-actions;
+          & > .voting, & > .link, & > .info, & > .actions, &::after {
             position: absolute;
             grid-area: auto;
           }
           /* Anchored overlays are laid out on every list layout, so only show them for the active ref */
           @media (hover: hover) {
             &:not(:hover, .mobile-unlock) {
-              &::before, & > .voting, & > .link, & > .info, & > .actions, &::after {
+              & > .voting, & > .link, & > .info, & > .actions, &::after {
                 display: none;
               }
             }
           }
           @media (hover: none) {
             &:not(.mobile-unlock) {
-              &::before, & > .voting, & > .link, & > .info, & > .actions, &::after {
+              & > .voting, & > .link, & > .info, & > .actions, &::after {
                 display: none;
               }
             }
           }
           & > .voting {
             top: anchor(--masonry-ref top);
-            left: anchor(--masonry-box left);
+            left: anchor(--masonry-ref left);
+          }
+          /* The overlay is at least 20rem wide, overflowing right, or left if there is no room.
+             Every line has the same margin box so they all flip together. */
+          & > .link, & > .info, & > .actions, &::after {
+            left: anchor(--masonry-ref left);
+            position-try-fallbacks: flip-inline;
           }
           & > .link, & > .info, & > .actions {
-            left: anchor(--masonry-box left);
-            right: anchor(--masonry-box right);
+            width: calc(min(max(anchor-size(--masonry-ref width), 20rem), 100%) - 28px);
+            box-sizing: border-box;
           }
           & > .link {
             top: anchor(--masonry-ref top);
@@ -112,8 +106,7 @@ export const masonryTemplate: Template = {
           &::after {
             top: anchor(--masonry-ref top);
             bottom: calc(anchor(--masonry-actions bottom) - 14px);
-            left: anchor(--masonry-box left);
-            right: anchor(--masonry-box right);
+            width: calc(min(max(anchor-size(--masonry-ref width), 20rem), 100%) - 12px);
           }
         }
       }
