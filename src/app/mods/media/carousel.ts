@@ -14,7 +14,7 @@ export const carouselTemplate: Template = {
   name: $localize`🎠️ Carousel`,
   config: {
     mod: $localize`🎠️ Carousel`,
-    version: 10,
+    version: 11,
     type: 'lens',
     global: true,
     view: $localize`🎠️`,
@@ -281,12 +281,14 @@ export const carouselTemplate: Template = {
         const urls = new Set();
         const batches = new Set();
         let total;
+        let count;
+        // Bumped when reloading around another card, so replies for the old slides are dropped
+        let gen = 0;
         let headPage;
         let tailPage;
         let fetchingHead = false;
         let fetchingTail = false;
         let error;
-        let first;
         let start;
         let goal;
         let active = -1;
@@ -363,6 +365,8 @@ export const carouselTemplate: Template = {
             title.target = '_blank';
             title.rel = 'noopener noreferrer';
           }
+          // Until selected, so neither the keyboard nor a click can reach into it. Clicks fall through to the slide.
+          media.inert = title.inert = true;
           el.append(media, title);
           el.addEventListener('click', () => {
             const i = slides.findIndex(s => s.el === el);
@@ -411,12 +415,12 @@ export const carouselTemplate: Template = {
 
         function slidesOf(p) {
           total = p.page.totalPages;
+          count = p.page.totalElements;
           batches.add(p.page.number);
           const added = [];
           p.content.forEach((ref, i) => {
             const slide = create(ref, p.page.number * batch + i);
             if (!slide) return;
-            if (!slide.index) first = slide;
             added.push(slide);
           });
           return added;
@@ -496,10 +500,13 @@ export const carouselTemplate: Template = {
         function fetchFirst() {
           if (fetchingHead || destroyed || error) return;
           fetchingHead = true;
+          const g = gen;
           actions.fetch(Math.floor(target / batch), batch).then(p => {
+            if (g !== gen) return;
             fetchingHead = false;
             if (!destroyed) addFirst(p);
           }, () => {
+            if (g !== gen) return;
             fetchingHead = false;
             failed();
           });
@@ -509,10 +516,13 @@ export const carouselTemplate: Template = {
           if (fetchingHead || complete() || destroyed || error || headPage === undefined) return;
           if (fetchingTail && last()) return;
           fetchingHead = true;
+          const g = gen;
           actions.fetch((headPage + 1) % total, batch).then(p => {
+            if (g !== gen) return;
             fetchingHead = false;
             if (!destroyed) addHead(p);
           }, () => {
+            if (g !== gen) return;
             fetchingHead = false;
             failed();
           });
@@ -522,10 +532,13 @@ export const carouselTemplate: Template = {
           if (fetchingTail || complete() || destroyed || error || tailPage === undefined) return;
           if (fetchingHead && last()) return;
           fetchingTail = true;
+          const g = gen;
           actions.fetch((tailPage - 1 + total) % total, batch).then(p => {
+            if (g !== gen) return;
             fetchingTail = false;
             if (!destroyed) addTail(p);
           }, () => {
+            if (g !== gen) return;
             fetchingTail = false;
             failed();
           });
@@ -534,6 +547,37 @@ export const carouselTemplate: Template = {
         function center(i) {
           const slide = slides[i].el;
           return slide.offsetLeft - (track.clientWidth - slide.offsetWidth) / 2;
+        }
+
+        /** Go to the card at this index of the results, loading the slides around it if needed. */
+        function jump(index) {
+          if (!slides.length || count === undefined) return;
+          index = Math.max(0, Math.min(count - 1, index));
+          const loaded = batches.has(Math.floor(index / batch));
+          if (!loaded && slides.some(s => s.destroy?.hasChanges())) return;
+          if (loaded) {
+            let best = 0;
+            slides.forEach((s, i) => {
+              if (Math.abs(s.index - index) < Math.abs(slides[best].index - index)) best = i;
+            });
+            return go(best);
+          }
+          gen++;
+          fetchingHead = fetchingTail = false;
+          for (const s of slides) {
+            observer.unobserve(s.el);
+            s.destroy?.();
+            s.el.remove();
+          }
+          slides.length = 0;
+          byEl.clear();
+          urls.clear();
+          batches.clear();
+          styled = new Set();
+          headPage = tailPage = start = goal = undefined;
+          active = -1;
+          target = index;
+          fetchFirst();
         }
 
         function go(i) {
@@ -575,6 +619,13 @@ export const carouselTemplate: Template = {
           el.style.visibility = far > peek + 0.99 ? 'hidden' : 'visible';
         }
 
+        function select(slide, on) {
+          if (!slide) return;
+          slide.el.classList.toggle('active', on);
+          slide.media.inert = !on;
+          slide.el.querySelector('.carousel-title').inert = !on;
+        }
+
         function updateActive() {
           frame = undefined;
           if (!slides.length) return;
@@ -593,8 +644,8 @@ export const carouselTemplate: Template = {
           }
           styled = near;
           if (best !== active) {
-            slides[active]?.el.classList.remove('active');
-            slides[best].el.classList.add('active');
+            select(slides[active], false);
+            select(slides[best], true);
             active = best;
           }
           if (active >= slides.length - 1 - peek - 2) fetchHead();
@@ -634,8 +685,8 @@ export const carouselTemplate: Template = {
           if (e.target !== root && e.target !== track) return;
           if (e.key === 'ArrowLeft') go(active - 1);
           else if (e.key === 'ArrowRight') go(active + 1);
-          else if (e.key === 'Home') go(first ? slides.indexOf(first) : 0);
-          else if (e.key === 'End') go((first && slides.indexOf(first) || slides.length) - 1);
+          else if (e.key === 'Home') jump(0);
+          else if (e.key === 'End') jump(count - 1);
           else return;
           e.preventDefault();
         });

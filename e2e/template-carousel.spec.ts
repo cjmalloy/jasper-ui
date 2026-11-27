@@ -103,6 +103,25 @@ test.describe.serial('Carousel Template', () => {
     await expect(page).toHaveURL(new RegExp(`[?&]pageNumber=${count - 1}(&|$)`));
   });
 
+  test('goes to the ends of the results with Home and End', async ({ page }) => {
+    // Hold the batches between the middle and the ends, so only the middle is loaded
+    await page.route(/\/api\/v1\/ref\/page\?.*\bpage=[24]\b/, () => {});
+    await page.goto(`/tag/${tag}?debug=USER&pageSize=2&pageNumber=7&sort=published,ASC&view=carousel`);
+    const active = page.locator('.carousel-slide.active');
+    await expect(active).toHaveAttribute('aria-label', 'Slide 7');
+    // Neighbouring slides can't be reached with the keyboard
+    await expect(page.locator('.carousel-slide[aria-label="Slide 6"] .carousel-media')).toHaveJSProperty('inert', true);
+    await expect(active.locator('.carousel-media')).toHaveJSProperty('inert', false);
+    await expect(page.locator('.carousel-slide[aria-label="Slide 0"]')).toHaveCount(0);
+    await page.locator('.carousel-frame').focus();
+    await page.keyboard.press('Home');
+    await expect(active).toHaveAttribute('aria-label', 'Slide 0');
+    await expect(page).not.toHaveURL(/pageNumber/);
+    await page.keyboard.press('End');
+    await expect(active).toHaveAttribute('aria-label', `Slide ${count - 1}`);
+    await expect(page).toHaveURL(new RegExp(`[?&]pageNumber=${count - 1}(&|$)`));
+  });
+
   test('embeds as a lens', async ({ page, request }) => {
     const res = await request.post(`${api}/ref`, {
       headers: await headers(request),

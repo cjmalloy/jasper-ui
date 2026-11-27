@@ -204,7 +204,7 @@ export class LensComponent implements HasChanges {
         this.location.replaceState(this.router.serializeUrl(this.router.createUrlTree([], {
           queryParams: { pageNumber: pageNumber || null, pageSize: size ?? null },
           queryParamsHandling: 'merge',
-        })));
+        })), '', this.location.getState());
       },
       onDestroy,
     };
