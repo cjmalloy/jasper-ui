@@ -3,3 +3,22 @@
     display: none;
   }
 }
+
+.infinite-scroll {
+  position: relative;
+  height: 100px;
+  overflow: hidden;
+}
+
+.infinite-scroll-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 100%;
+}
+
+.infinite-scroll-sentinel {
+  position: absolute;
+  inset: 0;
+}

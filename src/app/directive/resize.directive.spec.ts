@@ -52,4 +52,19 @@ describe('ResizeDirective', () => {
     directive.onClick(mouse('click'));
     expect(clicks.length).toBe(1);
   });
+
+  it('only listens to the window while dragging', () => {
+    const { directive } = create();
+    const add = vi.spyOn(window, 'addEventListener');
+    window.dispatchEvent(mouse('mousemove', 20, 20));
+    expect(add).not.toHaveBeenCalled();
+    directive.onMousedown(mouse('mousedown'));
+    window.dispatchEvent(mouse('mousemove', 20, 20));
+    expect(directive.dirty()).toBe(true);
+    window.dispatchEvent(mouse('mouseup', 20, 20));
+    const dim = directive.dim();
+    window.dispatchEvent(mouse('mousemove', 40, 40));
+    expect(directive.dim()).toBe(dim);
+    add.mockRestore();
+  });
 });

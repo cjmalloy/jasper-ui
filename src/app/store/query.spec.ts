@@ -162,11 +162,13 @@ describe('QueryStore', () => {
 
     set(store, args, { query: 'test', search: 'abc' });
     expect(store.page()).toBe(first);
+    expect(store.pageArgs()).toEqual({ query: 'test' });
 
     const searched = Page.of([{ url: 'https://example.com/searched' }]);
     next.next(searched);
     await TestBed.inject(ApplicationRef).whenStable();
     expect(store.page()).toBe(searched);
+    expect(store.pageArgs()).toEqual({ query: 'test', search: 'abc' });
 
     set(store, args, { query: 'other', search: 'abc' });
     expect(store.page()).toBeUndefined();

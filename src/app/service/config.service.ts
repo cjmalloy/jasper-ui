@@ -64,6 +64,10 @@ export class ConfigService {
   readonly mobile = mediaSignal('(max-width: 740px)');
   readonly tablet = mediaSignal('(max-width: 948px)');
   readonly huge = mediaSignal('(min-width: 1500px)');
+  /**
+   * Touch screens without hover, such as phones and tablets.
+   */
+  readonly noHover = mediaSignal('(hover: none)');
 
   constructor() {
     // @ts-ignore
