@@ -32,7 +32,7 @@ Chord fingerings can be listed one per line, such as Am: x02210.
 Separate systems with a blank line.`,
     icons: [{ label: $localize`🎸️`, order: 2 }],
     filters: [
-      { query: 'plugin/tab', label: $localize`🎸️ tabs`, title: $localize`Guitar Tabs`, group: $localize`Media 🎬️` },
+      { query: 'plugin/tab', label: $localize`🎸️ tabs`, title: $localize`Guitar Tabs`, group: $localize`Plugins 🧰️` },
     ],
     // language=CSS
     css: `
