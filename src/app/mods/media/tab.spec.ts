@@ -14,7 +14,7 @@ function lines(el: Element) {
 
 describe('guitar tab', () => {
   beforeAll(() => {
-    const script = tabPlugin.config!.snippet!.match(/<script>([\s\S]*)<\/script>/)![1];
+    const script = tabPlugin.config!.snippet!.match(/<script>([\s\S]*)<\/script>/i)![1];
     new Function('Handlebars', script)(Handlebars);
   });
 
@@ -127,6 +127,24 @@ describe('guitar tab', () => {
     expect(bars.map(b => lines(b)[0]).join('')).toBe('-0-2-3-'.repeat(8) + '|');
     for (const b of bars) expect(lines(b)[0]![0]).toBe('-');
     expect(el.querySelectorAll('.tab-stack').length).toBe(bars.length);
+  });
+
+  it('should keep labels before an opening double bar', () => {
+    const el = render('e||-0-|-2-||\nB||-1-|-3-||');
+    expect(lines(el.querySelector('.tab-stack')!)).toEqual(['e||', 'B||']);
+    expect(lines(el.querySelector('.tab-bar')!)).toEqual(['-0-|', '-1-|']);
+  });
+
+  it('should keep tuning headers above a staff intact', () => {
+    const el = render('Tuning: E A D G B E\ne|-0-|-2-|\nB|-1-|-3-|');
+    expect(el.querySelector('.header')!.textContent).toBe('Tuning: E A D G B E');
+    expect(el.querySelectorAll('.tab-bar .header').length).toBe(0);
+  });
+
+  it('should separate chords when rejoining a wrapped chord line', () => {
+    const el = render('C                            Em\nAm\nsome words for the song that are long enough');
+    const chord = [...el.querySelectorAll('.tab-chords .chord')].map(l => l.textContent).join('');
+    expect(chord.trimEnd()).toBe('C                            Em Am');
   });
 
   it('should escape HTML', () => {

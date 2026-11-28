@@ -152,6 +152,7 @@ Separate systems with a blank line.`,
           const FRET = /^[xX0-9]{1,2}$/;
           const SECTION = /^ *[[(]? *(intro|verse|pre-?chorus|chorus|post-?chorus|bridge|outro|solo|interlude|instrumental|refrain|hook|breakdown|coda|ending|riff|break|middle 8)( *[0-9]+)?( *[x×] *[0-9]+)? *[\\])]? *:? *$/i;
           const HEADER = /^ *([[][^\\]]*[\\]].*|[^|]*: *)$/;
+          const META = /^ *(tuning|capo|key|tempo|bpm|time|time signature|strumming|strumming pattern|difficulty|tabbed by|artist|song|album) *[:=]/i;
           // Copy-paste from narrow screens hard wraps lines at a fixed width
           const WRAP = 30;
           // Bars wider than this are split at empty columns so they can reflow
@@ -219,7 +220,7 @@ Separate systems with a blank line.`,
           }
 
           function isHeader(line) {
-            return SECTION.test(line) || HEADER.test(line);
+            return SECTION.test(line) || HEADER.test(line) || META.test(line);
           }
 
           function classify(line) {
@@ -314,7 +315,10 @@ Separate systems with a blank line.`,
               let line = lines[i];
               const type = classify(line);
               if (type === 'chord') {
-                if (line.length >= WRAP && classify(lines[i + 1]) === 'chord' && classify(lines[i + 2]) === 'text') line += lines[++i];
+                if (line.length >= WRAP && classify(lines[i + 1]) === 'chord' && classify(lines[i + 2]) === 'text') {
+                  const next = lines[++i];
+                  line += line.endsWith(' ') || next.startsWith(' ') ? next : ' ' + next;
+                }
               } else if (type === 'text' || type === 'legend') {
                 while (line.length >= WRAP && classify(lines[i + 1]) === 'text' && (line.endsWith(' ') || lines[i + 1].startsWith(' '))) line += lines[++i];
               }
@@ -443,16 +447,18 @@ Separate systems with a blank line.`,
             const width = Math.max(...lines.map(l => l.text.length));
             const strings = lines.filter(l => l.type === 'string');
             let cuts = [];
+            let firstBar = 0;
             for (let c = 0; c < width; c++) {
               if (!strings.every(l => l.text[c] === '|')) continue;
               if (cuts.length && cuts[cuts.length - 1] === c) {
                 cuts[cuts.length - 1] = c + 1;
               } else {
+                if (!cuts.length) firstBar = c;
                 cuts.push(c + 1);
               }
             }
             let prefix = 0;
-            if (cuts.length && strings.every(l => LABEL.test(l.text.substring(0, cuts[0] - 1)))) {
+            if (cuts.length && strings.every(l => LABEL.test(l.text.substring(0, firstBar)))) {
               prefix = cuts.shift();
             }
             if (!cuts.length || cuts[cuts.length - 1] < width) cuts.push(width);
