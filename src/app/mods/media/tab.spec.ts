@@ -227,6 +227,7 @@ describe('guitar tab', () => {
   it('should rejoin a wrapped staff end with an s in its text', () => {
     const el = render('e|---0---0-|---0---0-\nB|---1---1-|---0-----\nsustain)|\n|');
     expect(el.querySelectorAll('.tab-system').length).toBe(1);
+    expect(lines(el.querySelectorAll('.tab-bar')[1])).toEqual(['---0---0-sustain)|', '---0-----|']);
   });
 
   it('should keep full final measures as separate bars', () => {
