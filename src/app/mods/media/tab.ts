@@ -7,7 +7,7 @@ export const tabPlugin: Plugin = {
   name: $localize`🎸️ Guitar Tab`,
   config: {
     mod: $localize`🎸️ Guitar Tab`,
-    version: 2,
+    version: 1,
     type: 'plugin',
     submitText: true,
     editingViewer: true,
