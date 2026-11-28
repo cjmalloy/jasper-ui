@@ -182,6 +182,17 @@ describe('guitar tab', () => {
     expect(chord.trimEnd()).toBe('C                            Em Am');
   });
 
+  it('should keep closing bars with the last chord', () => {
+    const el = render('| Em  | Am  |\n| D   | G  ||');
+    const chunks = [...el.querySelectorAll('.tab-chunk')].map(c => lines(c)[0]);
+    expect(chunks).toEqual(['| Em  ', '| Am  |', '| D   ', '| G  ||']);
+  });
+
+  it('should keep a stray closing bar with the bar before it', () => {
+    const el = render('e|-0-|-2-|-|\nB|-1-|-3-|-|');
+    expect([...el.querySelectorAll('.tab-bar')].map(b => lines(b)[0])).toEqual(['-0-|', '-2-|-|']);
+  });
+
   it('should escape HTML', () => {
     const el = render('<b>x</b>');
     expect(el.querySelector('b')).toBeNull();

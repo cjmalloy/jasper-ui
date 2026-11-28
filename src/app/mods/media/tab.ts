@@ -161,6 +161,7 @@ Separate systems with a blank line.`,
           // Bars wider than this are split at empty columns so they can reflow
           const LONG_BAR = 32;
           const MIN_PIECE = 10;
+          const MIN_BAR = 3;
 
           function expandTabs(line) {
             let result = '';
@@ -382,6 +383,8 @@ Separate systems with a blank line.`,
               if (c < width) {
                 if (!lines.every(l => (l.text[c - 1] || ' ') === ' ')) continue;
                 if (bars ? chords[c] !== '|' : !lines.some(l => l.text[c] && l.text[c] !== ' ')) continue;
+                // Closing bars stay with the last chord
+                if (bars && /^[|:]+ *$/.test(chords.substring(c))) continue;
               }
               html += '<div class="tab-chunk" style="width: ' + (c - start) + 'ch">';
               html += lines.map(l => renderLine(l.type, l.text.substring(start, c))).join('');
@@ -481,6 +484,8 @@ Separate systems with a blank line.`,
               pieces = pieces.concat(splitBar(lines, start, end));
               start = end;
             }
+            // A piece too narrow to stand alone, like a closing bar, stays with the piece before it
+            pieces = pieces.filter((end, i) => i === pieces.length - 1 || pieces[i + 1] - end >= MIN_BAR);
             let html = '<div class="tab-system" style="padding-left: ' + prefix + 'ch">';
             if (prefix) {
               const first = lines.map(l => renderLine(l.type, slice(l, 0, prefix))).join('');
