@@ -224,6 +224,23 @@ describe('guitar tab', () => {
     expect(lines(el.querySelectorAll('.tab-bar')[1])).toEqual(['---0---0-|', '---0(let ring)|', '---2-----| repeat once']);
   });
 
+  it('should rejoin a wrapped staff end with an s in its text', () => {
+    const el = render('e|---0---0-|---0---0-\nB|---1---1-|---0-----\nsustain)|\n|');
+    expect(el.querySelectorAll('.tab-system').length).toBe(1);
+    expect(lines(el.querySelectorAll('.tab-bar')[1])).toEqual(['---0---0-sustain)|', '---0-----|']);
+  });
+
+  it('should keep full final measures as separate bars', () => {
+    const el = render('HH|xxxxxxxx|xxxxxxxx|\nSD|oooooooo|oooooooo|');
+    expect(el.querySelectorAll('.tab-bar').length).toBe(2);
+  });
+
+  it('should rejoin a wrapped lyric with a colon under chords', () => {
+    const el = render('G                    C\nShe said: come home to me now my darling \ndear');
+    expect(el.querySelectorAll('.tab-text').length).toBe(0);
+    expect([...el.querySelectorAll('.tab-chords .text')].map(l => l.textContent).join('')).toBe('She said: come home to me now my darling dear');
+  });
+
   it('should escape HTML', () => {
     const el = render('<b>x</b>');
     expect(el.querySelector('b')).toBeNull();
