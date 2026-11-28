@@ -211,6 +211,19 @@ describe('guitar tab', () => {
     expect(lines(el.querySelector('.tab-bar')!)).toEqual(['---------12-12-----------|', '------12-12-12-15--14p12-|']);
   });
 
+  it('should keep a note after the last bar with that bar', () => {
+    const el = render('e|-0-----|-2-----|(repeat\nB|-1-----|-3-----|  5x)');
+    const bars = [...el.querySelectorAll('.tab-bar')];
+    expect(bars.length).toBe(2);
+    expect(lines(bars[1])).toEqual(['-2-----|(repeat', '-3-----|  5x)']);
+  });
+
+  it('should rejoin wrapped staff ends with text', () => {
+    const el = render('e|---0---0-|---0---0-\nB|---1---1-|---0(let \nG|---2---2-|---2-----\n|\nring)|\n| repeat once');
+    expect(el.querySelectorAll('.tab-system').length).toBe(1);
+    expect(lines(el.querySelectorAll('.tab-bar')[1])).toEqual(['---0---0-|', '---0(let ring)|', '---2-----| repeat once']);
+  });
+
   it('should escape HTML', () => {
     const el = render('<b>x</b>');
     expect(el.querySelector('b')).toBeNull();

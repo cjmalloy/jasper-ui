@@ -206,10 +206,12 @@ Separate systems with a blank line.`,
 
           /**
            * The short end of a wrapped staff line, like a closing bar: |, --| or 2-||
+           * It may have a note after the bar (| repeat once) or text split across the wrap (ring)|).
            */
           function isTail(line) {
             const t = line.trim();
-            return t.length > 0 && t.length < 16 && /[-|]/.test(t) && [...t].every(c => TECHNIQUE.includes(c));
+            if (t.length > 0 && t.length < 16 && /[-|]/.test(t) && [...t].every(c => TECHNIQUE.includes(c))) return true;
+            return /^[^|\s]{0,8}[|]+( .*)?$/.test(t);
           }
 
           function isChord(line) {
@@ -321,7 +323,8 @@ Separate systems with a blank line.`,
               const below = [];
               const nb = Math.max(below1.length, below2.length);
               for (let t = 0; t < nb; t++) below.push(overlay(below1[t], below2[t], w).trimEnd());
-              const joined = strings.map((s, x) => s.padEnd(w, '-') + lines[g + x].trimEnd());
+              // Text split across the wrap, like (let ring), keeps its space
+              const joined = strings.map((s, x) => s.padEnd(w, /[A-Za-z(]$/.test(s) && /\\s$/.test(lines[i + x]) ? ' ' : '-') + lines[g + x].trimEnd());
               lines.splice(top, bottom - top, ...above, ...joined, ...below);
               // Check the joined staff again in case it wrapped more than once
               i = top + above.length - 1;
@@ -494,6 +497,12 @@ Separate systems with a blank line.`,
             }
             // A piece too narrow to stand alone, like a closing bar, stays with the piece before it
             pieces = pieces.filter((end, i) => i === pieces.length - 1 || pieces[i + 1] - end >= MIN_BAR);
+            // A note after the last bar, like (repeat 5x), stays with that bar
+            if (pieces.length > 1) {
+              const from = pieces[pieces.length - 2];
+              const to = pieces[pieces.length - 1];
+              if (strings.every(l => !l.text.substring(from, to).includes('-'))) pieces.splice(pieces.length - 2, 1);
+            }
             let html = '<div class="tab-system" style="padding-left: ' + prefix + 'ch">';
             if (prefix) {
               const first = lines.map(l => renderLine(l.type, slice(l, 0, prefix))).join('');
