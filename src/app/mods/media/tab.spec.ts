@@ -64,14 +64,69 @@ describe('guitar tab', () => {
     expect(lines(bars[1])[0]).toBe('');
   });
 
-  it('should render headers and text without a staff as plain text', () => {
+  it('should render headers and chords with lyrics outside a staff', () => {
     const el = render('[Intro]\nG|---|---|\nD|-2-|---|\n\nAm   C\nsome lyrics');
     const texts = el.querySelectorAll('.tab-text');
-    expect(texts.length).toBe(2);
-    expect(lines(texts[0])).toEqual(['[Intro]']);
-    expect(lines(texts[1])).toEqual(['Am   C', 'some lyrics']);
-    expect(texts[1].querySelector('.chord')!.textContent).toBe('Am   C');
+    expect(texts.length).toBe(1);
+    expect(texts[0].querySelector('.header')!.textContent).toBe('[Intro]');
     expect(el.querySelectorAll('.tab-system').length).toBe(1);
+    const chunks = [...el.querySelectorAll('.tab-chords .tab-chunk')];
+    expect(chunks.map(c => lines(c))).toEqual([['Am   ', 'some '], ['C', 'lyrics']]);
+  });
+
+  it('should keep chords over the middle of a word together', () => {
+    const el = render('     G\nholiday now');
+    const chunks = [...el.querySelectorAll('.tab-chunk')];
+    expect(chunks.map(c => lines(c))).toEqual([['     G', 'holiday '], ['', 'now']]);
+  });
+
+  it('should render chord progressions and fingering legends', () => {
+    const el = render('Am:  x02210\nE7   020100\n\n[Solo]\nEm  Am  D  G');
+    const legends = [...el.querySelectorAll('.legend')];
+    expect(legends.map(l => l.querySelector('.chord')!.textContent)).toEqual(['Am', 'E7']);
+    expect(el.querySelector('.header')!.textContent).toBe('[Solo]');
+    const chunks = [...el.querySelectorAll('.tab-chords .tab-chunk')];
+    expect(chunks.map(c => lines(c))).toEqual([['Em  '], ['Am  '], ['D  '], ['G']]);
+  });
+
+  it('should rejoin chords and lyrics wrapped by copy and paste', () => {
+    const el = render([
+      'Em                 G                    ',
+      '            D',
+      "I'd like to get to know you a little ",
+      'better babe',
+    ].join('\n'));
+    const block = el.querySelector('.tab-chords')!;
+    const chord = [...block.querySelectorAll('.chord')].map(l => l.textContent).join('');
+    const text = [...block.querySelectorAll('.text')].map(l => l.textContent).join('');
+    expect(chord.trimEnd()).toBe('Em                 G' + ' '.repeat(32) + 'D');
+    expect(text).toBe("I'd like to get to know you a little better babe");
+  });
+
+  it('should rejoin a wrapped staff onto its labels', () => {
+    const el = render([
+      '      G',
+      'e|----3-----16p14-1',
+      'B|----3------------',
+      '   Bm',
+      '4h16--2--|',
+      '---------|',
+    ].join('\n'));
+    expect(el.querySelectorAll('.tab-system').length).toBe(1);
+    const bar = el.querySelector('.tab-bar')!;
+    expect(lines(bar)).toEqual(['    G               Bm', '----3-----16p14-14h16--2--|', '----3---------------------|']);
+  });
+
+  it('should split long bars where every string is empty', () => {
+    const el = render([
+      'e|' + '-0-2-3-'.repeat(8) + '|',
+      'B|' + '-------'.repeat(8) + '|',
+    ].join('\n'));
+    const bars = [...el.querySelectorAll('.tab-bar')];
+    expect(bars.length).toBeGreaterThan(1);
+    expect(bars.map(b => lines(b)[0]).join('')).toBe('-0-2-3-'.repeat(8) + '|');
+    for (const b of bars) expect(lines(b)[0]![0]).toBe('-');
+    expect(el.querySelectorAll('.tab-stack').length).toBe(bars.length);
   });
 
   it('should escape HTML', () => {

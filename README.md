@@ -192,6 +192,8 @@ Photon, or Google Maps geocoding. A self-hosted Photon URL must be added to `CSP
 54. **Guitar Tab:** Display plain text tablature for guitar, bass or any number of strings.
 Whitespace alignment is kept and bars reflow to fit the screen, repeating the string names on
 each row. Chord lines above and lyrics or other annotations below a staff stay aligned with it.
+Chord sheets are supported too: chords stay above their lyrics as lines reflow, and section
+headers, chord fingerings and lines wrapped by copy and paste are recognized. Prints cleanly.
 
 ## Coming Soon
 1. **Voting:** Enables voting and sorting by vote when installed. Requires additions to the user

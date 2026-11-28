@@ -2163,7 +2163,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/tab.ts</context>
-          <context context-type="linenumber">33</context>
+          <context context-type="linenumber">35</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/table.ts</context>
@@ -7928,11 +7928,7 @@ Private tags start with an underscore.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/tab.ts</context>
-          <context context-type="linenumber">15</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/media/tab.ts</context>
-          <context context-type="linenumber">279</context>
+          <context context-type="linenumber">14</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/table.ts</context>
@@ -8840,7 +8836,7 @@ Private tags start with an underscore.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/tab.ts</context>
-          <context context-type="linenumber">21</context>
+          <context context-type="linenumber">20</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/table.ts</context>
@@ -10409,10 +10405,6 @@ Private tags start with an underscore.
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/image.ts</context>
           <context context-type="linenumber">238</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/media/tab.ts</context>
-          <context context-type="linenumber">286</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/todo.ts</context>
@@ -12729,51 +12721,39 @@ Home / End: Jump to start/end
         <source>🎸️ Guitar Tab</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/tab.ts</context>
-          <context context-type="linenumber">8</context>
+          <context context-type="linenumber">7</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/tab.ts</context>
-          <context context-type="linenumber">10</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/media/tab.ts</context>
-          <context context-type="linenumber">274</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/media/tab.ts</context>
-          <context context-type="linenumber">276</context>
+          <context context-type="linenumber">9</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1655313134375584064" datatype="html">
-        <source>Display guitar, bass and other fretted instrument tablature. Bars reflow to fit the screen.</source>
+      <trans-unit id="4827863792865352271" datatype="html">
+        <source>Display guitar, bass and other fretted instrument tablature and chord sheets. Bars and lyrics reflow to fit the screen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/tab.ts</context>
-          <context context-type="linenumber">16</context>
+          <context context-type="linenumber">15</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7598085451392957408" datatype="html">
         <source>🎸️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/tab.ts</context>
-          <context context-type="linenumber">31</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/media/tab.ts</context>
-          <context context-type="linenumber">280</context>
+          <context context-type="linenumber">33</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2415300432270558778" datatype="html">
         <source>🎸️ tabs</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/tab.ts</context>
-          <context context-type="linenumber">33</context>
+          <context context-type="linenumber">35</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6810036627772202370" datatype="html">
         <source>Guitar Tabs</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/tab.ts</context>
-          <context context-type="linenumber">33</context>
+          <context context-type="linenumber">35</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1549935433569766088" datatype="html">
