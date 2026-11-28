@@ -9292,6 +9292,25 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>JSON is not a Ref, an Ext or a { ref, ext } bundle.</source>
         <target>JSONはRef、Ext、または { ref, ext } バンドルではありません。</target>
       </trans-unit>
+      <trans-unit id="4827863792865352271" datatype="html">
+        <source>Display guitar, bass and other fretted instrument tablature and chord sheets. Bars and lyrics reflow to fit the screen.</source>
+        <target>ギター、ベース、その他のフレット楽器のタブ譜とコード譜を表示します。小節と歌詞は画面に合わせて折り返されます。</target>
+      </trans-unit>
+      <trans-unit id="2415300432270558778" datatype="html">
+        <source>🎸️ tabs</source>
+        <target>🎸️ タブ譜</target>
+      </trans-unit>
+      <trans-unit id="6810036627772202370" datatype="html">
+        <source>Guitar Tabs</source>
+        <target>ギタータブ譜</target>
+      </trans-unit>
+      <trans-unit id="7598085451392957408" datatype="html">
+        <source>🎸️</source>
+      </trans-unit>
+      <trans-unit id="8295130249077377961" datatype="html">
+        <source>🎸️ Guitar Tab</source>
+        <target>🎸️ ギタータブ譜</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

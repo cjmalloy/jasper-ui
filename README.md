@@ -189,6 +189,11 @@ Photon, or Google Maps geocoding. A self-hosted Photon URL must be added to `CSP
 51. **Drafts:** Save edits to a Ref before publishing, then commit or revert them later.
 52. **Duration:** Store media duration metadata in a tag and display it in the Ref info area.
 53. **Grid:** View query results in a configurable multi-column grid.
+54. **Guitar Tab:** Display plain text tablature for guitar, bass, drums or any number of strings, and chord sheets.
+Whitespace alignment is kept and bars reflow to fit the screen, repeating the string names on
+each row. Chord lines above and lyrics or other annotations below a staff stay aligned with it.
+Chord sheets are supported too: chords stay above their lyrics as lines reflow, and section
+headers, chord fingerings and lines wrapped by copy and paste are recognized. Prints cleanly.
 
 ## Coming Soon
 1. **Voting:** Enables voting and sorting by vote when installed. Requires additions to the user

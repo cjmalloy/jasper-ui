@@ -33,6 +33,7 @@ import { mp3Mod } from './media/mp3';
 import { pdfMod } from './media/pdf';
 import { playlistMod } from './media/playlist';
 import { tableMod } from './media/table';
+import { tabMod } from './media/tab';
 import { videoMod } from './media/video';
 import { ytdlpMod } from './media/ytdlp';
 import { storeMod } from './mod';
@@ -144,6 +145,7 @@ export const mods: Mod[] = [
   seamlessMod,
   thumbnailMod,
   tableMod,
+  tabMod,
   aiMod,
   naviMod,
   dalleMod,
