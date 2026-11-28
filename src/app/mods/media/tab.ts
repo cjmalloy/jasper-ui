@@ -145,7 +145,7 @@ Separate systems with a blank line.`,
           // String names can be notes (e, Bb, E2), drums (HH, SD, T1) or any other short label
           const STRING = /^ *([A-Za-z][A-Za-z0-9#♯♭]{0,3})? *([|:].*|-.*)$/;
           const LABEL = /^ *([A-Za-z][A-Za-z0-9#♯♭]{0,3})? *$/;
-          const LABELED = /^ *[A-Za-z][A-Za-z0-9#♯♭]{0,3} *[|:]/;
+          const LABELED = /^ *([A-Za-z][A-Za-z0-9#♯♭]{0,3} *)?[|:]/;
           const TECHNIQUE = '-|0123456789hpbrstvxXoOgf@~/\\\\^()<>[]{}.*=:+';
           const CHORD = /^[(]?[A-G](?:#|b|♯|♭)?(?:maj|min|mi|m|M|dim|aug|sus|add|ø|°|[+]|-)?[0-9]{0,2}(?:[#b+-][0-9]{1,2}|sus[0-9]{0,2}|add[0-9]{1,2}|maj[0-9]{0,2}|no[0-9]{1,2}|alt|[(][^()]{1,12}[)])*(?:[/][A-G](?:#|b|♯|♭)?)?[)]?[*]?$/;
           const EXTRA = /^(N[.]?C[.]?|[x×][0-9]+|[0-9]+[x×]|[(][x×]?[0-9]+[x×]?[)]|[|:%/.-]+)$/;
@@ -204,6 +204,14 @@ Separate systems with a blank line.`,
             return dash >= 3 && other * 4 <= t.length;
           }
 
+          /**
+           * The short end of a wrapped staff line, like a closing bar: |, --| or 2-||
+           */
+          function isTail(line) {
+            const t = line.trim();
+            return t.length > 0 && t.length < 16 && /[-|]/.test(t) && [...t].every(c => TECHNIQUE.includes(c));
+          }
+
           function isChord(line) {
             const tokens = line.trim().split(/ +/);
             let chords = 0;
@@ -247,7 +255,7 @@ Separate systems with a blank line.`,
           }
 
           function isAnnotation(line) {
-            return line !== undefined && !isLabeled(line) && !isBody(line) && !isHeader(line) && !isLegend(line);
+            return line !== undefined && !isLabeled(line) && !isBody(line) && !isTail(line) && !isHeader(line) && !isLegend(line);
           }
 
           /**
@@ -287,7 +295,7 @@ Separate systems with a blank line.`,
               let g = j;
               while (g < lines.length && g - j < 4 && isAnnotation(lines[g])) g++;
               let e = g;
-              while (e < lines.length && e - g < k && isBody(lines[e])) e++;
+              while (e < lines.length && e - g < k && (isBody(lines[e]) || isTail(lines[e]))) e++;
               if (e - g !== k || e < lines.length && isBody(lines[e])) {
                 i = j - 1;
                 continue;
@@ -299,7 +307,8 @@ Separate systems with a blank line.`,
               while (bottom < lines.length && bottom - e < 2 && isAnnotation(lines[bottom])) bottom++;
               const gap = lines.slice(j, g);
               let split = gap.findIndex(l => isChord(l));
-              if (split < 0) split = gap.length;
+              // Otherwise the second half repeats the layout of the first, like a rhythm line above each half
+              if (split < 0) split = gap.length - Math.min(gap.length, i - top);
               const above1 = lines.slice(top, i);
               const above2 = gap.slice(split);
               const below1 = gap.slice(0, split);
@@ -444,19 +453,18 @@ Separate systems with a blank line.`,
            * Split a long bar where every string is empty and no annotation word crosses.
            */
           function splitBar(lines, start, end) {
-            const cuts = [];
             if (end - start <= LONG_BAR) return [end];
-            let s = start;
+            // Cut nearest the middle so the pieces are balanced
+            const middle = (start + end) / 2;
+            let best = -1;
             for (let c = start + MIN_PIECE; c <= end - MIN_PIECE; c++) {
-              if (c - s < MIN_PIECE) continue;
               if (!lines.every(l => l.type === 'string'
                 ? l.text[c] === '-'
                 : !(l.text[c - 1] && l.text[c - 1] !== ' ' && l.text[c] && l.text[c] !== ' '))) continue;
-              cuts.push(c);
-              s = c;
+              if (best < 0 || Math.abs(c - middle) < Math.abs(best - middle)) best = c;
             }
-            cuts.push(end);
-            return cuts;
+            if (best < 0) return [end];
+            return [...splitBar(lines, start, best), ...splitBar(lines, best, end)];
           }
 
           function renderSystem(lines) {

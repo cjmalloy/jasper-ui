@@ -193,6 +193,24 @@ describe('guitar tab', () => {
     expect([...el.querySelectorAll('.tab-bar')].map(b => lines(b)[0])).toEqual(['-0-|', '-2-|-|']);
   });
 
+  it('should rejoin closing bars wrapped onto their own lines', () => {
+    const el = render('  E E\nD#|-----0---\nA#|-------0-\n--|\n2-|');
+    expect(el.querySelectorAll('.tab-system').length).toBe(1);
+    expect(lines(el.querySelector('.tab-bar')!)).toEqual([' E', '-----0-----|', '-------0-2-|']);
+  });
+
+  it('should put a rhythm line between wrapped halves above the second half', () => {
+    const el = render(' E E\ne|-0---0-----\nB|-1---1-----\n S S\n--3--|\n--0--|');
+    const bar = el.querySelector('.tab-bar')!;
+    expect(lines(bar)).toEqual([' E          S S', '-0---0-------3--|', '-1---1-------0--|']);
+  });
+
+  it('should rejoin wrapped staves without string names', () => {
+    const el = render('|---------12-12----\n|------12-12-12-15-\n-------|\n-14p12-|');
+    expect(el.querySelectorAll('.tab-system').length).toBe(1);
+    expect(lines(el.querySelector('.tab-bar')!)).toEqual(['---------12-12-----------|', '------12-12-12-15--14p12-|']);
+  });
+
   it('should escape HTML', () => {
     const el = render('<b>x</b>');
     expect(el.querySelector('b')).toBeNull();
