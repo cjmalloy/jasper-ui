@@ -142,26 +142,29 @@ Separate systems with a blank line.`,
     snippet: `
       <script>
         Handlebars.registerHelper('guitarTab', (() => {
-          const STRING = /^ *([A-Ga-g][#b]?[0-9]?)? *([|:].*|-.*)$/;
-          const LABEL = /^ *([A-Ga-g][#b]?[0-9]?)? *$/;
-          const LABELED = /^ *[A-Ga-g][#b]?[0-9]? *[|:]/;
-          const TECHNIQUE = '-|0123456789hpbrstvxX~/\\\\^()<>[]{}.*=:+';
+          // String names can be notes (e, Bb, E2), drums (HH, SD, T1) or any other short label
+          const STRING = /^ *([A-Za-z][A-Za-z0-9#♯♭]{0,3})? *([|:].*|-.*)$/;
+          const LABEL = /^ *([A-Za-z][A-Za-z0-9#♯♭]{0,3})? *$/;
+          const LABELED = /^ *[A-Za-z][A-Za-z0-9#♯♭]{0,3} *[|:]/;
+          const TECHNIQUE = '-|0123456789hpbrstvxXoOgf@~/\\\\^()<>[]{}.*=:+';
           const CHORD = /^[(]?[A-G](?:#|b|♯|♭)?(?:maj|min|mi|m|M|dim|aug|sus|add|ø|°|[+]|-)?[0-9]{0,2}(?:[#b+-][0-9]{1,2}|sus[0-9]{0,2}|add[0-9]{1,2}|maj[0-9]{0,2}|no[0-9]{1,2}|alt|[(][^()]{1,12}[)])*(?:[/][A-G](?:#|b|♯|♭)?)?[)]?[*]?$/;
           const EXTRA = /^(N[.]?C[.]?|[x×][0-9]+|[0-9]+[x×]|[(][x×]?[0-9]+[x×]?[)]|[|:%/.-]+)$/;
           const FINGERING = /^[(]?(?:[xX0-9]{4,7}|[xX0-9]{1,2}(?:-[xX0-9]{1,2}){3,6})[)]?$/;
           const FRET = /^[xX0-9]{1,2}$/;
-          const SECTION = /^ *[[(]? *(intro|verse|pre-?chorus|chorus|post-?chorus|bridge|outro|solo|interlude|instrumental|refrain|hook|breakdown|coda|ending|riff|break|middle 8)( *[0-9]+)?( *[x×] *[0-9]+)? *[\\])]? *:? *$/i;
-          const HEADER = /^ *([[][^\\]]*[\\]].*|[^|]*: *)$/;
-          const META = /^ *(tuning|capo|key|tempo|bpm|time|time signature|strumming|strumming pattern|difficulty|tabbed by|artist|song|album) *[:=]/i;
+          // [Chorus], [Verse 2] x2
+          const SECTION = /^ *[[][^\\]]{1,40}[\\]]( .*)?$/;
+          // Intro:, Tuning: E A D G B E, Tabbed by: ...
+          const HEADER = /^ *([^|]*: *|[A-Za-z][\\w'&/.#-]*( [\\w'&/.#-]+){0,2} *[:=]( .*)?)$/;
           // Copy-paste from narrow screens hard wraps lines at a fixed width
           const WRAP = 30;
+          const BOX = '│┃';
           // Bars wider than this are split at empty columns so they can reflow
           const LONG_BAR = 32;
           const MIN_PIECE = 10;
 
           function expandTabs(line) {
             let result = '';
-            for (const c of line) result += c === '\\t' ? ' '.repeat(8 - result.length % 8) : c;
+            for (const c of line) result += c === '\\t' ? ' '.repeat(8 - result.length % 8) : BOX.includes(c) ? '|' : c;
             return result;
           }
 
@@ -220,7 +223,7 @@ Separate systems with a blank line.`,
           }
 
           function isHeader(line) {
-            return SECTION.test(line) || HEADER.test(line) || META.test(line);
+            return SECTION.test(line) || HEADER.test(line);
           }
 
           function classify(line) {
@@ -494,6 +497,8 @@ Separate systems with a blank line.`,
             for (let i = 0; i < types.length; i++) {
               // A single string line is not a staff
               if (types[i] === 'string' && types[i - 1] !== 'string' && types[i + 1] !== 'string') types[i] = 'text';
+              // The line under chords is lyrics, even with a colon
+              if (types[i] === 'header' && types[i - 1] === 'chord' && !SECTION.test(text[i])) types[i] = 'text';
             }
             const lines = text.map((t, i) => ({ type: types[i], text: t }));
             const staves = [];

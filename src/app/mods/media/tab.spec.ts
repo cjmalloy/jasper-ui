@@ -147,6 +147,28 @@ describe('guitar tab', () => {
     expect(chord.trimEnd()).toBe('C                            Em Am');
   });
 
+  it('should reflow drum tabs', () => {
+    const el = render('HH|x-x-x-x-|x-x-x-x-|\nSD|----o---|----o---|\nBD|o-------|o-o-----|');
+    expect(el.querySelectorAll('.tab-bar').length).toBe(2);
+    expect(lines(el.querySelector('.tab-stack')!)).toEqual(['HH|', 'SD|', 'BD|']);
+  });
+
+  it('should treat box drawing lines as bars', () => {
+    const el = render('e│--0--│--2--│\nB│--1--│--3--│');
+    expect(lines(el.querySelectorAll('.tab-bar')[1])).toEqual(['--2--|', '--3--|']);
+  });
+
+  it('should only treat a bracket alone as a section header', () => {
+    const el = render('[Verse 2] x2\n[G]Amazing grace');
+    expect([...el.querySelectorAll('.header')].map(h => h.textContent)).toEqual(['[Verse 2] x2']);
+  });
+
+  it('should keep lyrics with a colon under their chords', () => {
+    const el = render('G         C\nShe said: come home');
+    expect(el.querySelectorAll('.header').length).toBe(0);
+    expect([...el.querySelectorAll('.tab-chords .text')].map(l => l.textContent).join('')).toBe('She said: come home');
+  });
+
   it('should escape HTML', () => {
     const el = render('<b>x</b>');
     expect(el.querySelector('b')).toBeNull();
