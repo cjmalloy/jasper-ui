@@ -211,7 +211,7 @@ Separate systems with a blank line.`,
           function isTail(line) {
             const t = line.trim();
             if (t.length > 0 && t.length < 16 && /[-|]/.test(t) && [...t].every(c => TECHNIQUE.includes(c))) return true;
-            return /^[^|\s]{0,8}[|]+( .*)?$/.test(t);
+            return /^[^|\\s]{0,8}[|]+( .*)?$/.test(t);
           }
 
           function isChord(line) {
@@ -345,7 +345,7 @@ Separate systems with a blank line.`,
                   const next = lines[++i];
                   line += line.endsWith(' ') || next.startsWith(' ') ? next : ' ' + next;
                 }
-              } else if (type === 'text' || type === 'legend') {
+              } else if (type === 'text' || type === 'legend' || type === 'header' && classify(lines[i - 1]) === 'chord' && isLyric(line)) {
                 while (line.length >= WRAP && classify(lines[i + 1]) === 'text' && (line.endsWith(' ') || lines[i + 1].startsWith(' '))) line += lines[++i];
               }
               result.push(line);
@@ -501,7 +501,7 @@ Separate systems with a blank line.`,
             if (pieces.length > 1) {
               const from = pieces[pieces.length - 2];
               const to = pieces[pieces.length - 1];
-              if (strings.every(l => !l.text.substring(from, to).includes('-'))) pieces.splice(pieces.length - 2, 1);
+              if (strings.every(l => !/[-|]/.test(l.text.substring(from, to)))) pieces.splice(pieces.length - 2, 1);
             }
             let html = '<div class="tab-system" style="padding-left: ' + prefix + 'ch">';
             if (prefix) {
