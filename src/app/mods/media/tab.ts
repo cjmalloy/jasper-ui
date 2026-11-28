@@ -179,7 +179,9 @@ Separate systems with a blank line.`,
               else if (c === '|') bar++;
               else if (!TECHNIQUE.includes(c)) other++;
             }
-            return dash > 0 && dash + bar >= 3 && other * 4 <= total;
+            if (dash > 0 && dash + bar >= 3 && other * 4 <= total) return true;
+            // A labeled row full of notes, like HH|xxxxxxxx|
+            return !!m[1] && bar >= 2 && other === 0 && total - bar >= 2;
           }
 
           function isLabeled(line) {
@@ -233,6 +235,14 @@ Separate systems with a blank line.`,
             if (isChord(line)) return 'chord';
             if (isHeader(line)) return 'header';
             return 'text';
+          }
+
+          /**
+           * Lyrics can look like a header (She said: come home), but never like a section.
+           */
+          function isLyric(line) {
+            const type = classify(line);
+            return type === 'text' || type === 'header' && !SECTION.test(line);
           }
 
           function isAnnotation(line) {
@@ -318,7 +328,7 @@ Separate systems with a blank line.`,
               let line = lines[i];
               const type = classify(line);
               if (type === 'chord') {
-                if (line.length >= WRAP && classify(lines[i + 1]) === 'chord' && classify(lines[i + 2]) === 'text') {
+                if (line.length >= WRAP && classify(lines[i + 1]) === 'chord' && isLyric(lines[i + 2])) {
                   const next = lines[++i];
                   line += line.endsWith(' ') || next.startsWith(' ') ? next : ' ' + next;
                 }

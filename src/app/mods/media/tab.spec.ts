@@ -153,6 +153,12 @@ describe('guitar tab', () => {
     expect(lines(el.querySelector('.tab-stack')!)).toEqual(['HH|', 'SD|', 'BD|']);
   });
 
+  it('should keep drum rows without rests in their bars', () => {
+    const el = render('HH|xxxxxxxx|xxxxxxxx|\nSD|----o---|----o---|\nBD|o-------|o-o-----|');
+    expect(lines(el.querySelector('.tab-stack')!)).toEqual(['HH|', 'SD|', 'BD|']);
+    expect(lines(el.querySelectorAll('.tab-bar')[1])[0]).toBe('xxxxxxxx|');
+  });
+
   it('should treat box drawing lines as bars', () => {
     const el = render('e│--0--│--2--│\nB│--1--│--3--│');
     expect(lines(el.querySelectorAll('.tab-bar')[1])).toEqual(['--2--|', '--3--|']);
@@ -167,6 +173,13 @@ describe('guitar tab', () => {
     const el = render('G         C\nShe said: come home');
     expect(el.querySelectorAll('.header').length).toBe(0);
     expect([...el.querySelectorAll('.tab-chords .text')].map(l => l.textContent).join('')).toBe('She said: come home');
+  });
+
+  it('should rejoin a wrapped chord line over lyrics with a colon', () => {
+    const el = render('C                            Em\nAm\nShe said: come home to me now my darling dear');
+    expect(el.querySelectorAll('.tab-chords').length).toBe(1);
+    const chord = [...el.querySelectorAll('.tab-chords .chord')].map(l => l.textContent).join('');
+    expect(chord.trimEnd()).toBe('C                            Em Am');
   });
 
   it('should escape HTML', () => {
